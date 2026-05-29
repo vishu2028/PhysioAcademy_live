@@ -1,0 +1,129 @@
+@extends('layouts.admin')
+
+@section('title', isset($page) ? 'Edit Page' : 'Create Page')
+
+@push('styles')
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+@endpush
+
+@section('content')
+<div class="mb-4">
+    <a href="{{ route('admin.pages.index') }}" class="text-decoration-none small text-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to List
+    </a>
+    <h2 class="fw-bold text-dark mt-2">{{ isset($page) ? 'Edit Page' : 'Create New Dynamic Page' }}</h2>
+</div>
+
+<form action="{{ isset($page) ? route('admin.pages.update', $page) : route('admin.pages.store') }}" method="POST">
+    @csrf
+    @if(isset($page)) @method('PUT') @endif
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Page Title</label>
+                        <input type="text" name="title" id="pageTitle" class="form-control form-control-lg rounded-3" value="{{ old('title', $page->title ?? '') }}" placeholder="Enter page title..." required>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="form-label fw-bold">Page Content</label>
+                        <textarea name="content" id="editor" class="form-control" rows="20">{{ old('content', $page->content ?? '') }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="fw-bold mb-0">Publishing Settings</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Slug / URL</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">/page/</span>
+                            <input type="text" name="slug" id="pageSlug" class="form-control border-start-0" value="{{ old('slug', $page->slug ?? '') }}" placeholder="page-url-slug" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Visibility Status</label>
+                        <select name="status" class="form-select rounded-3">
+                            <option value="1" {{ old('status', $page->status ?? 1) == 1 ? 'selected' : '' }}>Published (Public)</option>
+                            <option value="0" {{ old('status', $page->status ?? 1) == 0 ? 'selected' : '' }}>Draft (Private)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-0">
+                        <div class="form-check form-switch pt-2">
+                            <input class="form-check-input" type="checkbox" name="show_in_menu" id="showMenuSwitch" value="1" {{ old('show_in_menu', $page->show_in_menu ?? false) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-bold" for="showMenuSwitch">Show in Main Menu</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-0 mt-2">
+                        <div class="form-check form-switch pt-2">
+                            <input class="form-check-input text-danger" type="checkbox" name="is_protected" id="protectionSwitch" value="1" {{ old('is_protected', $page->is_protected ?? false) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-bold" for="protectionSwitch">Enable Content Protection</label>
+                        </div>
+                        <div class="form-text x-small"><i class="bi bi-shield-lock me-1"></i> Prevents copying, right-click, and DevTools on this page.</div>
+                    </div>
+                </div>
+                <div class="card-footer bg-light p-3 d-grid">
+                    <button type="submit" class="btn btn-primary rounded-3 py-2 fw-bold">
+                        <i class="bi bi-save me-2"></i> {{ isset($page) ? 'Update Page' : 'Save and Publish' }}
+                    </button>
+                    <a href="{{ route('admin.pages.index') }}" class="btn btn-link btn-sm text-secondary mt-2">Cancel and discard</a>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="fw-bold mb-0">SEO Metadata (Optional)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Meta Description</label>
+                        <textarea name="meta_description" class="form-control rounded-3" rows="3">{{ old('meta_description', $page->meta_description ?? '') }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@push('scripts')
+<script>
+    tinymce.init({
+        selector: '#editor',
+        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+        height: 600,
+        skin: 'oxide',
+        content_css: 'default',
+        setup: function (editor) {
+            editor.on('change', function () {
+                tinymce.triggerSave();
+            });
+        }
+    });
+
+    // Auto-generate slug from title
+    const titleInput = document.getElementById('pageTitle');
+    const slugInput = document.getElementById('pageSlug');
+
+    titleInput.addEventListener('input', function() {
+        if (!{{ isset($page) ? 'true' : 'false' }}) {
+            const slug = titleInput.value
+                .toLowerCase()
+                .replace(/[^\w ]+/g, '')
+                .replace(/ +/g, '-');
+            slugInput.value = slug;
+        }
+    });
+</script>
+@endpush
+@endsection

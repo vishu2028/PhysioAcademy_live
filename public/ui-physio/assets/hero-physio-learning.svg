@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 520" role="img" aria-labelledby="title desc">
+  <title id="title">Physiotherapy learning illustration</title>
+  <desc id="desc">A student studies physiotherapy notes beside an anatomy model and learning interface.</desc>
+  <defs>
+    <linearGradient id="blueGlow" x1="90" y1="30" x2="470" y2="470" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#e0f2fe"/>
+      <stop offset=".48" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dbeafe"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="146" y1="120" x2="414" y2="352" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eff6ff"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="150%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="24" stdDeviation="24" flood-color="#2563eb" flood-opacity=".16"/>
+    </filter>
+  </defs>
+
+  <circle cx="280" cy="260" r="228" fill="url(#blueGlow)" opacity=".82"/>
+  <circle cx="280" cy="260" r="170" fill="#fff" opacity=".58"/>
+
+  <g filter="url(#softShadow)">
+    <rect x="132" y="104" width="296" height="232" rx="34" fill="url(#screen)" stroke="#bfdbfe" stroke-width="2"/>
+    <rect x="162" y="138" width="136" height="14" rx="7" fill="#bfdbfe"/>
+    <rect x="162" y="170" width="92" height="10" rx="5" fill="#dbeafe"/>
+    <rect x="162" y="194" width="142" height="10" rx="5" fill="#e0f2fe"/>
+    <rect x="162" y="218" width="106" height="10" rx="5" fill="#dbeafe"/>
+
+    <g transform="translate(306 142)">
+      <circle cx="42" cy="42" r="42" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+      <path d="M42 17c-9 0-16 7-16 16 0 13 16 35 16 35s16-22 16-35c0-9-7-16-16-16Z" fill="#38bdf8" opacity=".92"/>
+      <circle cx="42" cy="33" r="7" fill="#fff"/>
+    </g>
+
+    <g transform="translate(214 256)">
+      <path d="M0 28c22-28 54-29 77-3 15 17 37 15 53-4" fill="none" stroke="#2563eb" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="0" cy="28" r="7" fill="#10b981"/>
+      <circle cx="77" cy="25" r="7" fill="#38bdf8"/>
+      <circle cx="130" cy="21" r="7" fill="#f59e0b"/>
+    </g>
+  </g>
+
+  <g transform="translate(106 288)" filter="url(#softShadow)">
+    <path d="M68 38c-21 0-38 17-38 38v78h138V75c0-21-17-37-38-37H68Z" fill="#1d4ed8"/>
+    <path d="M56 158h154c12 0 22 10 22 22v17H34v-17c0-12 10-22 22-22Z" fill="#dbeafe"/>
+    <circle cx="99" cy="24" r="34" fill="#f8c7a8"/>
+    <path d="M67 25c7-36 62-35 67 2-16-12-42-11-67-2Z" fill="#172554"/>
+    <path d="M63 72c20 20 50 19 70 0v31H63V72Z" fill="#f8c7a8"/>
+    <rect x="70" y="116" width="84" height="58" rx="12" fill="#ffffff" opacity=".9"/>
+    <path d="M90 139h44M90 156h30" stroke="#93c5fd" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(360 286)" filter="url(#softShadow)">
+    <rect x="16" y="42" width="86" height="132" rx="28" fill="#f8fafc" stroke="#bfdbfe" stroke-width="2"/>
+    <circle cx="59" cy="23" r="25" fill="#f8c7a8"/>
+    <path d="M41 21c7-23 41-20 43 4-13-8-26-9-43-4Z" fill="#0f172a"/>
+    <path d="M60 67v88M37 90h46M41 126h38" stroke="#2563eb" stroke-width="7" stroke-linecap="round"/>
+    <path d="M28 172h26M66 172h28" stroke="#0f172a" stroke-width="8" stroke-linecap="round"/>
+  </g>
+
+  <g opacity=".72">
+    <circle cx="96" cy="112" r="5" fill="#38bdf8"/>
+    <circle cx="454" cy="122" r="4" fill="#2563eb"/>
+    <circle cx="478" cy="388" r="6" fill="#10b981"/>
+    <path d="M86 406h44M430 82h34M468 430h24" stroke="#93c5fd" stroke-width="5" stroke-linecap="round"/>
+  </g>
+</svg>
