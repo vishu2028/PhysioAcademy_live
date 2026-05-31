@@ -36,7 +36,11 @@
       </div>
 
       <div class="tspage-accordion-list" id="subjectAccordions">
-        @forelse($subjects as $subject)
+        @php
+            $visibleSubjects = auth()->check() ? $subjects : $subjects->take(ceil($subjects->count() / 2));
+        @endphp
+
+        @foreach($visibleSubjects as $subject)
         <div class="tspage-panel {{ $loop->first ? 'active' : '' }}">
             <div class="tspage-panel-header" onclick="this.parentElement.classList.toggle('active')">
                 <div class="tspage-panel-info">
@@ -52,7 +56,12 @@
             </div>
             <div class="tspage-panel-content">
                 <div class="tspage-topics-grid">
-                    @foreach($subject->topics()->active()->whereNull('parent_id')->withCount('subtopics')->get() as $topic)
+                    @php
+                        $subjectTopics = $subject->topics()->active()->whereNull('parent_id')->withCount('subtopics')->get();
+                        $visibleTopics = auth()->check() ? $subjectTopics : $subjectTopics->take(ceil($subjectTopics->count() / 2));
+                    @endphp
+
+                    @foreach($visibleTopics as $topic)
                     <div class="tspage-topic-card">
                         <a href="{{ route('topics.show', ['slug' => $topic->slug]) }}" class="tspage-topic-item">
                             <div class="tspage-tic-info">
@@ -74,16 +83,36 @@
                         @endif
                     </div>
                     @endforeach
+
+                    @guest
+                    <div class="tspage-topic-card guest-locked-topics p-4 rounded-4 text-center d-flex flex-column justify-content-center border border-dashed border-primary bg-light">
+                        <i class="bi bi-lock-fill text-primary mb-2 fs-4"></i>
+                        <h6 class="fw-bold small mb-1">More Topics Locked</h6>
+                        <p class="x-small text-muted mb-2">Create an account to view all modules in this subject.</p>
+                        <a href="{{ route('login') }}" class="btn btn-primary btn-sm rounded-pill">Login Now</a>
+                    </div>
+                    @endguest
                 </div>
             </div>
         </div>
-        @empty
+        @endforeach
+
+        @guest
+        <div class="tspage-panel p-5 text-center mt-4 border-dashed" style="border: 2px dashed #e2e8f0; border-radius: 28px;">
+            <div class="mb-3"><i class="bi bi-book-half display-5 text-muted opacity-50"></i></div>
+            <h3 class="fw-bold mb-2">Unlock More Subjects</h3>
+            <p class="text-muted mb-4 mx-auto" style="max-width: 500px;">
+                You are currently viewing a limited selection of subjects. Sign in to your student account to unlock the full 2024 Physiotherapy curriculum.
+            </p>
+            <a href="{{ route('register') }}" class="btn btn-primary rounded-pill px-5 py-2">Join the Academy</a>
+        </div>
+        @endguest
         <div class="tspage-empty-state">
             <div>📂</div>
             <h3>Library Syncing</h3>
             <p>We are currently updating our subject database.</p>
         </div>
-        @endforelse
+        </div>
       </div>
 
       <!-- REQUEST TOPIC CTA -->

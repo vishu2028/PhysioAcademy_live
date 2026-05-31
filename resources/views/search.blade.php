@@ -20,7 +20,7 @@
         @endif
       </form>
 
-      <div class="site-search-filters" aria-label="Search filters">
+    <div class="site-search-filters" aria-label="Search filters">
         <button class="site-search-filter active" type="button" data-filter="all">All</button>
         <button class="site-search-filter" type="button" data-filter="available">Available</button>
         <button class="site-search-filter" type="button" data-filter="progress">In Progress</button>
@@ -33,18 +33,16 @@
     <div class="site-search-toolbar">
       <p id="searchResultCount">
         @if($query)
-            {{ count($results) }} result{{ count($results) === 1 ? '' : 's' }} found
+            <span id="resultCountText">{{ $results->count() }}</span> result{{ $results->count() === 1 ? '' : 's' }} found for "{{ $query }}"
         @else
-            Showing all topics
+            Showing trending topics
         @endif
       </p>
       <select id="yearFilter" aria-label="Filter by year">
         <option value="all">All years</option>
-        <option value="First Year">First Year</option>
-        <option value="Second Year">Second Year</option>
-        <option value="Third Year">Third Year</option>
-        <option value="Fourth Year">Fourth Year</option>
-        <option value="Internship">Internship</option>
+        @foreach(\App\Models\AcademicYear::active()->orderBy('order')->get() as $yr)
+          <option value="{{ $yr->name }}">{{ $yr->name }}</option>
+        @endforeach
       </select>
     </div>
 
@@ -57,37 +55,52 @@
     </div>
 
     <div class="site-search-results" id="siteSearchResults">
-        @forelse($results as $topic)
-        <a class="site-search-result-card" href="{{ route('topics.show', ['slug' => str_replace(' ', '-', strtolower($topic->title))]) }}">
-          <div>
-            <span class="site-search-result-subject">{{ $topic->subject->name ?? 'General' }}</span>
-            <h2>{{ $topic->title }}</h2>
-            <p>{{ $topic->academicYear->name ?? 'All Years' }} · Unit I</p>
-          </div>
-          <span class="site-search-status available">✓ Available</span>
-        </a>
-        @empty
-            @if($query)
-            <div class="site-search-empty" id="siteSearchEmpty">
-                <h2>No matching topics found</h2>
-                <p>Try a subject name, unit name, or a shorter keyword.</p>
-                <a href="{{ route('topics.index') }}">Browse all topics</a>
-            </div>
-            @else
-                @php $defaultTopics = \App\Models\Topic::active()->limit(10)->get(); @endphp
-                @foreach($defaultTopics as $topic)
-                <a class="site-search-result-card" href="{{ route('topics.show', ['slug' => str_replace(' ', '-', strtolower($topic->title))]) }}">
-                  <div>
-                    <span class="site-search-result-subject">{{ $topic->subject->name ?? 'General' }}</span>
-                    <h2>{{ $topic->title }}</h2>
-                    <p>{{ $topic->academicYear->name ?? 'All Years' }} · Unit I</p>
-                  </div>
-                  <span class="site-search-status available">✓ Available</span>
-                </a>
-                @endforeach
-            @endif
-        @endforelse
+@php
+    $visibleResults = auth()->check() ? $results : $results->take(ceil($results->count() / 2) ?: 5);
+@endphp
+
+@forelse($visibleResults as $topic)
+<a class="site-search-result-card"
+   href="{{ route('topics.show', ['slug' => $topic->slug]) }}"
+   data-year="{{ $topic->academicYear->name ?? '' }}"
+   data-subject="{{ $topic->subject->name ?? '' }}">
+  <div>
+    <span class="site-search-result-subject">{{ $topic->subject->name ?? 'General' }}</span>
+    <h2>{{ $topic->title }}</h2>
+    <p>{{ $topic->academicYear->name ?? 'All Years' }}</p>
+  </div>
+  <span class="site-search-status available">✓ Available</span>
+</a>
+@empty
+    @if($query)
+    <div class="site-search-empty" id="siteSearchEmpty">
+        <h2>No matching topics found</h2>
+        <p>Try a subject name, unit name, or a shorter keyword.</p>
+        <a href="{{ route('topics.index') }}">Browse all topics</a>
     </div>
+    @else
+    <div class="site-search-empty" id="siteSearchEmpty">
+        <h2>No topics available yet</h2>
+        <p>Check back soon as we add more content.</p>
+        <a href="{{ route('home') }}">Go to Homepage</a>
+    </div>
+    @endif
+@endforelse
+    </div>
+
+@guest
+    @if($results->count() > $visibleResults->count())
+    <div class="site-search-result-card restricted-search-item mt-3 p-5 text-center d-flex flex-column" style="border: 2px dashed #e2e8f0; background: #f8fbff;">
+        <div class="mb-3"><i class="bi bi-lock-fill display-6 text-primary"></i></div>
+        <h3 class="fw-bold fs-5 mb-2">More results are locked</h3>
+        <p class="text-muted small mb-4 mx-auto" style="max-width: 400px;">We found more relevant topics for your search, but full access is reserved for registered students.</p>
+        <div class="d-flex justify-content-center gap-2">
+            <a href="{{ route('login') }}" class="btn btn-primary btn-sm rounded-pill px-4">Login</a>
+            <a href="{{ route('register') }}" class="btn btn-outline-primary btn-sm rounded-pill px-4">Register</a>
+        </div>
+    </div>
+    @endif
+@endguest
   </section>
 </main>
 
@@ -395,5 +408,92 @@
     .site-search-content { padding: 30px 16px; }
   }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+(function () {
+  'use strict';
+
+  /* ── Year Filter ────────────────────────────────────────── */
+  const yearSelect  = document.getElementById('yearFilter');
+  const resultsGrid = document.getElementById('siteSearchResults');
+  const countText   = document.getElementById('resultCountText');
+
+  function applyYearFilter() {
+    if (!yearSelect || !resultsGrid) return;
+    const selected = yearSelect.value;
+    const cards    = resultsGrid.querySelectorAll('.site-search-result-card');
+    let visible    = 0;
+
+    cards.forEach(card => {
+      const cardYear = (card.dataset.year || '').trim();
+      const show     = selected === 'all' || cardYear === selected;
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    // Update count text
+    if (countText) {
+      countText.textContent = visible;
+    }
+
+    // Toggle empty state
+    let emptyEl = document.getElementById('dynamicEmptyState');
+    if (visible === 0) {
+      if (!emptyEl) {
+        emptyEl = document.createElement('div');
+        emptyEl.id = 'dynamicEmptyState';
+        emptyEl.className = 'site-search-empty';
+        emptyEl.innerHTML = '<h2>No topics for this year</h2><p>Try selecting a different year or clear the filter.</p>';
+        resultsGrid.after(emptyEl);
+      }
+      emptyEl.style.display = 'block';
+    } else {
+      if (emptyEl) emptyEl.style.display = 'none';
+    }
+  }
+
+  if (yearSelect) {
+    yearSelect.addEventListener('change', applyYearFilter);
+  }
+
+  /* ── Search Input Live Redirect ─────────────────────────── */
+  const searchInput  = document.getElementById('siteSearchInput');
+  const searchPageUrl = document.querySelector('meta[name="search-url"]')?.content || '/search';
+
+  if (searchInput) {
+    let timer;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const q = searchInput.value.trim();
+        if (q.length >= 2) {
+          window.location.href = searchPageUrl + '?query=' + encodeURIComponent(q);
+        }
+      }, 600);
+    });
+
+    searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        clearTimeout(timer);
+        const q = searchInput.value.trim();
+        if (q) {
+          window.location.href = searchPageUrl + '?query=' + encodeURIComponent(q);
+        }
+      }
+    });
+  }
+
+  /* ── Filter Tabs (visual only) ──────────────────────────── */
+  document.querySelectorAll('.site-search-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.site-search-filter').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+})();
+</script>
 @endpush
 @endsection

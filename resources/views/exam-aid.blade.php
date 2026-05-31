@@ -140,9 +140,18 @@
               <div class="exam-card-meta"><span>{{ $meta['stat1'] ?? '' }}</span><span>{{ $meta['stat2'] ?? '' }}</span></div>
               <div class="exam-card-actions">
                 @if(!empty($meta['action_url']))
-                <button onclick="window.location.href='{{ $meta['action_url'] }}'">View</button>
+                  @auth
+                    <button onclick="window.location.href='{{ $meta['action_url'] }}'">View</button>
+                  @else
+                    <button onclick="window.location.href='{{ route('login') }}'"><i class="bi bi-lock-fill me-1"></i> Unlock</button>
+                  @endauth
                 @endif
-                <button>Download</button>
+                
+                @auth
+                  <button>Download</button>
+                @else
+                   <button onclick="window.location.href='{{ route('login') }}'"><i class="bi bi-lock-fill me-1"></i> Download</button>
+                @endauth
               </div>
             </article>
             @endforeach
@@ -164,7 +173,14 @@
                   </button>
                   <div class="collapse" id="faq-{{ $faq->id }}">
                     <div class="p-3 text-secondary small">
-                        {{ $faq->answer }}
+                        @auth
+                            {{ $faq->answer }}
+                        @else
+                            {{ Str::limit($faq->answer, strlen($faq->answer)/2) }}
+                            <div class="mt-2">
+                                <a href="{{ route('login') }}" class="text-primary fw-bold text-decoration-none">Login to view full answer →</a>
+                            </div>
+                        @endauth
                     </div>
                   </div>
                 </article>
@@ -179,12 +195,18 @@
                     <span class="exam-difficulty hard">Subject Notes</span>
                     <span>{{ $topic->academicYear->name ?? 'Core' }}</span>
                   </div>
-                  <h3>{{ $topic->title }}</h3>
-                  <p>{{ Str::limit($topic->description, 100) }}</p>
+                  <h3 class="text-truncate">{{ $topic->title }}</h3>
+                  <p>{{ auth()->check() ? Str::limit($topic->description, 100) : Str::limit($topic->description, 50) }}</p>
                   <div class="exam-card-meta"><span>14 papers</span><span>32 viva prompts</span></div>
                   <div class="exam-card-actions">
-                    <button onclick="window.location.href='{{ route('topics.show', ['slug' => str_replace(' ', '-', strtolower($topic->title))]) }}'">View</button>
-                    <button>Download</button>
+                    <button onclick="window.location.href='{{ route('topics.show', ['slug' => $topic->slug]) }}'">
+                        @auth View @else Preview @endauth
+                    </button>
+                    @auth
+                        <button>Download</button>
+                    @else
+                        <button onclick="window.location.href='{{ route('login') }}'"><i class="bi bi-lock-fill"></i></button>
+                    @endauth
                   </div>
                 </article>
                 @endforeach

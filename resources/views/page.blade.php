@@ -60,7 +60,27 @@
 <section class="page-content-wrap">
     <div class="section-container">
         <div class="page-body reveal-up delay-2">
-            {!! $page->content !!}
+            @auth
+                {!! $page->content !!}
+            @else
+                <div class="preview-mode">
+                    {!! Str::limit($page->content, strlen($page->content) / 2) !!}
+                    
+                    <div class="restriction-box mt-5 p-5 rounded-4 text-center" style="background: rgba(37,99,235,0.05); border: 1px solid rgba(37,99,235,0.1);">
+                        <div class="mb-4">
+                            <i class="bi bi-shield-lock-fill display-4 text-blue-600"></i>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-3">Content Restricted to Members</h3>
+                        <p class="text-muted mb-4 mx-auto" style="max-width: 500px;">
+                            You are currently viewing a 50% preview of this page. To access the complete guide, clinical notes, and downloadable resources, please sign into your student account.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{{ route('login') }}" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow-sm">Login Now</a>
+                            <a href="{{ route('register') }}" class="btn btn-outline-primary rounded-pill px-5 py-2 fw-bold">Create Account</a>
+                        </div>
+                    </div>
+                </div>
+            @endauth
         </div>
     </div>
 </section>

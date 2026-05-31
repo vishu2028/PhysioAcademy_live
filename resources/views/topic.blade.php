@@ -73,7 +73,21 @@
                     <div class="content-glass-card">
                         <div class="content-section">
                             <h2 class="section-heading">Description & Overview</h2>
-                            <div class="topic-long-desc">{!! $topic->description !!}</div>
+                            <div class="topic-long-desc">
+                                @auth
+                                    {!! $topic->description !!}
+                                @else
+                                    <div class="preview-content" style="position: relative;">
+                                        {!! Str::limit($topic->description, strlen($topic->description) / 2) !!}
+                                        <div class="content-overlay" style="background: linear-gradient(to bottom, transparent, #fff); height: 100px; margin-top: -100px; position: relative; z-index: 1;"></div>
+                                        <div class="restricted-notice mt-4 px-4 py-3 rounded-4 border border-blue-100 bg-blue-50/50 text-center">
+                                            <p class="mb-2 fw-bold text-blue-900">✨ Reading in Preview Mode (50%)</p>
+                                            <p class="text-sm text-blue-700 mb-3">Join Physio Academy to unlock full detailed descriptions, diagrams, and clinical insights.</p>
+                                            <a href="{{ route('login') }}" class="btn-sidebar-primary d-inline-block px-5 py-2 w-auto">Login to Continue</a>
+                                        </div>
+                                    </div>
+                                @endauth
+                            </div>
                         </div>
 
                         <div class="content-section">
@@ -105,13 +119,19 @@
                                             @endif
                                         </div>
                                         <div class="mc-action">
-                                            @if($material->type == 'pdf')
-                                                <a href="{{ asset('storage/' . $material->file_path) }}" target="_blank" class="btn-mc-primary">Download</a>
-                                            @elseif($material->type == 'video')
-                                                <a href="{{ $material->url }}" target="_blank" class="btn-mc-primary">Watch Now</a>
-                                            @elseif($material->type == 'link')
-                                                <a href="{{ $material->url }}" target="_blank" class="btn-mc-secondary">Open Link</a>
-                                            @endif
+                                            @auth
+                                                @if($material->type == 'pdf')
+                                                    <a href="{{ route('materials.download', $material->id) }}" target="_blank" class="btn-mc-primary">Download</a>
+                                                @elseif($material->type == 'video')
+                                                    <a href="{{ $material->url }}" target="_blank" class="btn-mc-primary">Watch Now</a>
+                                                @elseif($material->type == 'link')
+                                                    <a href="{{ $material->url }}" target="_blank" class="btn-mc-secondary">Open Link</a>
+                                                @endif
+                                            @else
+                                                <button onclick="window.location.href='{{ route('login') }}'" class="btn-mc-primary flex items-center gap-2">
+                                                    <i class="bi bi-lock-fill"></i> Unlock
+                                                </button>
+                                            @endauth
                                         </div>
                                     </div>
                                 @empty

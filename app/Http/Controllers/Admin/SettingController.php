@@ -42,6 +42,13 @@ class SettingController extends Controller
                 );
             }
         }
+        
+        // Validate file uploads if present
+        $request->validate([
+            'site_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'site_favicon' => 'nullable|mimes:ico,png,jpg,jpeg,svg|max:1024',
+            'footer_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
 
         // Handle file uploads
         $fileFields = ['site_logo', 'site_favicon', 'footer_logo'];
@@ -49,8 +56,8 @@ class SettingController extends Controller
             if ($request->hasFile($field)) {
                 // Delete old file
                 $old = Setting::where('key', $field)->first();
-                if ($old && $old->value) {
-                    Storage::disk('public')->delete($old->value);
+                if ($old && $old->getRawOriginal('value')) {
+                    Storage::disk('public')->delete($old->getRawOriginal('value'));
                 }
 
                 $path = $request->file($field)->store('settings', 'public');

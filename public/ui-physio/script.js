@@ -14,13 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
   initCounters();
   initParticles();
   initTiltCards();
-  initSearchOverlay();
+  initSearchInput();    // must run first — exposes window.loadTrending
+  initSearchOverlay();  // uses window.loadTrending on open
   initAuthModal();
   initDoubtForm();
   initBackToTop();
   initActiveNav();
   initSaveButtons();
-  initSearchInput();
   initExamAidPage();
   initCurriculumCardRedirect();
 });
@@ -291,23 +291,22 @@ function initCurriculumCardRedirect() {
 // ── SEARCH OVERLAY ─────────────────────────────────────────────────────
 function initSearchOverlay() {
   const overlay = document.getElementById('searchOverlay');
-  const toggle = document.getElementById('searchToggle');
-  const close = document.getElementById('searchClose');
-  const input = document.getElementById('mainSearch');
+  const toggle  = document.getElementById('searchToggle');
+  const close   = document.getElementById('searchClose');
+  const input   = document.getElementById('mainSearch');
   if (!overlay || !toggle) return;
 
   function openSearch() {
     overlay.classList.add('active');
     document.body.style.overflow = 'hidden';
+    // Load trending topics from DB when overlay opens
+    if (typeof window.loadTrending === 'function') window.loadTrending();
     setTimeout(() => input && input.focus(), 200);
   }
   function closeSearch() {
     overlay.classList.remove('active');
     document.body.style.overflow = '';
-    if (input) {
-      input.value = '';
-      showSuggestions();
-    }
+    if (input) input.value = '';
   }
 
   toggle.addEventListener('click', openSearch);
@@ -316,7 +315,7 @@ function initSearchOverlay() {
   // Close on backdrop click
   overlay.querySelector('.search-overlay-bg')?.addEventListener('click', closeSearch);
 
-  // Keyboard shortcut
+  // Keyboard shortcuts
   document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
       e.preventDefault();
@@ -326,38 +325,118 @@ function initSearchOverlay() {
   });
 }
 
-// ── SEARCH INPUT ────────────────────────────────────────────────────────
+// ── SEARCH INPUT (AJAX-powered) ──────────────────────────────────────────
 function initSearchInput() {
-  const input = document.getElementById('mainSearch');
-  const suggestionsEl = document.getElementById('searchSuggestions');
-  const noResult = document.getElementById('searchNoResult');
-  const noResultQuery = document.getElementById('noResultQuery');
+  const input        = document.getElementById('mainSearch');
+  const suggestWrap  = document.getElementById('searchSuggestions');
+  const dynContainer = document.getElementById('searchSuggestionsDynamic');
+  const noResult     = document.getElementById('searchNoResult');
+  const noResultQ    = document.getElementById('noResultQuery');
+  const requestBtn   = document.getElementById('btnRequestTopic');
   if (!input) return;
 
-  const topics = ['Brachial Plexus', 'Gait Cycle', 'UMN vs LMN Lesions', 'Muscle Contraction', 'Reflex Arc', 'Spinal Cord Tracts', 'Muscle Spindle', 'Cerebellum', 'Anatomy', 'Physiology', 'Biomechanics', 'Electrotherapy', 'Neurology', 'Orthopaedics', 'Paediatrics', 'Sports Physiotherapy'];
+  // Read URLs from <meta> tags injected by the Blade layout
+  const suggestionsUrl = document.querySelector('meta[name="search-suggestions-url"]')?.content || '/search/suggestions';
+  const searchPageUrl  = document.querySelector('meta[name="search-url"]')?.content || '/search';
+  const topicBaseUrl   = document.querySelector('meta[name="topic-base-url"]')?.content || '/topic';
+
+  const icons = ['ui-icon-flame','ui-icon-trending','ui-icon-zap','ui-icon-heart-pulse',
+                  'ui-icon-brain','ui-icon-book','ui-icon-lightbulb','ui-icon-map','ui-icon-mic'];
 
   function showSuggestions() {
-    if (suggestionsEl) suggestionsEl.style.display = 'block';
-    if (noResult) noResult.style.display = 'none';
+    if (suggestWrap) suggestWrap.style.display = 'block';
+    if (noResult)    noResult.style.display    = 'none';
   }
   function showNoResult(query) {
-    if (suggestionsEl) suggestionsEl.style.display = 'none';
-    if (noResult) noResult.style.display = 'block';
-    if (noResultQuery) noResultQuery.textContent = query;
+    if (suggestWrap) suggestWrap.style.display = 'none';
+    if (noResult)    noResult.style.display    = 'block';
+    if (noResultQ)   noResultQ.textContent     = query;
+    if (requestBtn)  requestBtn.href           = searchPageUrl + '?query=' + encodeURIComponent(query);
   }
 
-  window.showSuggestions = showSuggestions;
+  // Render API results into the dynamic container
+  function renderResults(data, type) {
+    if (!dynContainer) return;
+    if (!data || !data.length) {
+      showNoResult(input.value.trim());
+      return;
+    }
 
+    const label     = type === 'trending' ? '🔥 Trending Topics' : '🔍 Search Results';
+    const itemsHtml = data.map((topic, i) => {
+      const icon    = icons[i % icons.length];
+      const subject = topic.subject ? `<small style="opacity:.55;margin-left:8px;font-size:.75rem;">${topic.subject.name}</small>` : '';
+      const url     = `${topicBaseUrl}/${topic.slug}`;
+      return `<a href="${url}" class="suggestion-item" style="text-decoration:none;display:flex;align-items:center;gap:6px;">
+                <span class="suggest-icon ui-icon ${icon}" aria-hidden="true"></span>
+                <span>${topic.title}</span>${subject}
+              </a>`;
+    }).join('');
+
+    dynContainer.innerHTML = `
+      <div class="suggestion-group">
+        <span class="suggestion-label">${label}</span>
+        <div class="suggestion-items">${itemsHtml}</div>
+      </div>`;
+
+    showSuggestions();
+  }
+
+  // Abort controller prevents stale responses
+  let controller;
+  async function fetchSuggestions(query) {
+    if (controller) controller.abort();
+    controller = new AbortController();
+    try {
+      const url = query
+        ? `${suggestionsUrl}?query=${encodeURIComponent(query)}`
+        : suggestionsUrl;
+      const res  = await fetch(url, {
+        signal: controller.signal,
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+      });
+      if (!res.ok) return;
+      const json = await res.json();
+      renderResults(json.data || [], json.type || 'search');
+    } catch (e) {
+      if (e.name !== 'AbortError') console.warn('[Search] fetch error:', e);
+    }
+  }
+
+  // Exposed globally so initSearchOverlay can call it on open
+  window.loadTrending = function () {
+    if (dynContainer) {
+      dynContainer.innerHTML = `
+        <div class="suggestion-group">
+          <span class="suggestion-label">🔥 Trending Topics</span>
+          <div class="suggestion-items">
+            <div class="suggestion-item" style="opacity:.4;pointer-events:none;">
+              <span class="suggest-icon ui-icon ui-icon-flame"></span> Loading...
+            </div>
+          </div>
+        </div>`;
+    }
+    showSuggestions();
+    fetchSuggestions('');
+  };
+
+  // Debounced live search on each keystroke
   let debounceTimer;
   input.addEventListener('input', () => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-      const query = input.value.trim().toLowerCase();
-      if (!query) { showSuggestions(); return; }
-      const found = topics.some(t => t.toLowerCase().includes(query));
-      if (found) showSuggestions();
-      else showNoResult(input.value.trim());
-    }, 300);
+      const query = input.value.trim();
+      if (!query) { window.loadTrending(); return; }
+      fetchSuggestions(query);
+    }, 280);
+  });
+
+  // Enter → go to full search results page
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const query = input.value.trim();
+      if (query) window.location.href = `${searchPageUrl}?query=${encodeURIComponent(query)}`;
+    }
   });
 }
 

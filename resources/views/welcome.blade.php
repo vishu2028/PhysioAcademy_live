@@ -318,7 +318,6 @@
   </div>
 </section>
 
-@auth
 <!-- TRENDING TOPICS / HOT RIGHT NOW -->
 <section class="section trending-section" id="topics">
   <div class="section-container">
@@ -379,9 +378,7 @@
     </div>
   </div>
 </section>
-@endauth
 
-@auth
 <!-- LEARNING RESOURCES / MATERIALS -->
 <section class="section resources-section">
   <div class="section-container">
@@ -448,9 +445,7 @@
     </div>
   </div>
 </section>
-@endauth
 
-@auth
 <!-- ASK DOUBT / ACADEMIC SUPPORT -->
 <section class="section ask-doubt-section" id="ask-doubt">
   <div class="section-container">
@@ -538,9 +533,7 @@
     </div>
   </div>
 </section>
-@endauth
 
-@auth
 <!-- EXAM AID / EXAM PREP -->
 <section class="section exam-section" id="exam-aid">
   <div class="section-container">
@@ -605,9 +598,7 @@
     </div>
   </div>
 </section>
-@endauth
 
-@auth
 <!-- COMMUNITY ACTIVITY / LIVE ACTIVITY -->
 <section class="section community-section" id="community">
   <div class="section-container">
@@ -709,9 +700,7 @@
     </div>
   </div>
 </section>
-@endauth
 
-@auth
 <!-- ABOUT SECTION -->
 <section class="section about-section" id="about">
   <div class="section-container">
@@ -783,7 +772,6 @@
     </div>
   </div>
 </section>
-@endauth
 
 @guest
 <section class="section guest-cta-final py-5 mt-5">

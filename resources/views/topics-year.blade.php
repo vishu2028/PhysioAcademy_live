@@ -64,7 +64,11 @@
         </div>
 
         <div class="typage-syllabus-grid">
-            @forelse($topics as $subjectName => $items)
+            @php
+                $visibleSubjects = auth()->check() ? $topics : $topics->take(ceil($topics->count() / 2));
+            @endphp
+
+            @forelse($visibleSubjects as $subjectName => $items)
             <div class="typage-subject-panel">
                 <div class="typage-subject-head">
                     <div>
@@ -78,7 +82,11 @@
                 </div>
 
                 <div class="typage-topic-cloud">
-                    @foreach($items as $item)
+                    @php
+                        $visibleItems = auth()->check() ? $items : $items->take(ceil($items->count() / 2));
+                    @endphp
+
+                    @foreach($visibleItems as $item)
                     <div class="typage-topic-group">
                         <div class="typage-topic-chip-wrapper">
                             <a href="{{ route('topics.show', ['slug' => $item->slug]) }}" class="typage-topic-chip">
@@ -108,6 +116,14 @@
                         @endif
                     </div>
                     @endforeach
+
+                    @guest
+                        <div class="typage-topic-group">
+                             <div class="typage-topic-chip px-4 py-2 border-dashed bg-light text-muted small">
+                                <i class="bi bi-lock-fill me-1"></i> More topics locked...
+                             </div>
+                        </div>
+                    @endguest
                 </div>
             </div>
             @empty
@@ -119,6 +135,23 @@
             </div>
             @endforelse
         </div>
+
+        @guest
+        <div class="typage-subject-panel p-5 text-center mt-4" style="background: linear-gradient(135deg, #fff, #f8fbff); border: 2px dashed #cbd5e1;">
+            <div class="mb-4">
+                <i class="bi bi-shield-lock display-4 text-blue-600"></i>
+            </div>
+            <h3 class="fw-bold mb-3">Academic Access Restricted</h3>
+            <p class="text-muted mb-4 mx-auto" style="max-width: 600px;">
+                We have over <strong>{{ $topics->flatten()->count() }}</strong> modules for {{ $currentYear->name }} available. 
+                Login now to unlock the full syllabus, download clinical notes, and access viva prep materials.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{{ route('login') }}" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow">Student Login</a>
+                <a href="{{ route('register') }}" class="btn btn-outline-primary rounded-pill px-5 py-2 fw-bold">Register Free</a>
+            </div>
+        </div>
+        @endguest
     </div>
   </section>
 </div>

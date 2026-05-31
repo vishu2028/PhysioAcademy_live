@@ -7,20 +7,22 @@ use App\Http\Controllers\ProfileController;
 
 // ─── Frontend Routes (CMS-driven) ───
 Route::get('/', [FrontendController::class, 'home'])->name('home');
+Route::get('/about', [FrontendController::class, 'about'])->name('about');
+Route::get('/contact', [FrontendController::class, 'contact'])->name('contact');
+Route::post('/contact', [FrontendController::class, 'contactSubmit'])->name('contact.submit');
+Route::get('/subjects', [FrontendController::class, 'topics'])->name('topics.index');
+Route::get('/topic/{slug}', [FrontendController::class, 'topicShow'])->name('topics.show');
+Route::get('/academic-years/{year?}', [FrontendController::class, 'topicsByYear'])->name('topics.year');
+Route::get('/exam-aid', [FrontendController::class, 'examAid'])->name('exam-aid');
+Route::get('/search', [FrontendController::class, 'search'])->name('search');
+Route::get('/search/suggestions', [FrontendController::class, 'searchSuggestions'])->name('search.suggestions');
+Route::get('/faq', [FrontendController::class, 'faq'])->name('faq');
 
 Route::middleware('auth')->group(function() {
-    Route::get('/about', [FrontendController::class, 'about'])->name('about');
-    Route::get('/contact', [FrontendController::class, 'contact'])->name('contact');
-    Route::post('/contact', [FrontendController::class, 'contactSubmit'])->name('contact.submit');
-    Route::get('/subjects', [FrontendController::class, 'topics'])->name('topics.index');
-    Route::get('/topic/{slug}', [FrontendController::class, 'topicShow'])->name('topics.show');
-    Route::get('/academic-years/{year?}', [FrontendController::class, 'topicsByYear'])->name('topics.year');
-    Route::get('/exam-aid', [FrontendController::class, 'examAid'])->name('exam-aid');
-    Route::get('/search', [FrontendController::class, 'search'])->name('search');
+    Route::get('/download/material/{id}', [FrontendController::class, 'downloadMaterial'])->name('materials.download');
     Route::get('/bookmarks', [FrontendController::class, 'bookmarks'])->name('bookmarks');
     Route::post('/bookmarks/toggle', [\App\Http\Controllers\BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
     Route::delete('/bookmarks/{id}', [\App\Http\Controllers\BookmarkController::class, 'remove'])->name('bookmarks.remove');
-    Route::get('/faq', [FrontendController::class, 'faq'])->name('faq');
 });
 
 // ─── Profile Routes ───
@@ -80,4 +82,4 @@ Route::middleware(['auth'])->get('/dashboard', function () {
 
 require __DIR__.'/auth.php';
 
-Route::middleware('auth')->get('/{slug}', [FrontendController::class, 'dynamicPage'])->name('page.show');
+Route::get('/{slug}', [FrontendController::class, 'dynamicPage'])->name('page.show');

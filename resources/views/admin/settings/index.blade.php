@@ -50,6 +50,26 @@
                                 <label class="form-label small fw-bold text-muted">Footer Description</label>
                                 <textarea name="settings[footer_text]" class="form-control rounded-3" rows="3">{{ get_setting('footer_text') }}</textarea>
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Site Logo</label>
+                                @if(get_setting('site_logo'))
+                                    <div class="mb-3 p-2 border rounded-3 bg-light d-inline-block">
+                                        <img src="{{ asset('storage/' . get_setting('site_logo')) }}" alt="Logo" style="max-height: 50px;">
+                                    </div>
+                                @endif
+                                <input type="file" name="site_logo" class="form-control rounded-3">
+                                <p class="small text-muted mt-2">Recommended size: 200x50px (.png, .svg, .jpg)</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Site Favicon</label>
+                                @if(get_setting('site_favicon'))
+                                    <div class="mb-3 p-2 border rounded-3 bg-light d-inline-block">
+                                        <img src="{{ asset('storage/' . get_setting('site_favicon')) }}" alt="Favicon" style="max-height: 32px;">
+                                    </div>
+                                @endif
+                                <input type="file" name="site_favicon" class="form-control rounded-3">
+                                <p class="small text-muted mt-2">Recommended size: 32x32px (.ico, .png, .svg)</p>
+                            </div>
                         </div>
                     </div>
                     
@@ -64,11 +84,6 @@
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted">Secondary Color</label>
                                 <input type="color" name="settings[secondary_color]" class="form-control form-control-color w-100 rounded-3 p-1" value="{{ get_setting('secondary_color', '#10b981') }}">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-muted">Logo (Dark Theme)</label>
-                                <input type="file" name="site_logo" class="form-control rounded-3">
-                                <p class="small text-muted mt-2">Recommended size: 200x50px</p>
                             </div>
                         </div>
                     </div>

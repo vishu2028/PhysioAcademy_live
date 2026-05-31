@@ -111,17 +111,67 @@ class FrontendController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('query');
-        $results = [];
+        $results = collect();
 
         if ($query) {
             $results = \App\Models\Topic::active()
-                ->where('title', 'like', "%{$query}%")
-                ->orWhere('description', 'like', "%{$query}%")
-                ->with('subject')
+                ->where(function($q) use ($query) {
+                    $q->where('title', 'like', "%{$query}%")
+                      ->orWhere('description', 'like', "%{$query}%");
+                })
+                ->with(['subject', 'academicYear'])
+                ->orderBy('order')
+                ->get();
+        } else {
+            // Show trending topics when no query is given
+            $results = \App\Models\Topic::active()
+                ->with(['subject', 'academicYear'])
+                ->orderBy('order')
+                ->limit(20)
                 ->get();
         }
 
         return view('search', compact('results', 'query'));
+    }
+
+    public function searchSuggestions(Request $request)
+    {
+        $query = trim($request->input('query', ''));
+        
+        if (!$query) {
+            // Return trending/popular topics if query is empty
+            $trending = \App\Models\Topic::active()
+                ->with('subject:id,name')
+                ->orderBy('order')
+                ->limit(8)
+                ->get(['id', 'title', 'slug', 'subject_id']);
+            
+            return response()->json([
+                'status' => 'success',
+                'type'   => 'trending',
+                'data'   => $trending
+            ]);
+        }
+
+        // Wrap OR conditions in a grouped closure so active() scope is not broken
+        $results = \App\Models\Topic::active()
+            ->where(function($q) use ($query) {
+                $q->where('title', 'like', "%{$query}%")
+                  ->orWhere('description', 'like', "%{$query}%")
+                  ->orWhereHas('subject', function($sq) use ($query) {
+                      $sq->where('name', 'like', "%{$query}%");
+                  });
+            })
+            ->with('subject:id,name')
+            ->orderBy('order')
+            ->limit(10)
+            ->get(['id', 'title', 'slug', 'subject_id']);
+
+        return response()->json([
+            'status' => 'success',
+            'type'   => 'search',
+            'data'   => $results
+        ]);
     }
 
     public function bookmarks()
@@ -185,5 +235,22 @@ class FrontendController extends Controller
         $page = \App\Models\Page::where('slug', $slug)->active()->firstOrFail();
         $pageProtected = $page->is_protected;
         return view('page', compact('page', 'pageProtected'));
+    }
+
+    public function downloadMaterial($id)
+    {
+        $material = \App\Models\LearningMaterial::findOrFail($id);
+        
+        if ($material->type !== 'pdf' || !$material->file_path) {
+            return back()->with('error', 'This material is not a downloadable file.');
+        }
+
+        $path = storage_path('app/public/' . $material->file_path);
+        
+        if (!file_exists($path)) {
+            return back()->with('error', 'File not found.');
+        }
+
+        return response()->download($path);
     }
 }

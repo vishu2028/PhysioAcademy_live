@@ -12,6 +12,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link rel="stylesheet" href="{{ asset('ui-physio/style.css') }}" />
+  
+  @if(get_setting('site_favicon'))
+    <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . get_setting('site_favicon')) }}">
+  @endif
   @stack('styles')
 </head>
 @php
@@ -91,29 +95,27 @@
         <a href="{{ url('/') }}" class="nav-link {{ Request::is('/') ? 'active' : '' }}">Home</a>
         <a href="{{ route('about') }}" class="nav-link {{ Request::is('about') ? 'active' : '' }}">About</a>
         
-        @auth
-          @php $topicsDropdownActive = Request::routeIs('topics.*') || Request::routeIs('search'); @endphp
-          <div class="nav-dropdown {{ $topicsDropdownActive ? 'active' : '' }}">
-              <button class="nav-link nav-dropdown-toggle {{ $topicsDropdownActive ? 'active' : '' }}">
-                Topics
-                <svg class="dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-              </button>
-              <div class="nav-dropdown-menu">
-                <a href="{{ route('search') }}" class="nav-dropdown-item {{ Request::routeIs('search') ? 'active' : '' }}"><span class="ui-icon ui-icon-search"></span> Search</a>
-                <a href="{{ route('topics.year') }}" class="nav-dropdown-item {{ Request::routeIs('topics.year') ? 'active' : '' }}"><span class="ui-icon ui-icon-calendar"></span> By Year</a>
-                <a href="{{ route('topics.index') }}" class="nav-dropdown-item {{ Request::routeIs('topics.index') ? 'active' : '' }}"><span class="ui-icon ui-icon-book"></span> By Subjects</a>
-                <a href="{{ route('bookmarks') }}" class="nav-dropdown-item {{ Request::routeIs('bookmarks') ? 'active' : '' }}"><span class="ui-icon ui-icon-bookmark"></span> My Bookmarks</a>
-              </div>
-          </div>
-          <a href="{{ route('exam-aid') }}" class="nav-link {{ Request::is('exam-aid') ? 'active' : '' }}">Exam Aid</a>
-        @endauth
+        @php $topicsDropdownActive = Request::routeIs('topics.*') || Request::routeIs('search'); @endphp
+        <div class="nav-dropdown {{ $topicsDropdownActive ? 'active' : '' }}">
+            <button class="nav-link nav-dropdown-toggle {{ $topicsDropdownActive ? 'active' : '' }}">
+              Topics
+              <svg class="dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="nav-dropdown-menu">
+              <a href="{{ route('search') }}" class="nav-dropdown-item {{ Request::routeIs('search') ? 'active' : '' }}"><span class="ui-icon ui-icon-search"></span> Search</a>
+              <a href="{{ route('topics.year') }}" class="nav-dropdown-item {{ Request::routeIs('topics.year') ? 'active' : '' }}"><span class="ui-icon ui-icon-calendar"></span> By Year</a>
+              <a href="{{ route('topics.index') }}" class="nav-dropdown-item {{ Request::routeIs('topics.index') ? 'active' : '' }}"><span class="ui-icon ui-icon-book"></span> By Subjects</a>
+            </div>
+        </div>
+        <a href="{{ route('exam-aid') }}" class="nav-link {{ Request::is('exam-aid') ? 'active' : '' }}">Exam Aid</a>
       @endif
 
-      @auth
       <button class="nav-search-btn" id="searchToggle">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </button>
-      @endauth
+      <a href="{{ route('bookmarks') }}" class="nav-bookmark-btn active" aria-label="Bookmarks">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      </a>
     </div>
 
     <div class="nav-cta">
@@ -150,24 +152,17 @@
       <input type="text" class="search-input" id="mainSearch" placeholder="Search topics, subjects, questions..." autocomplete="off"/>
       <button class="search-close" id="searchClose">ESC</button>
     </div>
+    {{-- Dynamic suggestions container - populated by JS via AJAX --}}
     <div class="search-suggestions" id="searchSuggestions">
-      <div class="suggestion-group">
-        <span class="suggestion-label">Trending Topics</span>
-        <div class="suggestion-items">
-          <button class="suggestion-item"><span class="suggest-icon ui-icon ui-icon-flame" aria-hidden="true"></span>Brachial Plexus</button>
-          <button class="suggestion-item"><span class="suggest-icon ui-icon ui-icon-trending" aria-hidden="true"></span>Gait Cycle</button>
-          <button class="suggestion-item"><span class="suggest-icon ui-icon ui-icon-zap" aria-hidden="true"></span>UMN vs LMN Lesions</button>
-          <button class="suggestion-item"><span class="suggest-icon ui-icon ui-icon-heart-pulse" aria-hidden="true"></span>Muscle Contraction</button>
-          <button class="suggestion-item"><span class="suggest-icon ui-icon ui-icon-brain" aria-hidden="true"></span>Reflex Arc</button>
-        </div>
-      </div>
-      <div class="suggestion-group">
-        <span class="suggestion-label">Subjects</span>
-        <div class="suggestion-items">
-          <button class="suggestion-item"><span class="suggest-icon ui-icon ui-icon-bone" aria-hidden="true"></span>Anatomy</button>
-          <button class="suggestion-item"><span class="suggest-icon ui-icon ui-icon-microscope" aria-hidden="true"></span>Physiology</button>
-          <button class="suggestion-item"><span class="suggest-icon ui-icon ui-icon-settings" aria-hidden="true"></span>Biomechanics</button>
-          <button class="suggestion-item"><span class="suggest-icon ui-icon ui-icon-zap" aria-hidden="true"></span>Electrotherapy</button>
+      <div id="searchSuggestionsDynamic">
+        {{-- Loading skeleton shown while JS initialises --}}
+        <div class="suggestion-group">
+          <span class="suggestion-label">Trending Topics</span>
+          <div class="suggestion-items" id="defaultSuggestionItems">
+            <div class="suggestion-item" style="opacity:.4;pointer-events:none">
+              <span class="suggest-icon ui-icon ui-icon-flame" aria-hidden="true"></span>Loading...
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -176,10 +171,16 @@
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </div>
       <p>No results found for "<span id="noResultQuery"></span>"</p>
-      <button class="btn-request-topic"><span class="ui-icon ui-icon-mail" aria-hidden="true"></span> Request This Topic</button>
+      <a href="{{ route('search') }}" id="btnRequestTopic" class="btn-request-topic">
+        <span class="ui-icon ui-icon-mail" aria-hidden="true"></span> View all results
+      </a>
     </div>
   </div>
 </div>
+{{-- Pass routes to JS via meta tags --}}
+<meta name="search-suggestions-url" content="{{ route('search.suggestions') }}">
+<meta name="search-url" content="{{ route('search') }}">
+<meta name="topic-base-url" content="{{ url('/topic') }}">
 
 <!-- AUTH MODAL -->
 <div class="auth-overlay" id="authOverlay">

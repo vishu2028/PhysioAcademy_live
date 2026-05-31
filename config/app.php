@@ -123,4 +123,18 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Developer Credit
+    |--------------------------------------------------------------------------
+    |
+    | Displayed in the footer. Configure via .env using:
+    |   WEB_DEV_NAME and WEB_DEV_URL
+    |
+    */
+    'developer' => [
+        'name' => env('WEB_DEV_NAME', 'Developer'),
+        'url'  => env('WEB_DEV_URL', '#'),
+    ],
+
 ];
