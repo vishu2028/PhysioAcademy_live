@@ -19,12 +19,12 @@
                 <div class="col-md-8">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Student Name</label>
-                        <input type="text" name="name" class="form-control rounded-3" value="{{ old('name') }}" placeholder="e.g. John Doe" required>
+                        <input type="text" name="client_name" class="form-control rounded-3" value="{{ old('client_name') }}" placeholder="e.g. John Doe" required>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Designation / Year</label>
-                        <input type="text" name="designation" class="form-control rounded-3" value="{{ old('designation', 'Third Year BPT') }}" placeholder="e.g. Third Year Student">
+                        <input type="text" name="client_designation" class="form-control rounded-3" value="{{ old('client_designation', 'Third Year BPT') }}" placeholder="e.g. Third Year Student">
                     </div>
 
                     <div class="mb-3">
@@ -53,7 +53,7 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Student Photo (Optional)</label>
-                        <input type="file" name="image" class="form-control rounded-3">
+                        <input type="file" name="client_image" class="form-control rounded-3">
                     </div>
                     
                     <div class="mb-3">

@@ -144,8 +144,11 @@
   </div>
 </section>
 
-@auth
 <!-- CURRICULUM SECTION -->
+@php
+    $visibleYears = auth()->check() ? $years : $years->take(ceil($years->count() / 2));
+    $restrictedYears = auth()->check() ? collect() : $years->slice(ceil($years->count() / 2));
+@endphp
 <section class="section curriculum-section" id="curriculum">
   <div class="section-container">
     <div class="section-header reveal-up">
@@ -154,82 +157,99 @@
       <p class="section-subtitle">Structured academic journey from first year through internship</p>
     </div>
 
-    <div class="curriculum-grid reveal-stagger">
-      @foreach($years as $index => $y)
-      @php
-        $colors = ['#2563eb', '#3b82f6', '#2563eb', '#f59e0b', '#10b981'];
-        $color = $colors[$index % count($colors)];
-        $topics_list = \App\Models\Topic::where('academic_year_id', $y->id)->with('subject')->take(3)->get();
-        $unique_subjects = $topics_list->pluck('subject.name')->unique();
-      @endphp
-      <div class="curriculum-card {{ $index == 1 ? 'featured' : '' }}" data-tilt>
-        @if($index == 1) <div class="cc-featured-label">Most Active</div> @endif
-        <div class="cc-glow"></div>
-        <div class="cc-icon" style="--icon-color:{{ $color }}">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-          </svg>
+    <div class="restriction-container">
+        <div class="curriculum-grid reveal-stagger">
+          {{-- Visible Years --}}
+          @foreach($visibleYears as $index => $y)
+          @php
+            $colors = ['#2563eb', '#3b82f6', '#2563eb', '#f59e0b', '#10b981'];
+            $color = $colors[$index % count($colors)];
+            $topics_list = \App\Models\Topic::where('academic_year_id', $y->id)->with('subject')->take(3)->get();
+            $unique_subjects = $topics_list->pluck('subject.name')->unique();
+          @endphp
+          <div class="curriculum-card {{ $index == 1 ? 'featured' : '' }}" data-tilt>
+            @if($index == 1) <div class="cc-featured-label">Most Active</div> @endif
+            <div class="cc-glow"></div>
+            <div class="cc-icon" style="--icon-color:{{ $color }}">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <div class="cc-year-badge" style="--badge-color:{{ $color }}">{{ $y->name }}</div>
+            <h3>{{ $y->name }}</h3>
+            <p>
+                @if($unique_subjects->count() > 0)
+                    {{ $unique_subjects->implode(', ') }}
+                @else
+                    Core modules and clinical focus areas.
+                @endif
+            </p>
+            <div class="cc-subjects">
+              @foreach($unique_subjects as $sub) <span>{{ $sub }}</span> @endforeach
+            </div>
+            <a href="{{ route('topics.year', ['year' => $y->slug]) }}" class="cc-btn">Explore <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+            <div class="cc-count">{{ $y->topics_count }} Topics</div>
+          </div>
+          @endforeach
+
+          {{-- Restricted Years --}}
+          @if($restrictedYears->count() > 0)
+            @foreach($restrictedYears as $index => $y)
+              <div class="curriculum-card blurred-content">
+                <h3>{{ $y->name }}</h3>
+                <div class="cc-count">Locked Content</div>
+              </div>
+            @endforeach
+          @endif
         </div>
-        <div class="cc-year-badge" style="--badge-color:{{ $color }}">{{ $y->name }}</div>
-        <h3>{{ $y->name }}</h3>
-        <p>
-            @if($unique_subjects->count() > 0)
-                {{ $unique_subjects->implode(', ') }}
-            @else
-                Core modules and clinical focus areas.
-            @endif
-        </p>
-        <div class="cc-subjects">
-          @foreach($unique_subjects as $sub) <span>{{ $sub }}</span> @endforeach
+
+        @guest
+        <div class="login-to-unlock">
+            <div class="unlock-card reveal-up">
+                <div class="unlock-icon"><i class="bi bi-lock-fill"></i></div>
+                <h4 class="fw-bold mb-2">Login to Unlock Full Curriculum</h4>
+                <p class="text-muted small mb-4">You're viewing a partial preview. Join thousands of students to access all years and subjects.</p>
+                <a href="{{ route('login') }}" class="btn-hero-primary w-100 justify-content-center">Sign In to Continue</a>
+            </div>
         </div>
-        <a href="{{ route('topics.year', ['year' => $y->slug]) }}" class="cc-btn">Explore <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-        <div class="cc-count">{{ $y->topics_count }} Topics</div>
-      </div>
-      @endforeach
+        @endguest
     </div>
   </div>
 </section>
-@endauth
 
 <!-- ACADEMIC SUPPORT / PLATFORM FEATURES -->
 <section class="section support-section" id="support">
   <div class="section-container">
-    <div class="section-header reveal-up">
-      <span class="section-tag">Platform Features</span>
-      <h2 class="section-title">Academic <span class="text-gradient">Support System</span></h2>
-      <p class="section-subtitle">Everything you need to ace your physio exams and clinical training</p>
-    </div>
-
-    <div class="support-grid reveal-stagger">
-      @forelse($features as $feature)
-      <div class="support-card">
-        <div class="sc-border"></div>
-        <div class="sc-sweep"></div>
-        <div class="sc-icon-wrap" style="{{ $feature->color ? '--sc-color:'.$feature->color : '' }}">
-          @if(str_contains($feature->icon, '<svg'))
-            {!! $feature->icon !!}
-          @else
-            <i class="{{ $feature->icon }}"></i>
-          @endif
+    @php
+        $visibleFeatures = auth()->check() ? $features : $features->take(ceil($features->count() / 2));
+    @endphp
+    <div class="restriction-container">
+        <div class="support-grid reveal-stagger">
+          @forelse($visibleFeatures as $feature)
+          <div class="support-card">
+            <div class="sc-border"></div>
+            <div class="sc-sweep"></div>
+            <div class="sc-icon-wrap" style="{{ $feature->color ? '--sc-color:'.$feature->color : '' }}">
+              @if(str_contains($feature->icon, '<svg'))
+                {!! $feature->icon !!}
+              @else
+                <i class="{{ $feature->icon }}"></i>
+              @endif
+            </div>
+            <h3>{{ $feature->title }}</h3>
+            <p>{{ auth()->check() ? $feature->description : Str::limit($feature->description, strlen($feature->description)/2) }}</p>
+            <div class="sc-tag">{{ $feature->button_text ?? 'Explore →' }}</div>
+          </div>
+          @empty
+          {{-- Fallback logic --}}
+          @endforelse
         </div>
-        <h3>{{ $feature->title }}</h3>
-        <p>{{ $feature->description }}</p>
-        <div class="sc-tag">{{ $feature->button_text ?? 'Explore →' }}</div>
-      </div>
-      @empty
-      {{-- Static Fallback if no features in DB --}}
-      <div class="support-card">
-        <div class="sc-border"></div>
-        <div class="sc-sweep"></div>
-        <div class="sc-icon-wrap">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        @guest
+        <div class="login-to-unlock" style="background: linear-gradient(to bottom, transparent 0%, #f8fbff 90%);">
+            <a href="{{ route('login') }}" class="btn-hero-primary mb-4">Login to view all features</a>
         </div>
-        <h3>Topic Navigation</h3>
-        <p>Browse the complete physiotherapy syllabus year-by-year, subject-by-subject with intelligent search.</p>
-        <div class="sc-tag">Browse →</div>
-      </div>
-      @endforelse
+        @endguest
     </div>
     
     @guest
@@ -249,6 +269,55 @@
   </div>
 </section>
 
+<!-- TESTIMONIALS SECTION -->
+<section class="section testimonials-section" id="testimonials">
+  <div class="section-container">
+    <div class="section-header reveal-up text-center">
+      <span class="section-tag">Testimonials</span>
+      <h2 class="section-title">What Our <span class="text-gradient">Students Say</span></h2>
+      <p class="section-subtitle">Join thousands of physiotherapy students who have transformed their learning experience</p>
+    </div>
+
+    <div class="restriction-container">
+        <div class="testimonials-grid reveal-stagger mt-5">
+          @php
+            $visibleTestimonials = auth()->check() ? $testimonials : $testimonials->take(ceil($testimonials->count() / 2));
+          @endphp
+          @forelse($visibleTestimonials as $testimonial)
+          <div class="testimonial-card glass-card">
+            <div class="tc-quote"><i class="bi bi-quote"></i></div>
+            <div class="tc-rating mb-3">
+              @for($i = 0; $i < 5; $i++)
+                <i class="bi bi-star-fill {{ $i < $testimonial->rating ? 'text-warning' : 'text-secondary opacity-25' }}"></i>
+              @endfor
+            </div>
+            <p class="tc-content mb-4 text-white-50">"{{ auth()->check() ? $testimonial->content : Str::limit($testimonial->content, strlen($testimonial->content)/2) }}"</p>
+            <div class="tc-user d-flex align-items-center gap-3">
+              <div class="tcu-avatar">
+                <img src="{{ $testimonial->client_image ? asset('storage/'.$testimonial->client_image) : 'https://ui-avatars.com/api/?name='.urlencode($testimonial->client_name).'&background=3b82f6&color=fff' }}" alt="{{ $testimonial->client_name }}" class="rounded-circle" width="48" height="48">
+              </div>
+              <div class="tcu-info">
+                <h5 class="mb-0 fw-bold text-white">{{ $testimonial->client_name }}</h5>
+                <small class="text-white-50">{{ $testimonial->client_designation }}</small>
+              </div>
+            </div>
+          </div>
+          @empty
+          @endforelse
+        </div>
+        @guest
+        <div class="login-to-unlock" style="background: linear-gradient(to bottom, transparent 0%, #f8fbff 95%);">
+             <div class="unlock-card reveal-up py-4">
+                <h4 class="fw-bold mb-3">Community Insights</h4>
+                <p class="text-muted small mb-3">Join our community of students to read full stories and academic success reviews.</p>
+                <a href="{{ route('login') }}" class="btn btn-primary btn-sm rounded-pill px-4">See More Reviews</a>
+            </div>
+        </div>
+        @endguest
+    </div>
+  </div>
+</section>
+
 @auth
 <!-- TRENDING TOPICS / HOT RIGHT NOW -->
 <section class="section trending-section" id="topics">
@@ -259,51 +328,50 @@
       <p class="section-subtitle">These are what students are asking about most this week</p>
     </div>
 
-    <div class="trending-grid reveal-stagger">
-      @forelse($trendingTopics as $index => $topic)
-      <div class="trending-card">
-        <div class="tc-glow" style="{{ $index == 1 ? '--tc-glow:#3b82f6' : ($index == 2 ? '--tc-glow:#f59e0b' : ($index == 3 ? '--tc-glow:#10b981' : '')) }}"></div>
-        <div class="tc-header">
-          <div class="tc-badge {{ $index == 0 ? 'trending-badge' : '' }}" style="{{ $index > 0 ? 'background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.25);color:#2563eb' : '' }}">
-            <span class="ui-icon ui-icon-{{ $index == 0 ? 'flame' : ($index == 1 ? 'trending' : ($index == 2 ? 'zap' : 'heart-pulse')) }}"></span> 
-            Trending #{{ $index + 1 }}
+    @php
+        $visibleTrending = auth()->check() ? $trendingTopics : $trendingTopics->take(ceil($trendingTopics->count() / 2));
+    @endphp
+    <div class="restriction-container">
+        <div class="trending-grid reveal-stagger">
+          @forelse($visibleTrending as $index => $topic)
+          <div class="trending-card">
+            <div class="tc-glow" style="{{ $index == 1 ? '--tc-glow:#3b82f6' : ($index == 2 ? '--tc-glow:#f59e0b' : ($index == 3 ? '--tc-glow:#10b981' : '')) }}"></div>
+            <div class="tc-header">
+              <div class="tc-badge {{ $index == 0 ? 'trending-badge' : '' }}" style="{{ $index > 0 ? 'background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.25);color:#2563eb' : '' }}">
+                <span class="ui-icon ui-icon-{{ $index == 0 ? 'flame' : ($index == 1 ? 'trending' : ($index == 2 ? 'zap' : 'heart-pulse')) }}"></span> 
+                Trending #{{ $index + 1 }}
+              </div>
+              <div class="tc-requests"><span class="request-count" data-count="{{ 847 - ($index * 128) }}">0</span> requests</div>
+            </div>
+            <div class="tc-subject">{{ $topic->subject->name ?? 'General' }} • {{ $topic->academicYear->name ?? 'All Years' }}</div>
+            <h3 class="tc-title">{{ $topic->title }}</h3>
+            <p class="tc-desc">{{ auth()->check() ? Str::limit($topic->description, 100) : Str::limit($topic->description, 50) }}</p>
+            <div class="tc-tags">
+                @foreach(['Physio', 'Education', 'Guide'] as $tag)
+                    <span>{{ $tag }}</span>
+                @endforeach
+            </div>
+            <div class="tc-footer">
+              <a href="{{ route('topics.show', ['slug' => $topic->slug]) }}" class="tc-explore-btn text-decoration-none">Explore Topic</a>
+              <button class="tc-save-btn {{ $topic->isBookmarked() ? 'active' : '' }}" 
+                      onclick="toggleBookmark({{ $topic->id }}, 'Topic', this)"
+                      aria-label="Save">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" {!! $topic->isBookmarked() ? 'fill="currentColor"' : '' !!}/>
+                </svg>
+              </button>
+            </div>
           </div>
-          <div class="tc-requests"><span class="request-count" data-count="{{ 847 - ($index * 128) }}">0</span> requests</div>
+          @empty
+          {{-- Static Fallback --}}
+          @endforelse
         </div>
-        <div class="tc-subject">{{ $topic->subject->name ?? 'General' }} • {{ $topic->academicYear->name ?? 'All Years' }}</div>
-        <h3 class="tc-title">{{ $topic->title }}</h3>
-        <p class="tc-desc">{{ Str::limit($topic->description, 100) }}</p>
-        <div class="tc-tags">
-            @foreach(['Physio', 'Education', 'Guide'] as $tag)
-                <span>{{ $tag }}</span>
-            @endforeach
+        @guest
+        <div class="login-to-unlock" style="background: linear-gradient(to bottom, transparent 0%, #f8fbff 90%);">
+            <p class="mb-3 text-muted fw-bold">Explore over 500+ academic topics...</p>
+            <a href="{{ route('login') }}" class="btn-hero-primary">Login to see all trending topics</a>
         </div>
-        <div class="tc-footer">
-          <a href="{{ route('topics.show', ['slug' => $topic->slug]) }}" class="tc-explore-btn text-decoration-none">Explore Topic</a>
-          <button class="tc-save-btn" aria-label="Save">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-          </button>
-        </div>
-      </div>
-      @empty
-      <div class="trending-card">
-        <div class="tc-glow"></div>
-        <div class="tc-header">
-          <div class="tc-badge trending-badge"><span class="ui-icon ui-icon-flame"></span> Trending #1</div>
-          <div class="tc-requests"><span class="request-count" data-count="847">0</span> requests</div>
-        </div>
-        <div class="tc-subject">Anatomy • Year 1</div>
-        <h3 class="tc-title">Brachial Plexus</h3>
-        <p class="tc-desc">Formation, branches, clinical correlations, and injury patterns — the most exam-heavy anatomy topic.</p>
-        <div class="tc-tags"><span>Nerves</span><span>Anatomy</span><span>Clinical</span></div>
-        <div class="tc-footer">
-          <button class="tc-explore-btn">Explore Topic</button>
-          <button class="tc-save-btn" aria-label="Save">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-          </button>
-        </div>
-      </div>
-      @endforelse
+        @endguest
     </div>
 
     <div class="trending-footer reveal-up">
@@ -651,8 +719,12 @@
       <div class="about-left reveal-left">
         <span class="section-tag">About {{ get_setting('site_name', 'Physio Academy') }}</span>
         <h2 class="section-title">{!! get_setting('about_title', 'Built for <span class="text-gradient">Physio Students</span><br/>By Physio Students') !!}</h2>
-        <p class="about-para">{{ get_setting('about_description_1', 'Physio Academy was created to bridge the gap between textbook knowledge and real examination performance. We understand the challenges of physiotherapy education — complex topics, unclear answer formats, and limited academic guidance.') }}</p>
-        <p class="about-para">{{ get_setting('about_description_2', 'Our platform is completely aligned with the latest 2024 curriculum, offering topic-by-topic academic support, viva preparation, and answer writing guidance tailored specifically for physiotherapy students.') }}</p>
+        <p class="about-para">{{ auth()->check() ? get_setting('about_description_1', 'Physio Academy was created to bridge the gap between textbook knowledge and real examination performance. We understand the challenges of physiotherapy education — complex topics, unclear answer formats, and limited academic guidance.') : Str::limit(get_setting('about_description_1', 'Physio Academy was created to bridge the gap between textbook knowledge and real examination performance.'), 80) }}</p>
+        <p class="about-para">{{ auth()->check() ? get_setting('about_description_2', 'Our platform is completely aligned with the latest 2024 curriculum, offering topic-by-topic academic support, viva preparation, and answer writing guidance tailored specifically for physiotherapy students.') : Str::limit(get_setting('about_description_2', 'Our platform is completely aligned with the latest 2024 curriculum, offering topic-by-topic academic support...'), 80) }}</p>
+        
+        @guest
+        <a href="javascript:void(0)" onclick="document.getElementById('authOverlay').classList.add('active')" class="text-primary small fw-bold d-block mb-4">Login to read full mission details →</a>
+        @endguest
 
         <div class="about-counters">
           <div class="ac-item">
@@ -729,4 +801,179 @@
     </div>
 </section>
 @endguest
+
+@push('styles')
+<style>
+    /* TESTIMONIALS STYLING */
+    .testimonials-section {
+        position: relative;
+        padding: 100px 0;
+        background: radial-gradient(circle at 10% 50%, rgba(37,99,235,0.03), transparent 30%),
+                    radial-gradient(circle at 90% 80%, rgba(56,189,248,0.03), transparent 30%);
+    }
+
+    .testimonials-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 30px;
+        padding-top: 20px;
+    }
+
+    .testimonial-card {
+        padding: 40px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .testimonial-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 4px;
+        background: linear-gradient(90deg, #2563eb, #38bdf8);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .testimonial-card:hover::before {
+        opacity: 1;
+    }
+
+    .tc-quote {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 3rem;
+        color: rgba(37,99,235,0.05);
+        transform: rotate(10deg);
+    }
+
+    .tc-rating i {
+        font-size: 0.9rem;
+    }
+
+    .tc-content {
+        font-size: 1.05rem;
+        font-style: italic;
+        line-height: 1.7;
+        color: var(--text-secondary);
+    }
+
+    .tcu-avatar img {
+        border: 2px solid rgba(37,99,235,0.2);
+        padding: 2px;
+        background: #fff;
+    }
+
+    .tcu-info h5 {
+        font-family: var(--font-display);
+        letter-spacing: -0.01em;
+        color: var(--text-primary) !important;
+    }
+    
+    .tcu-info small {
+        color: var(--text-muted) !important;
+    }
+
+    @media (max-width: 768px) {
+        .testimonials-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* CONTENT RESTRICTION */
+    .restriction-container {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .blurred-content {
+        filter: blur(8px);
+        pointer-events: none;
+        user-select: none;
+        opacity: 0.6;
+        mask-image: linear-gradient(to bottom, black 0%, transparent 80%);
+    }
+
+    .login-to-unlock {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        padding-bottom: 40px;
+        background: linear-gradient(to bottom, transparent 0%, rgba(248, 251, 255, 0.95) 80%);
+        z-index: 10;
+        text-align: center;
+    }
+
+    .unlock-card {
+        background: white;
+        padding: 30px 40px;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(37, 99, 235, 0.15);
+        border: 1px solid rgba(37, 99, 235, 0.1);
+        max-width: 400px;
+    }
+
+    .unlock-icon {
+        width: 60px;
+        height: 60px;
+        background: rgba(37, 99, 235, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        color: #2563eb;
+        font-size: 1.5rem;
+    }
+</style>
+@endpush
+
+<style>
+    .tc-save-btn.active { color: #2563eb; }
+</style>
+
+<script>
+    function toggleBookmark(id, type, btn) {
+        @if(!auth()->check())
+            window.location.href = "{{ route('login') }}";
+            return;
+        @endif
+
+        const path = btn.querySelector('path');
+        const isActive = btn.classList.contains('active');
+        
+        fetch("{{ route('bookmarks.toggle') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ id: id, type: type })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.isBookmarked) {
+                btn.classList.add('active');
+                path.setAttribute('fill', 'currentColor');
+            } else {
+                btn.classList.remove('active');
+                path.removeAttribute('fill');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+</script>
 @endsection

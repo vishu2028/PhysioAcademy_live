@@ -12,14 +12,15 @@ Route::middleware('auth')->group(function() {
     Route::get('/about', [FrontendController::class, 'about'])->name('about');
     Route::get('/contact', [FrontendController::class, 'contact'])->name('contact');
     Route::post('/contact', [FrontendController::class, 'contactSubmit'])->name('contact.submit');
-    Route::get('/topics', [FrontendController::class, 'topics'])->name('topics.index');
+    Route::get('/subjects', [FrontendController::class, 'topics'])->name('topics.index');
     Route::get('/topic/{slug}', [FrontendController::class, 'topicShow'])->name('topics.show');
-    Route::get('/topics-year/{year?}', [FrontendController::class, 'topicsByYear'])->name('topics.year');
+    Route::get('/academic-years/{year?}', [FrontendController::class, 'topicsByYear'])->name('topics.year');
     Route::get('/exam-aid', [FrontendController::class, 'examAid'])->name('exam-aid');
     Route::get('/search', [FrontendController::class, 'search'])->name('search');
     Route::get('/bookmarks', [FrontendController::class, 'bookmarks'])->name('bookmarks');
+    Route::post('/bookmarks/toggle', [\App\Http\Controllers\BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
+    Route::delete('/bookmarks/{id}', [\App\Http\Controllers\BookmarkController::class, 'remove'])->name('bookmarks.remove');
     Route::get('/faq', [FrontendController::class, 'faq'])->name('faq');
-    Route::get('/page/{slug}', [FrontendController::class, 'dynamicPage'])->name('page.show');
 });
 
 // ─── Profile Routes ───
@@ -34,6 +35,7 @@ Route::middleware(['auth', 'role:super_admin|admin'])->prefix('admin')->name('ad
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // CMS Content Resources
+    Route::post('pages/upload-image', [\App\Http\Controllers\Admin\PageController::class, 'uploadImage'])->name('pages.upload_image');
     Route::resource('pages', \App\Http\Controllers\Admin\PageController::class);
     Route::resource('page-sections', \App\Http\Controllers\Admin\PageSectionController::class)->parameters(['page-sections' => 'section']);
     Route::resource('page-section-items', \App\Http\Controllers\Admin\PageSectionItemController::class)->only(['create','store','edit','update','destroy']);
@@ -41,6 +43,7 @@ Route::middleware(['auth', 'role:super_admin|admin'])->prefix('admin')->name('ad
     Route::resource('features', \App\Http\Controllers\Admin\FeatureController::class);
     Route::resource('subjects', \App\Http\Controllers\Admin\SubjectController::class);
     Route::resource('academic-years', \App\Http\Controllers\Admin\AcademicYearController::class);
+    Route::post('topics/upload-image', [\App\Http\Controllers\Admin\TopicController::class, 'uploadImage'])->name('topics.upload_image');
     Route::resource('topics', \App\Http\Controllers\Admin\TopicController::class);
     Route::resource('testimonials', \App\Http\Controllers\Admin\TestimonialController::class);
     Route::resource('faqs', \App\Http\Controllers\Admin\FAQController::class);
@@ -76,3 +79,5 @@ Route::middleware(['auth'])->get('/dashboard', function () {
 });
 
 require __DIR__.'/auth.php';
+
+Route::middleware('auth')->get('/{slug}', [FrontendController::class, 'dynamicPage'])->name('page.show');

@@ -14,7 +14,7 @@ class PageSectionController extends Controller
     {
         $query = PageSection::with('page')->orderBy('order');
         
-        if ($request->has('page_id')) {
+        if ($request->filled('page_id')) {
             $query->where('page_id', $request->page_id);
         }
 
@@ -37,27 +37,40 @@ class PageSectionController extends Controller
             'type' => 'nullable|string|max:100',
             'content' => 'nullable',
             'order' => 'nullable|integer',
-            'enabled' => 'nullable|boolean'
+            'enabled' => 'nullable'
         ]);
 
         $data['slug'] = $request->slug ?: Str::slug($request->name);
         
-        if ($request->filled('content')) {
-            $decoded = json_decode($request->input('content'), true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $data['content'] = $decoded;
-            } else {
-                return back()->withInput()->with('error', 'Invalid JSON content format.');
+        // Handle form-based content_fields (takes precedence over raw JSON content)
+        if ($request->has('config')) {
+            $config = $request->input('config');
+            
+            // Handle images specifically if any were uploaded
+            if ($request->hasFile('config_images')) {
+                foreach($request->file('config_images') as $key => $file) {
+                    $path = $file->store('pages/sections', 'public');
+                    $config['images'][$key] = '/storage/' . $path;
+                }
             }
+            
+            $data['content'] = $config;
+        } 
+        // Fallback to raw JSON input if provided
+        elseif ($request->filled('content')) {
+            $inputContent = $request->input('content');
+            $decoded = json_decode($inputContent, true);
+            $data['content'] = (json_last_error() === JSON_ERROR_NONE) ? $decoded : $inputContent;
         } else {
             $data['content'] = null;
         }
 
         $data['enabled'] = $request->has('enabled');
 
+        \Illuminate\Support\Facades\Log::info('Creating Section', ['data' => $data]);
         PageSection::create($data);
 
-        return redirect()->route('admin.page-sections.index')->with('success', 'Section created.');
+        return redirect()->route('admin.page-sections.index')->with('success', 'Section created successfully.');
     }
 
     public function edit(PageSection $section)
@@ -75,24 +88,42 @@ class PageSectionController extends Controller
             'type' => 'nullable|string|max:100',
             'content' => 'nullable',
             'order' => 'nullable|integer',
-            'enabled' => 'nullable|boolean'
+            'enabled' => 'nullable'
         ]);
 
         $data['slug'] = $request->slug ?: Str::slug($request->name);
         
-        if ($request->filled('content')) {
-            $decoded = json_decode($request->input('content'), true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $data['content'] = $decoded;
-            } else {
-                return back()->withInput()->with('error', 'Invalid JSON content format.');
+        // Handle form-based config fields
+        if ($request->has('config')) {
+            $config = $request->input('config');
+            
+            // Handle images specifically
+            if ($request->hasFile('config_images')) {
+                foreach($request->file('config_images') as $field => $file) {
+                    $path = $file->store('pages/sections', 'public');
+                    $config[$field] = '/storage/' . $path;
+                }
             }
+
+            // Keep existing images if not re-uploaded
+            if (isset($section->content['images'])) {
+                $config['images'] = array_merge($section->content['images'], $config['images'] ?? []);
+            }
+            
+            $data['content'] = array_merge($section->content ?? [], $config);
+        }
+        // Fallback to raw JSON
+        elseif ($request->filled('content')) {
+            $inputContent = $request->input('content');
+            $decoded = json_decode($inputContent, true);
+            $data['content'] = (json_last_error() === JSON_ERROR_NONE) ? $decoded : $inputContent;
         } else {
-            $data['content'] = null;
+            $data['content'] = $section->content;
         }
 
         $data['enabled'] = $request->has('enabled');
 
+        \Illuminate\Support\Facades\Log::info('Updating Section', ['id' => $section->id, 'data' => $data]);
         $section->update($data);
 
         return redirect()->route('admin.page-sections.index', ['page_id' => $section->page_id])

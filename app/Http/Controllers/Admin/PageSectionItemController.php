@@ -24,10 +24,16 @@ class PageSectionItemController extends Controller
             'body' => 'nullable|string',
             'meta' => 'nullable',
             'order' => 'nullable|integer',
-            'enabled' => 'nullable|boolean'
+            'enabled' => 'nullable'
         ]);
 
-        $data['meta'] = $request->input('meta') ? json_decode($request->input('meta'), true) : null;
+        $metaInput = $request->input('meta');
+        if ($metaInput) {
+            $decoded = json_decode($metaInput, true);
+            $data['meta'] = (json_last_error() === JSON_ERROR_NONE) ? $decoded : $metaInput;
+        } else {
+            $data['meta'] = null;
+        }
         $data['enabled'] = $request->has('enabled');
 
         PageSectionItem::create($data);
@@ -52,7 +58,13 @@ class PageSectionItemController extends Controller
             'enabled' => 'nullable|boolean'
         ]);
 
-        $data['meta'] = $request->input('meta') ? json_decode($request->input('meta'), true) : null;
+        $metaInput = $request->input('meta');
+        if ($metaInput) {
+            $decoded = json_decode($metaInput, true);
+            $data['meta'] = (json_last_error() === JSON_ERROR_NONE) ? $decoded : $metaInput;
+        } else {
+            $data['meta'] = null;
+        }
         $data['enabled'] = $request->has('enabled');
 
         $page_section_item->update($data);

@@ -12,4 +12,14 @@ class LearningMaterial extends Model
     {
         return $this->belongsTo(Topic::class);
     }
+    public function bookmarks()
+    {
+        return $this->morphMany(Bookmark::class, 'bookmarkable');
+    }
+
+    public function isBookmarked()
+    {
+        if (!auth()->check()) return false;
+        return $this->bookmarks()->where('user_id', auth()->id())->exists();
+    }
 }

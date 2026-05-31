@@ -3,7 +3,11 @@
 @section('title', isset($page) ? 'Edit Page' : 'Create Page')
 
 @push('styles')
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<style>
+    .ck-editor__editable {
+        min-height: 500px;
+    }
+</style>
 @endpush
 
 @section('content')
@@ -96,20 +100,21 @@
 </form>
 
 @push('scripts')
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 <script>
-    tinymce.init({
-        selector: '#editor',
-        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
-        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
-        height: 600,
-        skin: 'oxide',
-        content_css: 'default',
-        setup: function (editor) {
-            editor.on('change', function () {
-                tinymce.triggerSave();
-            });
-        }
-    });
+    ClassicEditor
+        .create(document.querySelector('#editor'), {
+            ckfinder: {
+                uploadUrl: '{{ route("admin.pages.upload_image") }}?_token={{ csrf_token() }}'
+            },
+            toolbar: [
+                'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', '|',
+                'imageUpload', 'insertTable', 'mediaEmbed', '|', 'undo', 'redo'
+            ]
+        })
+        .catch(error => {
+            console.error(error);
+        });
 
     // Auto-generate slug from title
     const titleInput = document.getElementById('pageTitle');

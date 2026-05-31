@@ -31,8 +31,10 @@
                     <button class="btn-share" title="Share Topic">
                         <i class="bi bi-share"></i>
                     </button>
-                    <button class="btn-bookmark" title="Save for Later">
-                        <i class="bi bi-bookmark"></i>
+                    <button class="btn-bookmark {{ $topic->isBookmarked() ? 'active' : '' }}" 
+                            onclick="toggleBookmark({{ $topic->id }}, 'Topic', this)" 
+                            title="{{ $topic->isBookmarked() ? 'Remove from Saved' : 'Save for Later' }}">
+                        <i class="bi {{ $topic->isBookmarked() ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
                     </button>
                 </div>
             </div>
@@ -71,7 +73,7 @@
                     <div class="content-glass-card">
                         <div class="content-section">
                             <h2 class="section-heading">Description & Overview</h2>
-                            <p class="topic-long-desc">{{ $topic->description }}</p>
+                            <div class="topic-long-desc">{!! $topic->description !!}</div>
                         </div>
 
                         <div class="content-section">
@@ -86,7 +88,14 @@
                                             @else <i class="bi bi-journal-text"></i> @endif
                                         </div>
                                         <div class="mc-body">
-                                            <h4 class="mc-title">{{ $material->title }}</h4>
+                                            <div class="flex items-center justify-between">
+                                                <h4 class="mc-title">{{ $material->title }}</h4>
+                                                <button onclick="toggleBookmark({{ $material->id }}, 'LearningMaterial', this)" 
+                                                        class="material-bookmark-btn {{ $material->isBookmarked() ? 'text-blue-600' : 'text-slate-300' }}"
+                                                        title="Bookmark Resource">
+                                                    <i class="bi {{ $material->isBookmarked() ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
+                                                </button>
+                                            </div>
                                             <span class="mc-tag">{{ strtoupper($material->type) }}</span>
                                             
                                             @if($material->type == 'note' && $material->content)
@@ -268,10 +277,13 @@
         display: grid; place-items: center; font-size: 1.2rem;
         color: var(--text-secondary); transition: all 0.3s;
     }
-    .btn-share:hover, .btn-bookmark:hover {
+    .btn-share:hover, .btn-bookmark:hover, .btn-bookmark.active {
         background: var(--topic-blue); color: white; transform: translateY(-3px);
         box-shadow: 0 10px 20px rgba(37,99,235,0.2);
     }
+    .btn-bookmark.active i::before { content: "\f199"; } /* bi-bookmark-fill */
+    .material-bookmark-btn { background: none; border: none; padding: 5px; cursor: pointer; transition: all 0.2s; }
+    .material-bookmark-btn:hover { transform: scale(1.2); }
 
     .topic-meta-grid {
         display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -317,7 +329,10 @@
 
     .topic-long-desc {
         font-size: 1.15rem; line-height: 1.8; color: var(--text-secondary);
-        white-space: pre-line;
+    }
+    .topic-long-desc img {
+        max-width: 100%; height: auto; border-radius: 16px; margin: 20px 0;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     }
 
     /* Materials */
@@ -473,6 +488,43 @@
 
         document.querySelectorAll('.reveal-up, .reveal-right').forEach(el => observer.observe(el));
     });
+
+    function toggleBookmark(id, type, btn) {
+        @if(!auth()->check())
+            window.location.href = "{{ route('login') }}";
+            return;
+        @endif
+
+        const icon = btn.querySelector('i');
+        
+        fetch("{{ route('bookmarks.toggle') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ id: id, type: type })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.isBookmarked) {
+                icon.classList.remove('bi-bookmark');
+                icon.classList.add('bi-bookmark-fill');
+                btn.classList.add('active');
+                if (type === 'LearningMaterial') btn.classList.add('text-blue-600');
+            } else {
+                icon.classList.remove('bi-bookmark-fill');
+                icon.classList.add('bi-bookmark');
+                btn.classList.remove('active');
+                if (type === 'LearningMaterial') {
+                    btn.classList.remove('text-blue-600');
+                    btn.classList.add('text-slate-300');
+                }
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
 </script>
 @endpush
 @endsection

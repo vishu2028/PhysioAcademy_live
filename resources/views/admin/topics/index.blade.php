@@ -19,7 +19,7 @@
     <tr>
         <td class="ps-4">
             <div class="fw-bold">{{ $topic->title }}</div>
-            <div class="small text-muted">{{ Str::limit($topic->description, 40) }}</div>
+            <div class="small text-muted">{{ Str::limit(strip_tags($topic->description), 40) }}</div>
         </td>
         <td><span class="badge bg-primary-subtle text-primary">{{ $topic->subject->name ?? 'N/A' }}</span></td>
         <td>

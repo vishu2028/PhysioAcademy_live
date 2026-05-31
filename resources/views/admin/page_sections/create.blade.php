@@ -26,14 +26,30 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Type</label>
-                        <input type="text" name="type" class="form-control" value="{{ old('type') }}" placeholder="e.g. mission, features, explore, vision, closing">
+                        <label class="form-label fw-bold">Section Type</label>
+                        <select name="type" class="form-select select2" required>
+                            <option value="">-- Select Type --</option>
+                            <option value="hero">Hero Section</option>
+                            <option value="mission">Mission Section</option>
+                            <option value="vision">Vision Section</option>
+                            <option value="closing">Closing Banner</option>
+                            <option value="feature-grid">Feature Grid</option>
+                            <option value="explore-grid">Explore Grid</option>
+                            <option value="split-section">Split Section (Text + Media)</option>
+                            <option value="contact-info">Contact Info</option>
+                            <option value="social-links">Social Links</option>
+                            <option value="empty-state">Empty State</option>
+                            <option value="guest-state">Guest State</option>
+                        </select>
+                        <div class="small text-muted mt-1">Selecting a type determines the available management fields after creation.</div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Content (JSON or HTML)</label>
-                        <textarea name="content" class="form-control" rows="8">{{ old('content') }}</textarea>
+                    <div class="alert alert-light border border-dashed rounded-4 p-4 text-center">
+                        <i class="bi bi-info-circle fs-2 text-primary mb-2 d-block"></i>
+                        <p class="mb-0 fw-bold">Step 1: Define Section Basics</p>
+                        <p class="text-muted small">After saving this section, you will be able to manage its specific content (titles, text, images) using a user-friendly form.</p>
                     </div>
+                    <textarea name="content" class="d-none"></textarea>
                 </div>
             </div>
         </div>

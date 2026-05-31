@@ -60,7 +60,6 @@
                 </div>
             </div>
         </div>
-
         <div class="col-lg-4">
             <!-- Categorization -->
             <div class="card border-0 shadow-sm rounded-4 mb-4">
@@ -108,11 +107,11 @@
             <div class="card border-0 shadow-sm rounded-4 mb-4">
                  <div class="card-body p-4">
                     <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" name="status" id="status" checked>
+                        <input class="form-check-input" type="checkbox" name="status" id="status" value="1" checked>
                         <label class="form-check-label fw-bold" for="status">Active / Visible</label>
                     </div>
                     <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" name="is_protected" id="is_protected">
+                        <input class="form-check-input" type="checkbox" name="is_protected" id="is_protected" value="1">
                         <label class="form-check-label fw-bold" for="is_protected">Protected Content</label>
                         <div class="small text-muted">Restrict copying/downloading.</div>
                     </div>
@@ -164,7 +163,9 @@
 </template>
 
 @push('scripts')
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 <script>
+    // --- Material JS (registered first, independent of CKEditor) ---
     let materialIndex = 0;
     const yearsData = @json($years);
 
@@ -173,7 +174,6 @@
         const yearId = this.value;
         const semesterSelect = document.getElementById('semesterSelect');
         semesterSelect.innerHTML = '<option value="">-- Select Semester --</option>';
-        
         if (yearId) {
             const year = yearsData.find(y => y.id == yearId);
             if (year && year.semesters) {
@@ -190,7 +190,6 @@
         const container = document.getElementById('materialContainer');
         const template = document.getElementById('materialTemplate').innerHTML;
         const html = template.replace(/INDEX/g, materialIndex);
-        
         const div = document.createElement('div');
         div.innerHTML = html;
         container.appendChild(div.firstElementChild);
@@ -213,14 +212,29 @@
             const type = e.target.value;
             const parent = e.target.closest('.material-item');
             parent.querySelectorAll('.type-fields').forEach(field => {
-                if (field.dataset.type === type) {
-                    field.classList.remove('d-none');
-                } else {
-                    field.classList.add('d-none');
-                }
+                field.classList.toggle('d-none', field.dataset.type !== type);
             });
         }
     });
+
+    // --- CKEditor Init (wrapped in try-catch so failures don't block above JS) ---
+    try {
+        if (typeof ClassicEditor !== 'undefined') {
+            ClassicEditor
+                .create(document.querySelector('textarea[name="description"]'), {
+                    ckfinder: {
+                        uploadUrl: '{{ route("admin.topics.upload_image") }}?_token={{ csrf_token() }}'
+                    },
+                    toolbar: [
+                        'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', '|',
+                        'imageUpload', 'insertTable', 'mediaEmbed', 'undo', 'redo'
+                    ]
+                })
+                .catch(error => console.warn('CKEditor init error:', error));
+        }
+    } catch (e) {
+        console.warn('CKEditor not available:', e);
+    }
 </script>
 @endpush
 @endsection

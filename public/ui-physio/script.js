@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSaveButtons();
   initSearchInput();
   initExamAidPage();
+  initCurriculumCardRedirect();
 });
 
 // ── CUSTOM CURSOR ────────────────────────────────────────────────────
@@ -264,6 +265,26 @@ function initTiltCards() {
     card.addEventListener('mouseleave', () => {
       card.style.transform = '';
     });
+  });
+}
+
+// ── CURRICULUM CARD REDIRECT ────────────────────────────────────────────
+function initCurriculumCardRedirect() {
+  document.addEventListener('click', (e) => {
+    const card = e.target.closest('.curriculum-card');
+    if (!card) return;
+
+    const link = card.querySelector('.cc-btn');
+    if (link && link.href) {
+      e.preventDefault();
+      window.location.href = link.href;
+    }
+  });
+
+  const cards = document.querySelectorAll('.curriculum-card');
+  cards.forEach(card => {
+    card.style.cursor = 'pointer';
+    card.style.pointerEvents = 'auto';
   });
 }
 

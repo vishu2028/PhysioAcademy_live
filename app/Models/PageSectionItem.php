@@ -15,6 +15,11 @@ class PageSectionItem extends Model
         'enabled' => 'boolean',
     ];
 
+    public function getMetaAttribute($value)
+    {
+        return brand_text($value);
+    }
+
     public function section()
     {
         return $this->belongsTo(PageSection::class, 'section_id');
@@ -28,25 +33,5 @@ class PageSectionItem extends Model
     public function getBodyAttribute($value)
     {
         return brand_text($value);
-    }
-
-    public function getMetaAttribute($value)
-    {
-        if ($value === null || $value === '') {
-            return brand_text($value);
-        }
-
-        $decoded = json_decode($value, true);
-
-        if (json_last_error() === JSON_ERROR_NONE) {
-            return brand_text($decoded);
-        }
-
-        return brand_text($value);
-    }
-
-    public function setMetaAttribute($value)
-    {
-        $this->attributes['meta'] = is_array($value) ? json_encode($value) : $value;
     }
 }

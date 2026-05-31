@@ -9,7 +9,7 @@ class Page extends Model
 {
     use Loggable;
 
-    protected $fillable = ['title', 'slug', 'content', 'meta_title', 'meta_description', 'status'];
+    protected $fillable = ['title', 'slug', 'content', 'meta_title', 'meta_description', 'status', 'is_protected'];
 
     protected $casts = [
         'status' => 'boolean',
@@ -38,5 +38,22 @@ class Page extends Model
     public function getMetaDescriptionAttribute($value)
     {
         return brand_text($value);
+    }
+
+    public function sections()
+    {
+        return $this->hasMany(PageSection::class)->where('enabled', true)->orderBy('order');
+    }
+
+    public function getUrlAttribute()
+    {
+        return match ($this->slug) {
+            'about-us' => route('about'),
+            'contact-us' => route('contact'),
+            'bookmarks' => route('bookmarks'),
+            'exam-aid' => route('exam-aid'),
+            'home' => route('home'),
+            default => route('page.show', $this->slug),
+        };
     }
 }

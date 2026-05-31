@@ -74,4 +74,33 @@ class PageController extends Controller
         $page->delete();
         return back()->with('success', 'Page deleted successfully.');
     }
+
+    public function uploadImage(Request $request)
+    {
+        if ($request->hasFile('upload')) {
+            $file = $request->file('upload');
+            
+            // Validate image
+            $request->validate([
+                'upload' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+            ]);
+
+            $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = $file->getClientOriginalExtension();
+            $fileName = Str::slug($fileName) . '_' . time() . '.' . $extension;
+
+            $path = $file->storeAs('uploads/pages', $fileName, 'public');
+            $url = asset('storage/' . $path);
+
+            return response()->json([
+                'uploaded' => true,
+                'url' => $url
+            ]);
+        }
+
+        return response()->json([
+            'uploaded' => false,
+            'error' => ['message' => 'No file uploaded or invalid file.']
+        ], 400);
+    }
 }

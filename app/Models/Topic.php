@@ -47,4 +47,14 @@ class Topic extends Model
     {
         return $query->where('status', true);
     }
+    public function bookmarks()
+    {
+        return $this->morphMany(Bookmark::class, 'bookmarkable');
+    }
+
+    public function isBookmarked()
+    {
+        if (!auth()->check()) return false;
+        return $this->bookmarks()->where('user_id', auth()->id())->exists();
+    }
 }

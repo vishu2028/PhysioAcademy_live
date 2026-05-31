@@ -80,15 +80,29 @@
                 <div class="typage-topic-cloud">
                     @foreach($items as $item)
                     <div class="typage-topic-group">
-                        <a href="{{ route('topics.show', ['slug' => $item->slug]) }}" class="typage-topic-chip">
-                            {{ $item->title }}
-                        </a>
+                        <div class="typage-topic-chip-wrapper">
+                            <a href="{{ route('topics.show', ['slug' => $item->slug]) }}" class="typage-topic-chip">
+                                {{ $item->title }}
+                            </a>
+                            <button onclick="toggleBookmark({{ $item->id }}, 'Topic', this)" 
+                                    class="typage-mini-bookmark {{ $item->isBookmarked() ? 'active' : '' }}"
+                                    title="Bookmark Topic">
+                                <i class="bi {{ $item->isBookmarked() ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
+                            </button>
+                        </div>
                         @if($item->subtopics->count() > 0)
                             <div class="typage-sub-chips">
                                 @foreach($item->subtopics as $sub)
-                                    <a href="{{ route('topics.show', ['slug' => $sub->slug]) }}" class="typage-sub-chip">
-                                        {{ $sub->title }}
-                                    </a>
+                                    <div class="typage-sub-chip-wrapper">
+                                        <a href="{{ route('topics.show', ['slug' => $sub->slug]) }}" class="typage-sub-chip">
+                                            {{ $sub->title }}
+                                        </a>
+                                        <button onclick="toggleBookmark({{ $sub->id }}, 'Topic', this)" 
+                                                class="typage-micro-bookmark {{ $sub->isBookmarked() ? 'active' : '' }}"
+                                                title="Bookmark Subtopic">
+                                            <i class="bi {{ $sub->isBookmarked() ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
+                                        </button>
+                                    </div>
                                 @endforeach
                             </div>
                         @endif
@@ -453,6 +467,58 @@
     .typage-hero-card { padding: 30px 20px; }
     .typage-subject-panel { padding: 20px; }
   }
+  .typage-topic-chip-wrapper, .typage-sub-chip-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+  }
+  .typage-mini-bookmark, .typage-micro-bookmark {
+      background: none;
+      border: none;
+      padding: 0;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s;
+  }
+  .typage-mini-bookmark:hover, .typage-micro-bookmark:hover { color: #2563eb; transform: scale(1.2); }
+  .typage-mini-bookmark.active, .typage-micro-bookmark.active { color: #2563eb; }
+  .typage-mini-bookmark i { font-size: 1.1rem; }
+  .typage-micro-bookmark i { font-size: 0.9rem; }
 </style>
+
+<script>
+    function toggleBookmark(id, type, btn) {
+        @if(!auth()->check())
+            window.location.href = "{{ route('login') }}";
+            return;
+        @endif
+
+        const icon = btn.querySelector('i');
+        
+        fetch("{{ route('bookmarks.toggle') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ id: id, type: type })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.isBookmarked) {
+                icon.classList.remove('bi-bookmark');
+                icon.classList.add('bi-bookmark-fill');
+                btn.classList.add('active');
+            } else {
+                icon.classList.remove('bi-bookmark-fill');
+                icon.classList.add('bi-bookmark');
+                btn.classList.remove('active');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+</script>
 @endpush
 @endsection

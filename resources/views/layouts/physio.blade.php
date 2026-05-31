@@ -238,13 +238,13 @@
             <ul class="db-menu-list">
 
                 <li class="db-menu-item">
-                    <a href="#" class="db-menu-link {{ Request::is('user/bookmarks*') ? 'active' : '' }}">
+                    <a href="{{ route('bookmarks') }}" class="db-menu-link {{ Request::routeIs('bookmarks') ? 'active' : '' }}">
                         <i class="bi bi-bookmark-star-fill"></i>
                         <span>Bookmarks</span>
                     </a>
                 </li>
                 <li class="db-menu-item">
-                    <a href="#" class="db-menu-link {{ Request::is('user/courses*') ? 'active' : '' }}">
+                    <a href="{{ route('topics.year') }}" class="db-menu-link {{ Request::routeIs('topics.year*') ? 'active' : '' }}">
                         <i class="bi bi-journal-bookmark-fill"></i>
                         <span>Topics</span>
                     </a>

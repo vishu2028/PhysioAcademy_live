@@ -29,7 +29,6 @@ class AcademicYearController extends Controller
             'units_count' => 'nullable|integer',
             'topics_count' => 'nullable|integer',
             'order' => 'nullable|integer',
-            'status' => 'boolean',
             'semesters' => 'nullable|array',
             'semesters.*' => 'string|max:255',
         ]);
@@ -68,7 +67,6 @@ class AcademicYearController extends Controller
             'units_count' => 'nullable|integer',
             'topics_count' => 'nullable|integer',
             'order' => 'nullable|integer',
-            'status' => 'boolean',
             'semesters' => 'nullable|array',
             'semesters.*.id' => 'nullable|exists:semesters,id',
             'semesters.*.name' => 'required|string|max:255',

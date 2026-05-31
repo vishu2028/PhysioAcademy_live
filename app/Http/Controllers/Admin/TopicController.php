@@ -38,8 +38,8 @@ class TopicController extends Controller
             'module_number' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'order' => 'nullable|integer',
-            'status' => 'boolean',
-            'is_protected' => 'boolean',
+            'status' => 'sometimes|boolean',
+            'is_protected' => 'sometimes|boolean',
             'materials' => 'nullable|array',
             'materials.*.title' => 'required|string|max:255',
             'materials.*.type' => 'required|in:pdf,video,link,note',
@@ -56,13 +56,14 @@ class TopicController extends Controller
         $topic = Topic::create($data);
 
         if ($request->has('materials')) {
-            foreach ($request->materials as $index => $materialData) {
+            $orderIndex = 0;
+            foreach ($request->materials as $materialData) {
                 $material = new LearningMaterial([
                     'title' => $materialData['title'],
                     'type' => $materialData['type'],
                     'content' => $materialData['content'] ?? null,
                     'url' => $materialData['url'] ?? null,
-                    'order' => $index,
+                    'order' => $orderIndex,
                 ]);
 
                 if (isset($materialData['file']) && $materialData['file']) {
@@ -70,6 +71,7 @@ class TopicController extends Controller
                 }
 
                 $topic->materials()->save($material);
+                $orderIndex++;
             }
         }
 
@@ -109,8 +111,6 @@ class TopicController extends Controller
             'materials.*.file' => 'nullable|file|max:10240',
         ]);
 
-        dd($request->all());
-
         $data = $request->except('materials');
         $data['slug'] = Str::slug($request->title);
         $data['status'] = $request->has('status');
@@ -120,7 +120,8 @@ class TopicController extends Controller
 
         $existingMaterialIds = [];
         if ($request->has('materials')) {
-            foreach ($request->materials as $index => $materialData) {
+            $orderIndex = 0;
+            foreach ($request->materials as $materialData) {
                 if (isset($materialData['id']) && $materialData['id']) {
                     $material = LearningMaterial::find($materialData['id']);
                     $material->update([
@@ -128,7 +129,7 @@ class TopicController extends Controller
                         'type' => $materialData['type'],
                         'content' => $materialData['content'] ?? null,
                         'url' => $materialData['url'] ?? null,
-                        'order' => $index,
+                        'order' => $orderIndex,
                     ]);
                     if (isset($materialData['file']) && $materialData['file']) {
                         $material->file_path = $materialData['file']->store('materials', 'public');
@@ -141,7 +142,7 @@ class TopicController extends Controller
                         'type' => $materialData['type'],
                         'content' => $materialData['content'] ?? null,
                         'url' => $materialData['url'] ?? null,
-                        'order' => $index,
+                        'order' => $orderIndex,
                     ]);
                     if (isset($materialData['file']) && $materialData['file']) {
                         $material->file_path = $materialData['file']->store('materials', 'public');
@@ -149,6 +150,7 @@ class TopicController extends Controller
                     $topic->materials()->save($material);
                     $existingMaterialIds[] = $material->id;
                 }
+                $orderIndex++;
             }
         }
         $topic->materials()->whereNotIn('id', $existingMaterialIds)->delete();
@@ -160,5 +162,25 @@ class TopicController extends Controller
     {
         $topic->delete();
         return back()->with('success', 'Topic deleted successfully.');
+    }
+
+    public function uploadImage(Request $request)
+    {
+        if ($request->hasFile('upload')) {
+            $file = $request->file('upload');
+            $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = $file->getClientOriginalExtension();
+            $fileName = $fileName . '_' . time() . '.' . $extension;
+
+            $path = $file->storeAs('uploads/topics', $fileName, 'public');
+            $url = asset('storage/' . $path);
+
+            return response()->json([
+                'uploaded' => true,
+                'url' => $url
+            ]);
+        }
+
+        return response()->json(['error' => ['message' => 'No file uploaded']], 400);
     }
 }

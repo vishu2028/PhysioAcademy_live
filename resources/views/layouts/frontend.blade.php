@@ -102,6 +102,7 @@
                 <a href="{{ route('search') }}" class="nav-dropdown-item {{ Request::routeIs('search') ? 'active' : '' }}"><span class="ui-icon ui-icon-search"></span> Search</a>
                 <a href="{{ route('topics.year') }}" class="nav-dropdown-item {{ Request::routeIs('topics.year') ? 'active' : '' }}"><span class="ui-icon ui-icon-calendar"></span> By Year</a>
                 <a href="{{ route('topics.index') }}" class="nav-dropdown-item {{ Request::routeIs('topics.index') ? 'active' : '' }}"><span class="ui-icon ui-icon-book"></span> By Subjects</a>
+                <a href="{{ route('bookmarks') }}" class="nav-dropdown-item {{ Request::routeIs('bookmarks') ? 'active' : '' }}"><span class="ui-icon ui-icon-bookmark"></span> My Bookmarks</a>
               </div>
           </div>
           <a href="{{ route('exam-aid') }}" class="nav-link {{ Request::is('exam-aid') ? 'active' : '' }}">Exam Aid</a>

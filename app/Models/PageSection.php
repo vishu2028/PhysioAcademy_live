@@ -15,6 +15,16 @@ class PageSection extends Model
         'enabled' => 'boolean',
     ];
 
+    public function getContentAttribute($value)
+    {
+        if (is_null($value)) {
+            return null;
+        }
+        // Decode JSON if still a string (accessor fires before cast)
+        $decoded = is_array($value) ? $value : json_decode($value, true);
+        return brand_text($decoded ?? $value);
+    }
+
     public function page()
     {
         return $this->belongsTo(Page::class);
@@ -23,25 +33,5 @@ class PageSection extends Model
     public function items()
     {
         return $this->hasMany(PageSectionItem::class, 'section_id')->orderBy('order');
-    }
-
-    public function getContentAttribute($value)
-    {
-        if ($value === null || $value === '') {
-            return brand_text($value);
-        }
-
-        $decoded = json_decode($value, true);
-
-        if (json_last_error() === JSON_ERROR_NONE) {
-            return brand_text($decoded);
-        }
-
-        return brand_text($value);
-    }
-
-    public function setContentAttribute($value)
-    {
-        $this->attributes['content'] = is_array($value) ? json_encode($value) : $value;
     }
 }

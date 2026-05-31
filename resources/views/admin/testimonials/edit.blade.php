@@ -20,12 +20,12 @@
                 <div class="col-md-8">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Student Name</label>
-                        <input type="text" name="name" class="form-control rounded-3" value="{{ old('name', $testimonial->name ?? '') }}" placeholder="e.g. John Doe" required>
+                        <input type="text" name="client_name" class="form-control rounded-3" value="{{ old('client_name', $testimonial->client_name ?? '') }}" placeholder="e.g. John Doe" required>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Designation / Year</label>
-                        <input type="text" name="designation" class="form-control rounded-3" value="{{ old('designation', $testimonial->designation ?? 'Third Year BPT') }}" placeholder="e.g. Third Year Student">
+                        <input type="text" name="client_designation" class="form-control rounded-3" value="{{ old('client_designation', $testimonial->client_designation ?? 'Third Year BPT') }}" placeholder="e.g. Third Year Student">
                     </div>
 
                     <div class="mb-3">
@@ -54,12 +54,12 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Student Photo (Optional)</label>
-                        @if(isset($testimonial) && $testimonial->image_path)
+                        @if(isset($testimonial) && $testimonial->client_image)
                             <div class="mb-3">
-                                <img src="{{ asset('storage/' . $testimonial->image_path) }}" class="rounded-circle border shadow-sm" width="120" height="120" style="object-fit:cover;">
+                                <img src="{{ asset('storage/' . $testimonial->client_image) }}" class="rounded-circle border shadow-sm" width="120" height="120" style="object-fit:cover;">
                             </div>
                         @endif
-                        <input type="file" name="image" class="form-control rounded-3">
+                        <input type="file" name="client_image" class="form-control rounded-3">
                     </div>
                     
                     <div class="mb-3">

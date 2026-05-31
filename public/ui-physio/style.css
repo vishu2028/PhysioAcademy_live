@@ -1313,6 +1313,7 @@ img { max-width: 100%; display: block; }
   background: linear-gradient(135deg, rgba(37,99,235,0.06), transparent 60%);
   opacity: 0;
   transition: opacity 0.35s;
+  pointer-events: none;
 }
 .curriculum-card:hover { transform: translateY(-6px) scale(1.01); border-color: rgba(37,99,235,0.25); box-shadow: var(--shadow-cyan); }
 .curriculum-card:hover::before { opacity: 1; }
@@ -1331,6 +1332,7 @@ img { max-width: 100%; display: block; }
   border-radius: 99px;
   font-size: 0.7rem; font-weight: 600;
   color: #2563eb;
+  pointer-events: none;
 }
 
 .cc-glow {
@@ -1405,6 +1407,7 @@ img { max-width: 100%; display: block; }
   position: absolute; bottom: 20px; right: 24px;
   font-size: 0.72rem; font-weight: 600;
   color: #94a3b8;
+  pointer-events: none;
 }
 .internship-card { border-color: rgba(16,185,129,0.2); }
 
