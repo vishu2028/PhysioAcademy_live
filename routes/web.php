@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\FrontendController;
-use Illuminate\Support\Facades\Route;
+// use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 
 // ─── Frontend Routes (CMS-driven) ───
