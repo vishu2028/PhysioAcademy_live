@@ -251,7 +251,7 @@
         </div>
         @endguest
     </div>
-    
+
     @guest
     <div class="text-center mt-5 reveal-up">
         <div class="guest-cta-card mx-auto glass-card">
@@ -337,7 +337,7 @@
             <div class="tc-glow" style="{{ $index == 1 ? '--tc-glow:#3b82f6' : ($index == 2 ? '--tc-glow:#f59e0b' : ($index == 3 ? '--tc-glow:#10b981' : '')) }}"></div>
             <div class="tc-header">
               <div class="tc-badge {{ $index == 0 ? 'trending-badge' : '' }}" style="{{ $index > 0 ? 'background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.25);color:#2563eb' : '' }}">
-                <span class="ui-icon ui-icon-{{ $index == 0 ? 'flame' : ($index == 1 ? 'trending' : ($index == 2 ? 'zap' : 'heart-pulse')) }}"></span> 
+                <span class="ui-icon ui-icon-{{ $index == 0 ? 'flame' : ($index == 1 ? 'trending' : ($index == 2 ? 'zap' : 'heart-pulse')) }}"></span>
                 Trending #{{ $index + 1 }}
               </div>
               <div class="tc-requests"><span class="request-count" data-count="{{ 847 - ($index * 128) }}">0</span> requests</div>
@@ -352,7 +352,7 @@
             </div>
             <div class="tc-footer">
               <a href="{{ route('topics.show', ['slug' => $topic->slug]) }}" class="tc-explore-btn text-decoration-none">Explore Topic</a>
-              <button class="tc-save-btn {{ $topic->isBookmarked() ? 'active' : '' }}" 
+              <button class="tc-save-btn {{ $topic->isBookmarked() ? 'active' : '' }}"
                       onclick="toggleBookmark({{ $topic->id }}, 'Topic', this)"
                       aria-label="Save">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -710,7 +710,7 @@
         <h2 class="section-title">{!! get_setting('about_title', 'Built for <span class="text-gradient">Physio Students</span><br/>By Physio Students') !!}</h2>
         <p class="about-para">{{ auth()->check() ? get_setting('about_description_1', 'Physio Academy was created to bridge the gap between textbook knowledge and real examination performance. We understand the challenges of physiotherapy education — complex topics, unclear answer formats, and limited academic guidance.') : Str::limit(get_setting('about_description_1', 'Physio Academy was created to bridge the gap between textbook knowledge and real examination performance.'), 80) }}</p>
         <p class="about-para">{{ auth()->check() ? get_setting('about_description_2', 'Our platform is completely aligned with the latest 2024 curriculum, offering topic-by-topic academic support, viva preparation, and answer writing guidance tailored specifically for physiotherapy students.') : Str::limit(get_setting('about_description_2', 'Our platform is completely aligned with the latest 2024 curriculum, offering topic-by-topic academic support...'), 80) }}</p>
-        
+
         @guest
         <a href="javascript:void(0)" onclick="document.getElementById('authOverlay').classList.add('active')" class="text-primary small fw-bold d-block mb-4">Login to read full mission details →</a>
         @endguest
@@ -863,7 +863,7 @@
         letter-spacing: -0.01em;
         color: var(--text-primary) !important;
     }
-    
+
     .tcu-info small {
         color: var(--text-muted) !important;
     }
@@ -879,7 +879,7 @@
         position: relative;
         overflow: hidden;
     }
-    
+
     .blurred-content {
         filter: blur(8px);
         pointer-events: none;
@@ -941,7 +941,7 @@
 
         const path = btn.querySelector('path');
         const isActive = btn.classList.contains('active');
-        
+
         fetch("{{ route('bookmarks.toggle') }}", {
             method: 'POST',
             headers: {
