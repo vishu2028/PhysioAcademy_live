@@ -57,6 +57,7 @@
             </a>
         @endauth
       </div>
+
         <div class="hero-stats reveal-up delay-4">
             <div class="stat-item">
                 <span class="stat-num" data-count="{{ \App\Models\Topic::count() }}">0</span>
@@ -80,29 +81,13 @@
                 <span class="stat-label">Students Helped</span>
             </div>
         </div>
-
-{{--      <div class="hero-stats reveal-up delay-4">--}}
-{{--        <div class="stat-item">--}}
-{{--          <span class="stat-num" data-count="{{ \App\Models\Topic::count() ?: 500 }}">0</span><span class="stat-suffix">+</span>--}}
-{{--          <span class="stat-label">Topics Covered</span>--}}
-{{--        </div>--}}
-{{--        <div class="stat-divider"></div>--}}
-{{--        <div class="stat-item">--}}
-{{--          <span class="stat-num" data-count="{{ \App\Models\Message::count() * 40 ?: 2400 }}">0</span><span class="stat-suffix">+</span>--}}
-{{--          <span class="stat-label">Questions</span>--}}
-{{--        </div>--}}
-{{--        <div class="stat-divider"></div>--}}
-{{--        <div class="stat-item">--}}
-{{--          <span class="stat-num" data-count="{{ \App\Models\User::count() ?: 12 }}">0</span><span class="stat-suffix">K+</span>--}}
-{{--          <span class="stat-label">Students Helped</span>--}}
-{{--        </div>--}}
-{{--      </div>--}}
     </div>
 
     <div class="hero-visual reveal-right delay-2">
       <div class="hero-visual-image">
         <img src="{{'storage/' . $hero->image_path ? asset('storage/' .$hero->image_path) : asset('ui-physio/assets/two-colleagues-working-laptop_114579-2814.avif') }}" alt="">
       </div>
+
         @php
             $dashboardSubjects = \App\Models\Subject::withCount('topics')
                 ->orderByDesc('topics_count')
@@ -161,44 +146,14 @@
             </div>
         </div>
 
-{{--      <div class="visual-card-main glass-card">--}}
-{{--        <div class="visual-card-header">--}}
-{{--          <div class="vc-dots"><span></span><span></span><span></span></div>--}}
-{{--          <span class="vc-label">Learning Dashboard</span>--}}
-{{--        </div>--}}
-{{--        <div class="visual-progress-list">--}}
-{{--          <div class="vp-item">--}}
-{{--            <span class="vp-name">Anatomy</span>--}}
-{{--            <div class="vp-bar"><div class="vp-fill" style="--fill:78%"></div></div>--}}
-{{--            <span class="vp-pct">78%</span>--}}
-{{--          </div>--}}
-{{--          <div class="vp-item">--}}
-{{--            <span class="vp-name">Physiology</span>--}}
-{{--            <div class="vp-bar"><div class="vp-fill" style="--fill:65%"></div></div>--}}
-{{--            <span class="vp-pct">65%</span>--}}
-{{--          </div>--}}
-{{--          <div class="vp-item">--}}
-{{--            <span class="vp-name">Biomechanics</span>--}}
-{{--            <div class="vp-bar"><div class="vp-fill" style="--fill:52%"></div></div>--}}
-{{--            <span class="vp-pct">52%</span>--}}
-{{--          </div>--}}
-{{--          <div class="vp-item">--}}
-{{--            <span class="vp-name">Electrotherapy</span>--}}
-{{--            <div class="vp-bar"><div class="vp-fill" style="--fill:40%"></div></div>--}}
-{{--            <span class="vp-pct">40%</span>--}}
-{{--          </div>--}}
-{{--        </div>--}}
-{{--      </div>--}}
-
       <div class="float-card float-card-1 glass-card">
         <div class="fc-icon"><span class="ui-icon ui-icon-brain"></span></div>
-        <div class="fc-info">
-        <span class="fc-title">
+          <span class="fc-title">
             {{ $mostRequestedTopic->subject ?? 'Brachial Plexus' }}
         </span>
-        </div>
         <div class="fc-badge hot"><span class="ui-icon ui-icon-flame"></span></div>
       </div>
+
         @php
             $latestGuide = \App\Models\Topic::latest('updated_at')->first();
 
@@ -231,19 +186,12 @@
             </div>
         @endif
 
-{{--      <div class="float-card float-card-2 glass-card">--}}
-{{--        <div class="fc-icon"><span class="ui-icon ui-icon-trending"></span></div>--}}
-{{--        <div class="fc-info">--}}
-{{--          <span class="fc-title">Gait Cycle</span>--}}
-{{--          <span class="fc-sub">Updated Guide</span>--}}
-{{--        </div>--}}
-{{--        <div class="fc-badge new">NEW</div>--}}
-{{--      </div>--}}
-
       <div class="float-card float-card-3 glass-card">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-{{--        <span>Active students right now: <strong>247</strong></span>--}}
-          <span>Registered students:<strong>{{ \App\Models\User::role('user')->count() }}</strong></span>
+          <span>
+            Registered students:
+            <strong>{{ \App\Models\User::role('user')->count() }}</strong>
+</span>
       </div>
 
       <div class="visual-ring visual-ring-1"></div>
