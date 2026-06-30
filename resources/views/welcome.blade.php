@@ -146,13 +146,25 @@
             </div>
         </div>
 
-      <div class="float-card float-card-1 glass-card">
-        <div class="fc-icon"><span class="ui-icon ui-icon-brain"></span></div>
-          <span class="fc-title">
+        <div class="float-card float-card-1 glass-card">
+            <div class="fc-icon">
+                <span class="ui-icon ui-icon-brain"></span>
+            </div>
+
+            <div class="fc-info">
+        <span class="fc-title">
             {{ $mostRequestedTopic->subject ?? 'Brachial Plexus' }}
         </span>
-        <div class="fc-badge hot"><span class="ui-icon ui-icon-flame"></span></div>
-      </div>
+
+                <span class="fc-sub">
+            Most Requested Inquiry
+        </span>
+            </div>
+
+            <div class="fc-badge hot">
+                <span class="ui-icon ui-icon-flame"></span>
+            </div>
+        </div>
 
         @php
             $latestGuide = \App\Models\Topic::latest('updated_at')->first();
