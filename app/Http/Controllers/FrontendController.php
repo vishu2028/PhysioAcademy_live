@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Page;
 use App\Models\FAQ;
 use Illuminate\Http\Request;
-
+use App\Models\Message;
 class FrontendController extends Controller
 {
     public function home()
@@ -16,17 +16,24 @@ class FrontendController extends Controller
         $years = \App\Models\AcademicYear::active()->withCount(['topics' => function($q) {
             $q->active();
         }])->orderBy('order')->get();
-        
+
         // Trending Topics
         $trendingTopics = \App\Models\Topic::active()->with('subject')->orderBy('order')->limit(4)->get();
-        
+
         $testimonials = \App\Models\Testimonial::active()->ordered()->get();
         $faqs = \App\Models\FAQ::active()->ordered()->limit(6)->get();
         $banners = \App\Models\Banner::active()->ordered()->get();
         $sliders = \App\Models\Slider::active()->ordered()->get();
+        $mostRequestedTopic = Message::select('subject')
+            ->selectRaw('COUNT(*) as total')
+            ->whereNotNull('subject')
+            ->where('subject', '!=', '')
+            ->groupBy('subject')
+            ->orderByDesc('total')
+            ->first();
 
         return view('welcome', compact(
-            'hero', 'features', 'years', 'trendingTopics', 'testimonials', 'faqs', 'banners', 'sliders'
+            'hero', 'features', 'years', 'trendingTopics', 'testimonials', 'faqs', 'banners', 'sliders','mostRequestedTopic'
         ));
     }
 
@@ -55,11 +62,11 @@ class FrontendController extends Controller
     }
 
     public function topicsByYear($yearSlug = null)
-    {   
+    {
         $years = \App\Models\AcademicYear::active()->orderBy('order')->get();
-        
-        $currentYear = $yearSlug 
-            ? \App\Models\AcademicYear::where('slug', $yearSlug)->active()->firstOrFail() 
+
+        $currentYear = $yearSlug
+            ? \App\Models\AcademicYear::where('slug', $yearSlug)->active()->firstOrFail()
             : \App\Models\AcademicYear::active()->orderBy('order')->first();
 
         // Topics grouped by Subject for the selected year (top-level only)
@@ -84,7 +91,7 @@ class FrontendController extends Controller
             ->where('slug', $slug)
             ->active()
             ->firstOrFail();
-            
+
         $relatedTopics = \App\Models\Topic::active()
             ->where('subject_id', $topic->subject_id)
             ->where('id', '!=', $topic->id)
@@ -101,10 +108,10 @@ class FrontendController extends Controller
         $page = \App\Models\Page::where('slug', 'exam-aid')->active()->firstOrFail();
         $sections = \App\Models\PageSection::with('items')->where('page_id', $page->id)->where('enabled', true)->orderBy('order')->get();
         $pageProtected = $page->is_protected;
-        
+
         // We still fetch FAQs for the resource library if the dynamic logic requires it
         $faqs = FAQ::active()->ordered()->get();
-        
+
         return view('exam-aid', compact('page', 'sections', 'pageProtected', 'faqs'));
     }
 
@@ -137,7 +144,7 @@ class FrontendController extends Controller
     public function searchSuggestions(Request $request)
     {
         $query = trim($request->input('query', ''));
-        
+
         if (!$query) {
             // Return trending/popular topics if query is empty
             $trending = \App\Models\Topic::active()
@@ -145,7 +152,7 @@ class FrontendController extends Controller
                 ->orderBy('order')
                 ->limit(8)
                 ->get(['id', 'title', 'slug', 'subject_id']);
-            
+
             return response()->json([
                 'status' => 'success',
                 'type'   => 'trending',
@@ -177,7 +184,7 @@ class FrontendController extends Controller
     public function bookmarks()
     {
         $page = Page::where('slug', 'bookmarks')->active()->firstOrFail();
-        
+
         $sections = \App\Models\PageSection::with('items')
             ->where('page_id', $page->id)
             ->where('enabled', true)
@@ -240,13 +247,13 @@ class FrontendController extends Controller
     public function downloadMaterial($id)
     {
         $material = \App\Models\LearningMaterial::findOrFail($id);
-        
+
         if ($material->type !== 'pdf' || !$material->file_path) {
             return back()->with('error', 'This material is not a downloadable file.');
         }
 
         $path = storage_path('app/public/' . $material->file_path);
-        
+
         if (!file_exists($path)) {
             return back()->with('error', 'File not found.');
         }

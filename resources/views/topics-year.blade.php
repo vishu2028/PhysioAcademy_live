@@ -22,7 +22,7 @@
       <div class="typage-cards-grid">
         @foreach($years as $y)
         <a href="{{ route('topics.year', ['year' => $y->slug]) }}" class="typage-card {{ ($currentYear->id == $y->id) ? 'active' : '' }}">
-          <div class="typage-year-number text-uppercase">{{ Str::limit($y->name, 2, '') }}</div>
+{{--          <div class="typage-year-number text-uppercase">{{ Str::limit($y->name, 2, '') }}</div>--}}
           <div class="typage-year-label">{{ $y->name }}</div>
           <p class="typage-year-desc">{{ $y->description }}</p>
           <div class="typage-year-info">
@@ -92,7 +92,7 @@
                             <a href="{{ route('topics.show', ['slug' => $item->slug]) }}" class="typage-topic-chip">
                                 {{ $item->title }}
                             </a>
-                            <button onclick="toggleBookmark({{ $item->id }}, 'Topic', this)" 
+                            <button onclick="toggleBookmark({{ $item->id }}, 'Topic', this)"
                                     class="typage-mini-bookmark {{ $item->isBookmarked() ? 'active' : '' }}"
                                     title="Bookmark Topic">
                                 <i class="bi {{ $item->isBookmarked() ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
@@ -105,7 +105,7 @@
                                         <a href="{{ route('topics.show', ['slug' => $sub->slug]) }}" class="typage-sub-chip">
                                             {{ $sub->title }}
                                         </a>
-                                        <button onclick="toggleBookmark({{ $sub->id }}, 'Topic', this)" 
+                                        <button onclick="toggleBookmark({{ $sub->id }}, 'Topic', this)"
                                                 class="typage-micro-bookmark {{ $sub->isBookmarked() ? 'active' : '' }}"
                                                 title="Bookmark Subtopic">
                                             <i class="bi {{ $sub->isBookmarked() ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
@@ -143,7 +143,7 @@
             </div>
             <h3 class="fw-bold mb-3">Academic Access Restricted</h3>
             <p class="text-muted mb-4 mx-auto" style="max-width: 600px;">
-                We have over <strong>{{ $topics->flatten()->count() }}</strong> modules for {{ $currentYear->name }} available. 
+                We have over <strong>{{ $topics->flatten()->count() }}</strong> modules for {{ $currentYear->name }} available.
                 Login now to unlock the full syllabus, download clinical notes, and access viva prep materials.
             </p>
             <div class="d-flex justify-content-center gap-3">
@@ -528,7 +528,7 @@
         @endif
 
         const icon = btn.querySelector('i');
-        
+
         fetch("{{ route('bookmarks.toggle') }}", {
             method: 'POST',
             headers: {

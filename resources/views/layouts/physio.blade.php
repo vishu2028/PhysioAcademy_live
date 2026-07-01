@@ -4,32 +4,32 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
+
     <title>@yield('title', get_setting('site_name', 'Physio Academy'))</title>
-    
+
     @if(get_setting('site_favicon'))
         <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . get_setting('site_favicon')) }}">
     @endif
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <link rel="stylesheet" href="{{ asset('ui-physio/style.css') }}" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
 
-    
+
+
     <style>
         :root {
             --primary-color: {{ get_setting('primary_color', '#2563eb') }};
             --secondary-color: {{ get_setting('secondary_color', '#38bdf8') }};
         }
-        
+
         .dashboard-layout {
             display: flex;
             min-height: 100vh;
-            background: 
+            background:
                 radial-gradient(circle at 0% 0%, rgba(56,189,248,0.1), transparent 30%),
                 radial-gradient(circle at 100% 100%, rgba(37,99,235,0.1), transparent 30%),
                 #f8fbff;
@@ -214,7 +214,7 @@
     $protectionEnabled = get_setting('enable_content_protection', '0') === '1';
     $isProtectedPage = $protectionEnabled && (isset($pageProtected) ? $pageProtected : true); // Default to true for premium dashboard
 @endphp
-<body 
+<body
     class="@yield('body-class')"
     data-protected="{{ $isProtectedPage ? 'true' : 'false' }}"
     data-site-name="{{ get_setting('site_name', 'Physio Academy') }}"
