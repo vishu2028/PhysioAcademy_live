@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Testimonial extends Model
 {
-    protected $fillable = ['client_name', 'client_designation', 'content', 'rating', 'client_image', 'status', 'order'];
+    protected $fillable = ['client_name', 'client_designation', 'content', 'rating', 'client_image', 'status','section_enabled', 'order'];
 
     protected $casts = [
         'rating' => 'integer',
         'status' => 'boolean',
+        'section_enabled' => 'boolean',
     ];
 
     public function scopeActive($query)

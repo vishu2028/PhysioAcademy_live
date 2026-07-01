@@ -367,6 +367,7 @@
 </section>
 
 <!-- TESTIMONIALS SECTION -->
+@if($testimonialSectionEnabled ?? true)
 <section class="section testimonials-section" id="testimonials">
   <div class="section-container">
     <div class="section-header reveal-up text-center">
@@ -414,6 +415,7 @@
     </div>
   </div>
 </section>
+@endif
 
 <!-- TRENDING TOPICS / HOT RIGHT NOW -->
 <section class="section trending-section" id="topics">

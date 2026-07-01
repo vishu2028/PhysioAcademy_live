@@ -26,7 +26,12 @@ class FrontendController extends Controller
         // Trending Topics
         $trendingTopics = \App\Models\Topic::active()->with('subject')->orderBy('order')->limit(4)->get();
 
-        $testimonials = \App\Models\Testimonial::active()->ordered()->get();
+        $testimonialSectionEnabled = \App\Models\Testimonial::query()->value('section_enabled');
+        $testimonialSectionEnabled = is_null($testimonialSectionEnabled) ? true : (bool) $testimonialSectionEnabled;
+
+        $testimonials = $testimonialSectionEnabled
+            ? \App\Models\Testimonial::active()->ordered()->get()
+            : collect();
         $faqs = \App\Models\FAQ::active()->ordered()->limit(6)->get();
         $banners = \App\Models\Banner::active()->ordered()->get();
         $sliders = \App\Models\Slider::active()->ordered()->get();
@@ -39,7 +44,7 @@ class FrontendController extends Controller
             ->first();
 
         return view('welcome', compact(
-            'hero', 'features','sectionEnabled','visibleFeatures', 'years', 'trendingTopics', 'testimonials', 'faqs', 'banners', 'sliders','mostRequestedTopic'
+            'hero', 'features','sectionEnabled','visibleFeatures','testimonialSectionEnabled', 'years', 'trendingTopics', 'testimonials', 'faqs', 'banners', 'sliders','mostRequestedTopic'
         ));
     }
 
