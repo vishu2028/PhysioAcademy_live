@@ -11,6 +11,12 @@ class FrontendController extends Controller
     public function home()
     {
         $hero = \App\Models\HeroSection::active()->first() ?? new \App\Models\HeroSection();
+        $sectionEnabled = \App\Models\Feature::query()->value('section_enabled');
+        $sectionEnabled = is_null($sectionEnabled) ? true : (bool) $sectionEnabled;
+
+        $visibleFeatures = $sectionEnabled
+            ? \App\Models\Feature::active()->ordered()->get()
+            : collect();
         $features = \App\Models\Feature::active()->ordered()->get();
         // Curriculum data: Active years with topics count
         $years = \App\Models\AcademicYear::active()->withCount(['topics' => function($q) {
@@ -33,7 +39,7 @@ class FrontendController extends Controller
             ->first();
 
         return view('welcome', compact(
-            'hero', 'features', 'years', 'trendingTopics', 'testimonials', 'faqs', 'banners', 'sliders','mostRequestedTopic'
+            'hero', 'features','sectionEnabled','visibleFeatures', 'years', 'trendingTopics', 'testimonials', 'faqs', 'banners', 'sliders','mostRequestedTopic'
         ));
     }
 

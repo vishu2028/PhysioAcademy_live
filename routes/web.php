@@ -2,8 +2,11 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\FrontendController;
+use App\Http\Controllers\Admin\FeatureController;
+
 // use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+
 
 // ─── Frontend Routes (CMS-driven) ───
 Route::get('/', [FrontendController::class, 'home'])->name('home');
@@ -42,7 +45,10 @@ Route::middleware(['auth', 'role:super_admin|admin'])->prefix('admin')->name('ad
     Route::resource('page-sections', \App\Http\Controllers\Admin\PageSectionController::class)->parameters(['page-sections' => 'section']);
     Route::resource('page-section-items', \App\Http\Controllers\Admin\PageSectionItemController::class)->only(['create','store','edit','update','destroy']);
     Route::resource('hero', \App\Http\Controllers\Admin\HeroController::class);
+    Route::patch('features/section-toggle', [FeatureController::class, 'sectionToggle'])
+        ->name('features.section-toggle');
     Route::resource('features', \App\Http\Controllers\Admin\FeatureController::class);
+
     Route::resource('subjects', \App\Http\Controllers\Admin\SubjectController::class);
     Route::resource('academic-years', \App\Http\Controllers\Admin\AcademicYearController::class);
     Route::post('topics/upload-image', [\App\Http\Controllers\Admin\TopicController::class, 'uploadImage'])->name('topics.upload_image');

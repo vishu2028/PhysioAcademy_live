@@ -24,23 +24,23 @@
                         <label class="form-label fw-bold">Description</label>
                         <input type="text" name="description" class="form-control" placeholder="e.g. Anatomy, Physiology & Foundations" value="{{ old('description') }}">
                     </div>
-                    
+
                     <hr class="my-4">
-                    
+
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <label class="form-label fw-bold mb-0">Semesters</label>
+                        <label class="form-label fw-bold mb-0">Subjects</label>
                         <button type="button" class="btn btn-sm btn-outline-primary" id="addSemester">
-                            <i class="bi bi-plus-lg"></i> Add Semester
+                            <i class="bi bi-plus-lg"></i> Add Subject
                         </button>
                     </div>
-                    
+
                     <div id="semesterContainer">
                         <div class="input-group mb-2 semester-item">
-                            <input type="text" name="semesters[]" class="form-control" placeholder="e.g. Semester 1" value="Semester 1">
+                            <input type="text" name="semesters[]" class="form-control" placeholder="e.g. Subject 1" value="Subject 1">
                             <button class="btn btn-outline-danger remove-semester" type="button"><i class="bi bi-trash"></i></button>
                         </div>
                         <div class="input-group mb-2 semester-item">
-                            <input type="text" name="semesters[]" class="form-control" placeholder="e.g. Semester 2" value="Semester 2">
+                            <input type="text" name="semesters[]" class="form-control" placeholder="e.g. Semester 2" value="Subject 2">
                             <button class="btn btn-outline-danger remove-semester" type="button"><i class="bi bi-trash"></i></button>
                         </div>
                     </div>
@@ -84,12 +84,15 @@
     document.getElementById('addSemester').addEventListener('click', function() {
         const container = document.getElementById('semesterContainer');
         const count = container.querySelectorAll('.semester-item').length + 1;
+
         const div = document.createElement('div');
         div.className = 'input-group mb-2 semester-item';
+
         div.innerHTML = `
-            <input type="text" name="semesters[]" class="form-control" placeholder="e.g. Semester ${count}" value="Semester ${count}">
-            <button class="btn btn-outline-danger remove-semester" type="button"><i class="bi bi-trash"></i></button>
-        `;
+        <input type="text" name="semesters[]" class="form-control" placeholder="e.g. Subject ${count}" value="Subject ${count}">
+        <button class="btn btn-outline-danger remove-semester" type="button"><i class="bi bi-trash"></i></button>
+    `;
+
         container.appendChild(div);
     });
 

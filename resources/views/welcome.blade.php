@@ -297,33 +297,57 @@
     @php
         $visibleFeatures = auth()->check() ? $features : $features->take(ceil($features->count() / 2));
     @endphp
-    <div class="restriction-container">
-        <div class="support-grid reveal-stagger">
-          @forelse($visibleFeatures as $feature)
-          <div class="support-card">
-            <div class="sc-border"></div>
-            <div class="sc-sweep"></div>
-            <div class="sc-icon-wrap" style="{{ $feature->color ? '--sc-color:'.$feature->color : '' }}">
-              @if(str_contains($feature->icon, '<svg'))
-                {!! $feature->icon !!}
-              @else
-                <i class="{{ $feature->icon }}"></i>
-              @endif
-            </div>
-            <h3>{{ $feature->title }}</h3>
-            <p>{{ auth()->check() ? $feature->description : Str::limit($feature->description, strlen($feature->description)/2) }}</p>
-            <div class="sc-tag">{{ $feature->button_text ?? 'Explore →' }}</div>
+      <div class="restriction-container">
+
+          <div class="pf-section-head">
+              <span class="pf-section-label">Platform Features</span>
+              <h2>Explore Our Platform Features</h2>
+              <p>
+                  Discover the tools and modules designed to make learning, content management,
+                  and student experience easier.
+              </p>
           </div>
-          @empty
-          {{-- Fallback logic --}}
-          @endforelse
-        </div>
-        @guest
-        <div class="login-to-unlock" style="background: linear-gradient(to bottom, transparent 0%, #f8fbff 90%);">
-            <a href="{{ route('login') }}" class="btn-hero-primary mb-4">Login to view all features</a>
-        </div>
-        @endguest
-    </div>
+
+          @if($sectionEnabled)
+              <div class="support-grid reveal-stagger">
+                  @forelse($visibleFeatures as $feature)
+                      <div class="support-card">
+                          <div class="sc-border"></div>
+                          <div class="sc-sweep"></div>
+
+                          <div class="sc-icon-wrap" style="{{ $feature->color ? '--sc-color:'.$feature->color : '' }}">
+                              @if(str_contains($feature->icon, '<svg'))
+                                  {!! $feature->icon !!}
+                              @else
+                                  <i class="{{ $feature->icon }}"></i>
+                              @endif
+                          </div>
+
+                          <h3>{{ $feature->title }}</h3>
+
+                          <p>
+                              {{ auth()->check() ? $feature->description : Str::limit($feature->description, strlen($feature->description) / 2) }}
+                          </p>
+
+                          <div class="sc-tag">
+                              {{ $feature->button_text ?? 'Explore →' }}
+                          </div>
+                      </div>
+                  @empty
+                      {{-- Fallback logic --}}
+                  @endforelse
+              </div>
+          @endif
+
+          @guest
+              <div class="login-to-unlock" style="background: linear-gradient(to bottom, transparent 0%, #f8fbff 90%);">
+                  <a href="{{ route('login') }}" class="btn-hero-primary mb-4">
+                      Login to view all features
+                  </a>
+              </div>
+          @endguest
+
+      </div>
 
     @guest
     <div class="text-center mt-5 reveal-up">
@@ -865,6 +889,56 @@
 
 @push('styles')
 <style>
+    .pf-section-head {
+        max-width: 760px;
+        margin: 0 auto 45px;
+        text-align: center;
+        padding: 0 16px;
+    }
+
+    .pf-section-label {
+        display: inline-block;
+        margin-bottom: 12px;
+        padding: 7px 14px;
+        border-radius: 999px;
+        background: rgba(37, 99, 235, 0.08);
+        color: #2563eb;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .pf-section-head h2 {
+        margin: 0 0 14px;
+        color: #0f172a;
+        font-size: 38px;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+
+    .pf-section-head p {
+        margin: 0 auto;
+        max-width: 620px;
+        color: #64748b;
+        font-size: 17px;
+        font-weight: 500;
+        line-height: 1.7;
+    }
+
+    @media (max-width: 768px) {
+        .pf-section-head {
+            margin-bottom: 32px;
+        }
+
+        .pf-section-head h2 {
+            font-size: 28px;
+        }
+
+        .pf-section-head p {
+            font-size: 15px;
+        }
+    }
     /* TESTIMONIALS STYLING */
     .testimonials-section {
         position: relative;
