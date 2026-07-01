@@ -4,15 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  
+
   <title>@yield('title', get_setting('site_name', 'Physio Academy')) — Your Academic Guide for Physiotherapy</title>
-  
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link rel="stylesheet" href="{{ asset('ui-physio/style.css') }}" />
-  
+
   @if(get_setting('site_favicon'))
     <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . get_setting('site_favicon')) }}">
   @endif
@@ -51,82 +51,226 @@
       <span class="logo-text">Physio <span class="logo-accent">Academy</span></span>
     </a>
 
-    <div class="nav-links" id="navLinks">
-      @php
-          $mainMenu = \App\Models\Menu::getByLocation('header_menu');
-      @endphp
-      
-      @if($mainMenu)
-        @foreach($mainMenu->items as $item)
-          @if($item->children->count() > 0)
-            @php $itemActive = false; @endphp
-            @foreach($item->children as $child)
-              @php
-                $childPath = trim(parse_url(url($child->url), PHP_URL_PATH), '/');
-                $childIsActive = Request::is($childPath) || Request::is($childPath.'/*');
-                if ($childIsActive) {
-                  $itemActive = true;
-                }
-              @endphp
-            @endforeach
-            <div class="nav-dropdown {{ $itemActive ? 'active' : '' }}">
-                <button class="nav-link nav-dropdown-toggle {{ $itemActive ? 'active' : '' }}">
-                  {{ $item->title }}
-                  <svg class="dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="nav-dropdown-menu">
-                  @foreach($item->children as $child)
-                    @php
-                      $childPath = trim(parse_url(url($child->url), PHP_URL_PATH), '/');
-                      $childActive = Request::is($childPath) || Request::is($childPath.'/*');
-                    @endphp
-                    <a href="{{ url($child->url) }}" class="nav-dropdown-item {{ $childActive ? 'active' : '' }}">
-                      @if($child->icon) <span class="ui-icon ui-icon-{{ $child->icon }}"></span> @endif
-                      {{ $child->title }}
-                    </a>
-                  @endforeach
-                </div>
-            </div>
-          @else
-            <a href="{{ url($item->url) }}" class="nav-link {{ Request::is(trim($item->url, '/')) ? 'active' : '' }}">{{ $item->title }}</a>
-          @endif
-        @endforeach
-      @else
-        <a href="{{ url('/') }}" class="nav-link {{ Request::is('/') ? 'active' : '' }}">Home</a>
-        <a href="{{ route('about') }}" class="nav-link {{ Request::is('about') ? 'active' : '' }}">About</a>
-        
-        @php $topicsDropdownActive = Request::routeIs('topics.*') || Request::routeIs('search'); @endphp
-        <div class="nav-dropdown {{ $topicsDropdownActive ? 'active' : '' }}">
-            <button class="nav-link nav-dropdown-toggle {{ $topicsDropdownActive ? 'active' : '' }}">
-              Topics
-              <svg class="dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="nav-dropdown-menu">
-              <a href="{{ route('search') }}" class="nav-dropdown-item {{ Request::routeIs('search') ? 'active' : '' }}"><span class="ui-icon ui-icon-search"></span> Search</a>
-              <a href="{{ route('topics.year') }}" class="nav-dropdown-item {{ Request::routeIs('topics.year') ? 'active' : '' }}"><span class="ui-icon ui-icon-calendar"></span> By Year</a>
-              <a href="{{ route('topics.index') }}" class="nav-dropdown-item {{ Request::routeIs('topics.index') ? 'active' : '' }}"><span class="ui-icon ui-icon-book"></span> By Subjects</a>
-            </div>
-        </div>
-        <a href="{{ route('exam-aid') }}" class="nav-link {{ Request::is('exam-aid') ? 'active' : '' }}">Exam Aid</a>
-      @endif
+      <div class="nav-links" id="navLinks">
+          @php
+              $mainMenu = \App\Models\Menu::getByLocation('header_menu');
 
-      <button class="nav-search-btn" id="searchToggle">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      </button>
-      <a href="{{ route('bookmarks') }}" class="nav-bookmark-btn active" aria-label="Bookmarks">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-      </a>
-    </div>
+              /*
+               * Guest user restriction
+               * Agar user login/register nahi hai to sirf Home aur About allowed hain
+               */
+              $isGuestUser = auth()->guest();
+
+              /*
+               * Signup/Register URL
+               */
+              $signupUrl = route('register');
+
+              /*
+               * Sirf Home aur About guest ke liye allowed hain
+               */
+              $isAllowedForGuest = function ($url) {
+                  $path = trim(parse_url(url($url), PHP_URL_PATH), '/');
+
+                  return in_array($path, ['', 'about'], true);
+              };
+
+              /*
+               * Agar guest user hai aur URL Home/About nahi hai,
+               * to register page par bhej do.
+               */
+              $getNavUrl = function ($url) use ($isGuestUser, $isAllowedForGuest, $signupUrl) {
+                  if ($isGuestUser && ! $isAllowedForGuest($url)) {
+                      return $signupUrl;
+                  }
+
+                  return url($url);
+              };
+          @endphp
+
+          @if($mainMenu)
+              @foreach($mainMenu->items as $item)
+                  @if($item->children->count() > 0)
+                      @php
+                          $itemActive = false;
+
+                          foreach ($item->children as $child) {
+                              $childPath = trim(parse_url(url($child->url), PHP_URL_PATH), '/');
+                              $childIsActive = Request::is($childPath) || Request::is($childPath.'/*');
+
+                              if ($childIsActive) {
+                                  $itemActive = true;
+                              }
+                          }
+                      @endphp
+
+                      <div class="nav-dropdown {{ $itemActive ? 'active' : '' }}">
+                          @if($isGuestUser)
+                              <a href="{{ $signupUrl }}" class="nav-link nav-dropdown-toggle">
+                                  {{ $item->title }}
+                                  <svg class="dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                      <polyline points="6 9 12 15 18 9"/>
+                                  </svg>
+                              </a>
+                          @else
+                              <button class="nav-link nav-dropdown-toggle {{ $itemActive ? 'active' : '' }}">
+                                  {{ $item->title }}
+                                  <svg class="dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                      <polyline points="6 9 12 15 18 9"/>
+                                  </svg>
+                              </button>
+
+                              <div class="nav-dropdown-menu">
+                                  @foreach($item->children as $child)
+                                      @php
+                                          $childPath = trim(parse_url(url($child->url), PHP_URL_PATH), '/');
+                                          $childActive = Request::is($childPath) || Request::is($childPath.'/*');
+                                      @endphp
+
+                                      <a href="{{ url($child->url) }}" class="nav-dropdown-item {{ $childActive ? 'active' : '' }}">
+                                          @if($child->icon)
+                                              <span class="ui-icon ui-icon-{{ $child->icon }}"></span>
+                                          @endif
+
+                                          {{ $child->title }}
+                                      </a>
+                                  @endforeach
+                              </div>
+                          @endif
+                      </div>
+                  @else
+                      @php
+                          $itemPath = trim($item->url, '/');
+                          $itemActive = Request::is($itemPath);
+                      @endphp
+
+                      <a href="{{ $getNavUrl($item->url) }}" class="nav-link {{ $itemActive ? 'active' : '' }}">
+                          {{ $item->title }}
+                      </a>
+                  @endif
+              @endforeach
+          @else
+              <a href="{{ url('/') }}" class="nav-link {{ Request::is('/') ? 'active' : '' }}">
+                  Home
+              </a>
+
+              <a href="{{ route('about') }}" class="nav-link {{ Request::is('about') ? 'active' : '' }}">
+                  About
+              </a>
+
+              @php
+                  $topicsDropdownActive = Request::routeIs('topics.*') || Request::routeIs('search');
+              @endphp
+
+              <div class="nav-dropdown {{ $topicsDropdownActive ? 'active' : '' }}">
+                  @if($isGuestUser)
+                      <a href="{{ $signupUrl }}" class="nav-link nav-dropdown-toggle">
+                          Topics
+                          <svg class="dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                              <polyline points="6 9 12 15 18 9"/>
+                          </svg>
+                      </a>
+                  @else
+                      <button class="nav-link nav-dropdown-toggle {{ $topicsDropdownActive ? 'active' : '' }}">
+                          Topics
+                          <svg class="dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                              <polyline points="6 9 12 15 18 9"/>
+                          </svg>
+                      </button>
+
+                      <div class="nav-dropdown-menu">
+                          <a href="{{ route('search') }}" class="nav-dropdown-item {{ Request::routeIs('search') ? 'active' : '' }}">
+                              <span class="ui-icon ui-icon-search"></span>
+                              Search
+                          </a>
+
+                          <a href="{{ route('topics.year') }}" class="nav-dropdown-item {{ Request::routeIs('topics.year') ? 'active' : '' }}">
+                              <span class="ui-icon ui-icon-calendar"></span>
+                              By Year
+                          </a>
+
+                          <a href="{{ route('topics.index') }}" class="nav-dropdown-item {{ Request::routeIs('topics.index') ? 'active' : '' }}">
+                              <span class="ui-icon ui-icon-book"></span>
+                              By Subjects
+                          </a>
+                      </div>
+                  @endif
+              </div>
+
+              <a href="{{ $isGuestUser ? $signupUrl : route('exam-aid') }}" class="nav-link {{ Request::is('exam-aid') ? 'active' : '' }}">
+                  Exam Aid
+              </a>
+          @endif
+
+          @if($isGuestUser)
+              <a href="{{ $signupUrl }}" class="nav-search-btn" aria-label="Search">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"/>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+              </a>
+          @else
+              <button class="nav-search-btn" id="searchToggle">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"/>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+              </button>
+          @endif
+
+          <a href="{{ $isGuestUser ? $signupUrl : route('bookmarks') }}" class="nav-bookmark-btn active" aria-label="Bookmarks">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+              </svg>
+          </a>
+      </div>
 
     <div class="nav-cta">
       @auth
         @role('super_admin|admin')
             <a href="{{ route('admin.dashboard') }}" class="btn-ghost">Admin</a>
         @endrole
-        <form action="{{ route('logout') }}" method="POST" class="d-inline">
-            @csrf
-            <button type="submit" class="btn-primary-nav" style="border:none; cursor:pointer;">Logout</button>
-        </form>
+{{--        <form action="{{ route('logout') }}" method="POST" class="d-inline">--}}
+{{--            @csrf--}}
+{{--            <button type="submit" class="btn-primary-nav" style="border:none; cursor:pointer;">Logout</button>--}}
+{{--        </form>--}}
+            @auth
+                @php
+                    $user = auth()->user();
+
+                    $name = trim($user->name ?? '');
+                    $emailName = explode('@', $user->email ?? 'user')[0];
+
+                    $parts = preg_split('/\s+/', $name ?: $emailName);
+
+                    if (count($parts) >= 2) {
+                        $initials = strtoupper(mb_substr($parts[0], 0, 1) . mb_substr($parts[1], 0, 1));
+                    } else {
+                        $initials = strtoupper(mb_substr($parts[0] ?? 'U', 0, 2));
+                    }
+                @endphp
+
+                <div class="nav-user-menu">
+                    <button type="button" class="nav-user-avatar">
+                        {{ $initials }}
+                    </button>
+
+                    <div class="nav-user-dropdown">
+                        <form action="{{ route('logout') }}" method="POST" class="nav-user-logout-form">
+                            @csrf
+
+                            <button type="submit" class="nav-user-logout-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M20 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 19H6C4.89543 19 4 18.1046 4 17V7C4 5.89543 4.89543 5 6 5H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <span>Logout</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endauth
       @else
         <a href="{{ route('login') }}" class="btn-ghost">Login</a>
         <a href="{{ route('register') }}" class="btn-primary-nav">Sign Up</a>
@@ -271,3 +415,135 @@
 
 </body>
 </html>
+<style>
+    .nav-user-menu {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* Avatar */
+    .nav-user-avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        border: 1px solid rgba(59, 130, 246, 0.25);
+        background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
+        color: #ffffff;
+        font-size: 21px;
+        font-weight: 700;
+        line-height: 54px;
+        text-align: center;
+        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.22);
+        transition: all 0.22s ease;
+    }
+
+    .nav-user-avatar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 32px rgba(37, 99, 235, 0.30);
+    }
+
+    /* Dropdown Wrapper */
+    .nav-user-dropdown {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        width: 155px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(8px) scale(0.98);
+        transition: all 0.22s ease;
+        z-index: 9999;
+    }
+
+    .nav-user-menu:hover .nav-user-dropdown,
+    .nav-user-menu:focus-within .nav-user-dropdown {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+    }
+
+    /* Small Arrow */
+    .nav-user-dropdown::before {
+        content: "";
+        position: absolute;
+        top: -7px;
+        right: 24px;
+        width: 14px;
+        height: 14px;
+        background: rgba(255, 255, 255, 0.98);
+        transform: rotate(45deg);
+        border-left: 1px solid rgba(37, 99, 235, 0.08);
+        border-top: 1px solid rgba(37, 99, 235, 0.08);
+        z-index: -1;
+    }
+
+    /* Logout Box */
+    .nav-user-logout-form {
+        margin: 0;
+        padding: 7px;
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 18px;
+        border: 1px solid rgba(37, 99, 235, 0.10);
+        box-shadow: 0 14px 35px rgba(37, 99, 235, 0.14);
+        backdrop-filter: blur(10px);
+    }
+
+    /* Logout Button */
+    .nav-user-logout-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        width: 100%;
+        padding: 11px 14px;
+        border: none;
+        border-radius: 13px;
+        background: transparent;
+        color: #2563eb;
+        font-size: 15px;
+        font-weight: 650;
+        line-height: 1;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .nav-user-logout-btn svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    .nav-user-logout-btn:hover {
+        background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
+        color: #1d4ed8;
+        transform: translateY(-1px);
+        box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.08);
+    }
+
+    .nav-user-logout-btn:active {
+        transform: translateY(0);
+    }
+
+    /* Mobile adjustment */
+    @media (max-width: 768px) {
+        .nav-user-avatar {
+            width: 46px;
+            height: 46px;
+            line-height: 46px;
+            font-size: 18px;
+        }
+
+        .nav-user-dropdown {
+            width: 145px;
+            right: -4px;
+        }
+
+        .nav-user-logout-btn {
+            font-size: 14px;
+            padding: 10px 12px;
+        }
+    }
+</style>

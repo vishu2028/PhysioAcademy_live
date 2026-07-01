@@ -58,22 +58,29 @@
         @endauth
       </div>
 
-      <div class="hero-stats reveal-up delay-4">
-        <div class="stat-item">
-          <span class="stat-num" data-count="{{ \App\Models\Topic::count() ?: 500 }}">0</span><span class="stat-suffix">+</span>
-          <span class="stat-label">Topics Covered</span>
+        <div class="hero-stats reveal-up delay-4">
+            <div class="stat-item">
+                <span class="stat-num" data-count="{{ \App\Models\Topic::count() }}">0</span>
+                <span class="stat-suffix">+</span>
+                <span class="stat-label">Topics Covered</span>
+            </div>
+
+            <div class="stat-divider"></div>
+
+            <div class="stat-item">
+                <span class="stat-num" data-count="{{ \App\Models\Faq::count() }}">0</span>
+                <span class="stat-suffix">+</span>
+                <span class="stat-label">Questions</span>
+            </div>
+
+            <div class="stat-divider"></div>
+
+            <div class="stat-item">
+                <span class="stat-num" data-count="{{ \App\Models\User::count() }}">0</span>
+                <span class="stat-suffix">+</span>
+                <span class="stat-label">Students Helped</span>
+            </div>
         </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-num" data-count="{{ \App\Models\Message::count() * 40 ?: 2400 }}">0</span><span class="stat-suffix">+</span>
-          <span class="stat-label">Questions</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-num" data-count="{{ \App\Models\User::count() ?: 12 }}">0</span><span class="stat-suffix">K+</span>
-          <span class="stat-label">Students Helped</span>
-        </div>
-      </div>
     </div>
 
     <div class="hero-visual reveal-right delay-2">
@@ -81,56 +88,122 @@
         <img src="{{'storage/' . $hero->image_path ? asset('storage/' .$hero->image_path) : asset('ui-physio/assets/two-colleagues-working-laptop_114579-2814.avif') }}" alt="">
       </div>
 
-      <div class="visual-card-main glass-card">
-        <div class="visual-card-header">
-          <div class="vc-dots"><span></span><span></span><span></span></div>
-          <span class="vc-label">Learning Dashboard</span>
-        </div>
-        <div class="visual-progress-list">
-          <div class="vp-item">
-            <span class="vp-name">Anatomy</span>
-            <div class="vp-bar"><div class="vp-fill" style="--fill:78%"></div></div>
-            <span class="vp-pct">78%</span>
-          </div>
-          <div class="vp-item">
-            <span class="vp-name">Physiology</span>
-            <div class="vp-bar"><div class="vp-fill" style="--fill:65%"></div></div>
-            <span class="vp-pct">65%</span>
-          </div>
-          <div class="vp-item">
-            <span class="vp-name">Biomechanics</span>
-            <div class="vp-bar"><div class="vp-fill" style="--fill:52%"></div></div>
-            <span class="vp-pct">52%</span>
-          </div>
-          <div class="vp-item">
-            <span class="vp-name">Electrotherapy</span>
-            <div class="vp-bar"><div class="vp-fill" style="--fill:40%"></div></div>
-            <span class="vp-pct">40%</span>
-          </div>
-        </div>
-      </div>
+        @php
+            $dashboardSubjects = \App\Models\Subject::withCount('topics')
+                ->orderByDesc('topics_count')
+                ->take(4)
+                ->get();
 
-      <div class="float-card float-card-1 glass-card">
-        <div class="fc-icon"><span class="ui-icon ui-icon-brain"></span></div>
-        <div class="fc-info">
-          <span class="fc-title">Brachial Plexus</span>
-          <span class="fc-sub">Most Requested</span>
-        </div>
-        <div class="fc-badge hot"><span class="ui-icon ui-icon-flame"></span></div>
-      </div>
+            $maxTopics = max($dashboardSubjects->max('topics_count'), 1);
+        @endphp
 
-      <div class="float-card float-card-2 glass-card">
-        <div class="fc-icon"><span class="ui-icon ui-icon-trending"></span></div>
-        <div class="fc-info">
-          <span class="fc-title">Gait Cycle</span>
-          <span class="fc-sub">Updated Guide</span>
+        <div class="visual-card-main glass-card">
+            <div class="visual-card-header">
+                <div class="vc-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+
+                <span class="vc-label">Learning Dashboard</span>
+            </div>
+
+            <div class="visual-progress-list">
+                @forelse($dashboardSubjects as $subject)
+                    @php
+                        if ($subject->topics_count > 0) {
+                            /*
+                             * Max 85 rakha hai taake 100% na lage.
+                             * Minimum 35 rakha hai taake bar visually achi lage.
+                             */
+                            $percentage = round(($subject->topics_count / $maxTopics) * 85);
+                            $percentage = max($percentage, 35);
+                        } else {
+                            $percentage = 0;
+                        }
+                    @endphp
+
+                    <div class="vp-item">
+                        <span class="vp-name">{{ $subject->name }}</span>
+
+                        <div class="vp-bar">
+                            <div class="vp-fill" style="--fill: {{ $percentage }}%"></div>
+                        </div>
+
+                        <span class="vp-pct">{{ $percentage }}%</span>
+                    </div>
+                @empty
+                    <div class="vp-item">
+                        <span class="vp-name">No subjects found</span>
+
+                        <div class="vp-bar">
+                            <div class="vp-fill" style="--fill: 0%"></div>
+                        </div>
+
+                        <span class="vp-pct">0%</span>
+                    </div>
+                @endforelse
+            </div>
         </div>
-        <div class="fc-badge new">NEW</div>
-      </div>
+
+        <div class="float-card float-card-1 glass-card">
+            <div class="fc-icon">
+                <span class="ui-icon ui-icon-brain"></span>
+            </div>
+
+            <div class="fc-info">
+        <span class="fc-title">
+            {{ $mostRequestedTopic->subject ?? 'Brachial Plexus' }}
+        </span>
+
+                <span class="fc-sub">
+            Most Requested Inquiry
+        </span>
+            </div>
+
+            <div class="fc-badge hot">
+                <span class="ui-icon ui-icon-flame"></span>
+            </div>
+        </div>
+
+        @php
+            $latestGuide = \App\Models\Topic::latest('updated_at')->first();
+
+            $guideTitle = $latestGuide
+                ? ($latestGuide->name ?? $latestGuide->title ?? 'Latest Guide')
+                : null;
+
+            $isNewGuide = $latestGuide && $latestGuide->created_at && $latestGuide->created_at->gte(now()->subDays(7));
+        @endphp
+
+        @if($latestGuide)
+            <div class="float-card float-card-2 glass-card">
+                <div class="fc-icon">
+                    <span class="ui-icon ui-icon-trending"></span>
+                </div>
+
+                <div class="fc-info">
+            <span class="fc-title">
+                {{ \Illuminate\Support\Str::limit($guideTitle, 22) }}
+            </span>
+
+                    <span class="fc-sub">
+                Updated Guide
+            </span>
+                </div>
+
+                <div class="fc-badge new">
+                    {{ $isNewGuide ? 'NEW' : 'UPDATED' }}
+                </div>
+            </div>
+        @endif
 
       <div class="float-card float-card-3 glass-card">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        <span>Active students right now: <strong>247</strong></span>
+          <span>
+            Registered students:
+            <strong>{{ \App\Models\User::role('user')->count() }}</strong>
+</span>
       </div>
 
       <div class="visual-ring visual-ring-1"></div>
@@ -251,7 +324,7 @@
         </div>
         @endguest
     </div>
-    
+
     @guest
     <div class="text-center mt-5 reveal-up">
         <div class="guest-cta-card mx-auto glass-card">
@@ -337,7 +410,7 @@
             <div class="tc-glow" style="{{ $index == 1 ? '--tc-glow:#3b82f6' : ($index == 2 ? '--tc-glow:#f59e0b' : ($index == 3 ? '--tc-glow:#10b981' : '')) }}"></div>
             <div class="tc-header">
               <div class="tc-badge {{ $index == 0 ? 'trending-badge' : '' }}" style="{{ $index > 0 ? 'background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.25);color:#2563eb' : '' }}">
-                <span class="ui-icon ui-icon-{{ $index == 0 ? 'flame' : ($index == 1 ? 'trending' : ($index == 2 ? 'zap' : 'heart-pulse')) }}"></span> 
+                <span class="ui-icon ui-icon-{{ $index == 0 ? 'flame' : ($index == 1 ? 'trending' : ($index == 2 ? 'zap' : 'heart-pulse')) }}"></span>
                 Trending #{{ $index + 1 }}
               </div>
               <div class="tc-requests"><span class="request-count" data-count="{{ 847 - ($index * 128) }}">0</span> requests</div>
@@ -352,7 +425,7 @@
             </div>
             <div class="tc-footer">
               <a href="{{ route('topics.show', ['slug' => $topic->slug]) }}" class="tc-explore-btn text-decoration-none">Explore Topic</a>
-              <button class="tc-save-btn {{ $topic->isBookmarked() ? 'active' : '' }}" 
+              <button class="tc-save-btn {{ $topic->isBookmarked() ? 'active' : '' }}"
                       onclick="toggleBookmark({{ $topic->id }}, 'Topic', this)"
                       aria-label="Save">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -710,7 +783,7 @@
         <h2 class="section-title">{!! get_setting('about_title', 'Built for <span class="text-gradient">Physio Students</span><br/>By Physio Students') !!}</h2>
         <p class="about-para">{{ auth()->check() ? get_setting('about_description_1', 'Physio Academy was created to bridge the gap between textbook knowledge and real examination performance. We understand the challenges of physiotherapy education — complex topics, unclear answer formats, and limited academic guidance.') : Str::limit(get_setting('about_description_1', 'Physio Academy was created to bridge the gap between textbook knowledge and real examination performance.'), 80) }}</p>
         <p class="about-para">{{ auth()->check() ? get_setting('about_description_2', 'Our platform is completely aligned with the latest 2024 curriculum, offering topic-by-topic academic support, viva preparation, and answer writing guidance tailored specifically for physiotherapy students.') : Str::limit(get_setting('about_description_2', 'Our platform is completely aligned with the latest 2024 curriculum, offering topic-by-topic academic support...'), 80) }}</p>
-        
+
         @guest
         <a href="javascript:void(0)" onclick="document.getElementById('authOverlay').classList.add('active')" class="text-primary small fw-bold d-block mb-4">Login to read full mission details →</a>
         @endguest
@@ -863,7 +936,7 @@
         letter-spacing: -0.01em;
         color: var(--text-primary) !important;
     }
-    
+
     .tcu-info small {
         color: var(--text-muted) !important;
     }
@@ -879,7 +952,7 @@
         position: relative;
         overflow: hidden;
     }
-    
+
     .blurred-content {
         filter: blur(8px);
         pointer-events: none;
@@ -941,7 +1014,7 @@
 
         const path = btn.querySelector('path');
         const isActive = btn.classList.contains('active');
-        
+
         fetch("{{ route('bookmarks.toggle') }}", {
             method: 'POST',
             headers: {

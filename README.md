@@ -16,8 +16,6 @@ Copy `.env.example` to `.env`, configure the database connection for your local 
 composer install
 php artisan key:generate
 php artisan migrate
-npm install
-npm run build
 ```
 
 ## Maintenance

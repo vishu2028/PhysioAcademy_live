@@ -11,9 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('topics', function (Blueprint $table) {
-            $table->foreignId('parent_id')->nullable()->after('semester_id')->constrained('topics')->onDelete('cascade');
-        });
+        if (!Schema::hasColumn('topics', 'parent_id')) {
+            Schema::table('topics', function (Blueprint $table) {
+                $table->foreignId('parent_id')
+                    ->nullable()
+                    ->after('semester_id')
+                    ->constrained('topics')
+                    ->onDelete('cascade');
+            });
+        }
     }
 
     /**
@@ -21,9 +27,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('topics', function (Blueprint $table) {
-            $table->dropForeign(['parent_id']);
-            $table->dropColumn('parent_id');
-        });
+        if (Schema::hasColumn('topics', 'parent_id')) {
+            Schema::table('topics', function (Blueprint $table) {
+                $table->dropForeign(['parent_id']);
+                $table->dropColumn('parent_id');
+            });
+        }
     }
 };
