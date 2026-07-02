@@ -3,7 +3,8 @@
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\Admin\FeatureController;
-
+use App\Http\Controllers\DoubtController;
+use App\Http\Controllers\Admin\DoubtController as AdminDoubtController;
 // use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 
@@ -26,6 +27,9 @@ Route::middleware('auth')->group(function() {
     Route::get('/bookmarks', [FrontendController::class, 'bookmarks'])->name('bookmarks');
     Route::post('/bookmarks/toggle', [\App\Http\Controllers\BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
     Route::delete('/bookmarks/{id}', [\App\Http\Controllers\BookmarkController::class, 'remove'])->name('bookmarks.remove');
+    // Student Doubts
+    Route::post('/doubts', [DoubtController::class, 'store'])->name('doubts.store');
+    Route::get('/my-doubts', [DoubtController::class, 'myDoubts'])->name('doubts.mine');
 });
 
 // ─── Profile Routes ───
@@ -60,6 +64,8 @@ Route::middleware(['auth', 'role:super_admin|admin'])->prefix('admin')->name('ad
 
     // Messages (index, show, delete only)
     Route::resource('messages', \App\Http\Controllers\Admin\MessageController::class)->only(['index', 'show', 'destroy']);
+    // Student Doubts
+    Route::resource('doubts', AdminDoubtController::class)->only(['index', 'update', 'destroy']);
 
     // Media & Layout
     Route::resource('media', \App\Http\Controllers\Admin\MediaController::class)->only(['index', 'store', 'destroy']);

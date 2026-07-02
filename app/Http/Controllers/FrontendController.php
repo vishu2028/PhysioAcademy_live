@@ -22,6 +22,10 @@ class FrontendController extends Controller
         $years = \App\Models\AcademicYear::active()->withCount(['topics' => function($q) {
             $q->active();
         }])->orderBy('order')->get();
+        // Doubt form subjects
+        $subjects = \App\Models\Subject::query()
+            ->orderBy('name')
+            ->get();
 
         // Trending Topics
         $trendingTopics = \App\Models\Topic::active()->with('subject')->orderBy('order')->limit(4)->get();
@@ -44,7 +48,7 @@ class FrontendController extends Controller
             ->first();
 
         return view('welcome', compact(
-            'hero', 'features','sectionEnabled','visibleFeatures','testimonialSectionEnabled', 'years', 'trendingTopics', 'testimonials', 'faqs', 'banners', 'sliders','mostRequestedTopic'
+            'hero', 'features','subjects','sectionEnabled','visibleFeatures','testimonialSectionEnabled', 'years', 'trendingTopics', 'testimonials', 'faqs', 'banners', 'sliders','mostRequestedTopic'
         ));
     }
 
