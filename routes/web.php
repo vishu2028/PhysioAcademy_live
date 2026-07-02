@@ -2,8 +2,12 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\FrontendController;
+use App\Http\Controllers\Admin\FeatureController;
+use App\Http\Controllers\DoubtController;
+use App\Http\Controllers\Admin\DoubtController as AdminDoubtController;
 // use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+
 
 // ─── Frontend Routes (CMS-driven) ───
 Route::get('/', [FrontendController::class, 'home'])->name('home');
@@ -23,6 +27,9 @@ Route::middleware('auth')->group(function() {
     Route::get('/bookmarks', [FrontendController::class, 'bookmarks'])->name('bookmarks');
     Route::post('/bookmarks/toggle', [\App\Http\Controllers\BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
     Route::delete('/bookmarks/{id}', [\App\Http\Controllers\BookmarkController::class, 'remove'])->name('bookmarks.remove');
+    // Student Doubts
+    Route::post('/doubts', [DoubtController::class, 'store'])->name('doubts.store');
+    Route::get('/my-doubts', [DoubtController::class, 'myDoubts'])->name('doubts.mine');
 });
 
 // ─── Profile Routes ───
@@ -42,16 +49,23 @@ Route::middleware(['auth', 'role:super_admin|admin'])->prefix('admin')->name('ad
     Route::resource('page-sections', \App\Http\Controllers\Admin\PageSectionController::class)->parameters(['page-sections' => 'section']);
     Route::resource('page-section-items', \App\Http\Controllers\Admin\PageSectionItemController::class)->only(['create','store','edit','update','destroy']);
     Route::resource('hero', \App\Http\Controllers\Admin\HeroController::class);
+    Route::patch('features/section-toggle', [FeatureController::class, 'sectionToggle'])
+        ->name('features.section-toggle');
     Route::resource('features', \App\Http\Controllers\Admin\FeatureController::class);
+
     Route::resource('subjects', \App\Http\Controllers\Admin\SubjectController::class);
     Route::resource('academic-years', \App\Http\Controllers\Admin\AcademicYearController::class);
     Route::post('topics/upload-image', [\App\Http\Controllers\Admin\TopicController::class, 'uploadImage'])->name('topics.upload_image');
     Route::resource('topics', \App\Http\Controllers\Admin\TopicController::class);
+    Route::patch('testimonials/section-toggle', [\App\Http\Controllers\Admin\TestimonialController::class, 'sectionToggle'])
+        ->name('testimonials.section-toggle');
     Route::resource('testimonials', \App\Http\Controllers\Admin\TestimonialController::class);
     Route::resource('faqs', \App\Http\Controllers\Admin\FAQController::class);
 
     // Messages (index, show, delete only)
     Route::resource('messages', \App\Http\Controllers\Admin\MessageController::class)->only(['index', 'show', 'destroy']);
+    // Student Doubts
+    Route::resource('doubts', AdminDoubtController::class)->only(['index', 'update', 'destroy']);
 
     // Media & Layout
     Route::resource('media', \App\Http\Controllers\Admin\MediaController::class)->only(['index', 'store', 'destroy']);

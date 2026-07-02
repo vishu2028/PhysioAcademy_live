@@ -297,33 +297,57 @@
     @php
         $visibleFeatures = auth()->check() ? $features : $features->take(ceil($features->count() / 2));
     @endphp
-    <div class="restriction-container">
-        <div class="support-grid reveal-stagger">
-          @forelse($visibleFeatures as $feature)
-          <div class="support-card">
-            <div class="sc-border"></div>
-            <div class="sc-sweep"></div>
-            <div class="sc-icon-wrap" style="{{ $feature->color ? '--sc-color:'.$feature->color : '' }}">
-              @if(str_contains($feature->icon, '<svg'))
-                {!! $feature->icon !!}
-              @else
-                <i class="{{ $feature->icon }}"></i>
-              @endif
-            </div>
-            <h3>{{ $feature->title }}</h3>
-            <p>{{ auth()->check() ? $feature->description : Str::limit($feature->description, strlen($feature->description)/2) }}</p>
-            <div class="sc-tag">{{ $feature->button_text ?? 'Explore →' }}</div>
+      <div class="restriction-container">
+
+          <div class="pf-section-head">
+              <span class="pf-section-label">Platform Features</span>
+              <h2>Explore Our Platform Features</h2>
+              <p>
+                  Discover the tools and modules designed to make learning, content management,
+                  and student experience easier.
+              </p>
           </div>
-          @empty
-          {{-- Fallback logic --}}
-          @endforelse
-        </div>
-        @guest
-        <div class="login-to-unlock" style="background: linear-gradient(to bottom, transparent 0%, #f8fbff 90%);">
-            <a href="{{ route('login') }}" class="btn-hero-primary mb-4">Login to view all features</a>
-        </div>
-        @endguest
-    </div>
+
+          @if($sectionEnabled)
+              <div class="support-grid reveal-stagger">
+                  @forelse($visibleFeatures as $feature)
+                      <div class="support-card">
+                          <div class="sc-border"></div>
+                          <div class="sc-sweep"></div>
+
+                          <div class="sc-icon-wrap" style="{{ $feature->color ? '--sc-color:'.$feature->color : '' }}">
+                              @if(str_contains($feature->icon, '<svg'))
+                                  {!! $feature->icon !!}
+                              @else
+                                  <i class="{{ $feature->icon }}"></i>
+                              @endif
+                          </div>
+
+                          <h3>{{ $feature->title }}</h3>
+
+                          <p>
+                              {{ auth()->check() ? $feature->description : Str::limit($feature->description, strlen($feature->description) / 2) }}
+                          </p>
+
+                          <div class="sc-tag">
+                              {{ $feature->button_text ?? 'Explore →' }}
+                          </div>
+                      </div>
+                  @empty
+                      {{-- Fallback logic --}}
+                  @endforelse
+              </div>
+          @endif
+
+          @guest
+              <div class="login-to-unlock" style="background: linear-gradient(to bottom, transparent 0%, #f8fbff 90%);">
+                  <a href="{{ route('login') }}" class="btn-hero-primary mb-4">
+                      Login to view all features
+                  </a>
+              </div>
+          @endguest
+
+      </div>
 
     @guest
     <div class="text-center mt-5 reveal-up">
@@ -343,6 +367,7 @@
 </section>
 
 <!-- TESTIMONIALS SECTION -->
+@if($testimonialSectionEnabled ?? true)
 <section class="section testimonials-section" id="testimonials">
   <div class="section-container">
     <div class="section-header reveal-up text-center">
@@ -390,6 +415,7 @@
     </div>
   </div>
 </section>
+@endif
 
 <!-- TRENDING TOPICS / HOT RIGHT NOW -->
 <section class="section trending-section" id="topics">
@@ -544,65 +570,129 @@
         </div>
       </div>
 
-      <div class="ask-doubt-form glass-card">
-        <div class="form-glow"></div>
-        <h3 class="form-title">Submit Your Doubt</h3>
+        <div class="ask-doubt-form glass-card">
+            <div class="form-glow"></div>
+            <h3 class="form-title">Submit Your Doubt</h3>
 
-        <form @auth action="{{ route('contact.submit') }}" @else action="{{ route('register') }}" @endauth method="POST">
-          @csrf
-          <div class="form-group">
-            <label class="float-label">Academic Year</label>
-            <select class="form-select" id="doubtYear" name="year">
-              <option value="">Select Year</option>
-              <option>First Year</option>
-              <option>Second Year</option>
-              <option>Third Year</option>
-              <option>Fourth Year</option>
-              <option>Internship</option>
-            </select>
-          </div>
+            @if(session('success'))
+                <div class="alert alert-success rounded-3">
+                    {{ session('success') }}
+                </div>
+            @endif
 
-          <div class="form-group">
-            <label class="float-label">Subject</label>
-            <select class="form-select" id="doubtSubject" name="subject">
-              <option value="">Select Subject</option>
-              <option>Anatomy</option>
-              <option>Physiology</option>
-              <option>Biomechanics</option>
-              <option>Electrotherapy</option>
-              <option>Neurology</option>
-              <option>Orthopaedics</option>
-            </select>
-          </div>
+            @if($errors->any())
+                <div class="alert alert-danger rounded-3">
+                    Please fix the highlighted fields and try again.
+                </div>
+            @endif
 
-          <div class="form-group">
-            <label class="float-label">Topic</label>
-            <input type="text" class="form-input" id="doubtTopic" name="topic" placeholder="e.g. Brachial Plexus" />
-          </div>
+            <form action="{{ route('doubts.store') }}" method="POST">
+                @csrf
 
-          <div class="form-group">
-            <label class="float-label">Your Doubt</label>
-            <textarea class="form-textarea" id="doubtMessage" name="message" placeholder="Describe your doubt in detail..."></textarea>
-          </div>
+                <div class="form-group">
+                    <label class="float-label">Academic Year</label>
 
-          <div class="form-actions">
-            <button type="submit" class="btn-form-primary" id="submitDoubt">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-              Ask Doubt
-            </button>
-            <button type="button" class="btn-form-secondary" onclick="document.getElementById('authOverlay').classList.add('active')">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              Request Topic
-            </button>
-          </div>
-        </form>
+                    <select class="form-select" id="doubtYear" name="academic_year_id" required>
+                        <option value="">Select Year</option>
 
-        <div class="form-success" id="formSuccess" style="display:none">
-          <div class="success-icon"><span class="ui-icon ui-icon-check"></span></div>
-          <h4>Doubt Submitted!</h4>
-          <p>We'll get back to you with a structured academic response.</p>
+                        @foreach($years as $year)
+                            <option value="{{ $year->id }}" @selected(old('academic_year_id') == $year->id)>
+                                {{ $year->name }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    @error('academic_year_id')
+                    <small class="text-danger">{{ $message }}</small>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="float-label">Subject</label>
+
+                    <select class="form-select" id="doubtSubject" name="subject_id" required>
+                        <option value="">Select Subject</option>
+
+                        @foreach($subjects as $subject)
+                            <option value="{{ $subject->id }}" @selected(old('subject_id') == $subject->id)>
+                                {{ $subject->name }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    @error('subject_id')
+                    <small class="text-danger">{{ $message }}</small>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="float-label">Topic</label>
+
+                    <input
+                        type="text"
+                        class="form-input"
+                        id="doubtTopic"
+                        name="topic"
+                        value="{{ old('topic') }}"
+                        placeholder="e.g. Brachial Plexus"
+                    />
+
+                    @error('topic')
+                    <small class="text-danger">{{ $message }}</small>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="float-label">Your Doubt</label>
+
+                    <textarea
+                        class="form-textarea"
+                        id="doubtMessage"
+                        name="message"
+                        placeholder="Describe your doubt in detail..."
+                        required
+                    >{{ old('message') }}</textarea>
+
+                    @error('message')
+                    <small class="text-danger">{{ $message }}</small>
+                    @enderror
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-form-primary" id="submitDoubt">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                        Ask Doubt
+                    </button>
+
+                    <button type="button" class="btn-form-secondary" onclick="document.getElementById('authOverlay').classList.add('active')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        Request Topic
+                    </button>
+                </div>
+                <br>
+                @auth
+                    <div class="mt-3">
+                        <a href="{{ route('doubts.mine') }}" class="btn-form-secondary d-inline-flex align-items-center justify-content-center text-decoration-none">
+                            <i class="bi bi-chat-dots me-2"></i>
+                            View My Doubts
+                        </a>
+                    </div>
+                @endauth
+            </form>
+
+            <div class="form-success" id="formSuccess" style="display:none">
+                <div class="success-icon"><span class="ui-icon ui-icon-check"></span></div>
+                <h4>Doubt Submitted!</h4>
+                <p>We'll get back to you with a structured academic response.</p>
+            </div>
         </div>
-      </div>
     </div>
   </div>
 </section>
@@ -865,6 +955,56 @@
 
 @push('styles')
 <style>
+    .pf-section-head {
+        max-width: 760px;
+        margin: 0 auto 45px;
+        text-align: center;
+        padding: 0 16px;
+    }
+
+    .pf-section-label {
+        display: inline-block;
+        margin-bottom: 12px;
+        padding: 7px 14px;
+        border-radius: 999px;
+        background: rgba(37, 99, 235, 0.08);
+        color: #2563eb;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .pf-section-head h2 {
+        margin: 0 0 14px;
+        color: #0f172a;
+        font-size: 38px;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+
+    .pf-section-head p {
+        margin: 0 auto;
+        max-width: 620px;
+        color: #64748b;
+        font-size: 17px;
+        font-weight: 500;
+        line-height: 1.7;
+    }
+
+    @media (max-width: 768px) {
+        .pf-section-head {
+            margin-bottom: 32px;
+        }
+
+        .pf-section-head h2 {
+            font-size: 28px;
+        }
+
+        .pf-section-head p {
+            font-size: 15px;
+        }
+    }
     /* TESTIMONIALS STYLING */
     .testimonials-section {
         position: relative;

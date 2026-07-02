@@ -22,13 +22,16 @@
                 <a class="list-group-item list-group-item-action py-3 border-0" id="landing-tab" data-bs-toggle="list" href="#landing" role="tab">
                     <i class="bi bi-window-sidebar me-2"></i> Landing Page
                 </a>
+                <a class="list-group-item list-group-item-action py-3 border-0" id="social-tab" data-bs-toggle="list" href="#social" role="tab">
+                    <i class="bi bi-share me-2"></i> Social Links
+                </a>
                 <a class="list-group-item list-group-item-action py-3 border-0 text-danger" id="advanced-tab" data-bs-toggle="list" href="#advanced" role="tab">
                     <i class="bi bi-shield-lock me-2"></i> Security
                 </a>
             </div>
         </div>
     </div>
-    
+
     <div class="col-lg-9">
         <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data">
             @csrf
@@ -72,7 +75,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Color & Brand -->
                     <div class="tab-pane fade" id="theme" role="tabpanel">
                         <h5 class="fw-bold mb-4">Theme & Branding</h5>
@@ -102,7 +105,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Landing Page Content -->
                     <div class="tab-pane fade" id="landing" role="tabpanel">
                         <h5 class="fw-bold mb-4">Homepage Specific Content</h5>
@@ -141,6 +144,34 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Social Links -->
+                    <div class="tab-pane fade" id="social" role="tabpanel">
+                        <h5 class="fw-bold mb-4">Social Links</h5>
+
+                        <div class="row g-3">
+                            @forelse($socialSettings as $setting)
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted">
+                                        {{ $setting->label }}
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="settings[{{ $setting->key }}]"
+                                        class="form-control rounded-3"
+                                        value="{{ old('settings.' . $setting->key, get_setting($setting->key)) }}"
+                                        placeholder="https://example.com"
+                                    >
+                                </div>
+                            @empty
+                                <div class="col-12">
+                                    <div class="alert alert-warning rounded-4 mb-0">
+                                        No social settings found. Please add social settings in database.
+                                    </div>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
 
                     <!-- Security & Advanced -->
                     <div class="tab-pane fade" id="advanced" role="tabpanel">
@@ -150,14 +181,14 @@
                                 System Status: {{ get_setting('maintenance_mode') == '1' ? 'MAINTENANCE ACTIVE' : 'SYSTEM LIVE' }}
                             </span>
                         </div>
-                        
+
                         <div class="row g-4">
                             <div class="col-12">
                                 <div class="p-4 rounded-4 border {{ get_setting('maintenance_mode') == '1' ? 'border-danger bg-danger-subtle bg-opacity-10' : 'border-light-subtle bg-light' }} mb-4 text-center">
                                     <div class="py-3">
                                         <i class="bi {{ get_setting('maintenance_mode') == '1' ? 'bi-shield-lock-fill text-danger' : 'bi-shield-check text-success' }} display-4 mb-3 d-block"></i>
                                         <h6 class="fw-bold mb-3">Switch System Status</h6>
-                                        
+
                                         <div class="btn-group rounded-pill overflow-hidden p-1 bg-white shadow-sm" role="group" style="border: 1px solid #e2e8f0;">
                                             <input type="radio" class="btn-check" name="settings[maintenance_mode]" id="mModeOff" value="0" {{ get_setting('maintenance_mode') != '1' ? 'checked' : '' }}>
                                             <label class="btn btn-outline-success border-0 rounded-pill px-4 py-2 fw-bold" for="mModeOff">
@@ -170,7 +201,7 @@
                                             </label>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="mt-4 text-start bg-white p-4 rounded-4 shadow-sm border">
                                         <label class="form-label small fw-bold text-muted">Custom Maintenance Message</label>
                                         <textarea name="settings[maintenance_message]" class="form-control rounded-3 border-light" rows="3" placeholder="We are currently under maintenance. Please check back later.">{{ get_setting('maintenance_message') }}</textarea>
@@ -224,7 +255,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="mt-5 border-top pt-4">
                     <button type="submit" class="btn btn-primary rounded-3 px-5 py-2">
                         Save Configuration <i class="bi bi-save ms-2"></i>

@@ -44,7 +44,7 @@
                         <label class="form-label fw-bold">Display Order</label>
                         <input type="number" name="order" class="form-control rounded-3" value="{{ old('order', 0) }}">
                     </div>
-                    
+
                     <div class="form-check form-switch mt-4">
                         <input class="form-check-input" type="checkbox" name="status" id="statusSwitch" value="1" {{ old('status', true) ? 'checked' : '' }}>
                         <label class="form-check-label fw-bold" for="statusSwitch">Active Status</label>

@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Feature extends Model
 {
-    protected $fillable = ['title', 'description', 'icon', 'order', 'status'];
+    protected $fillable = ['title', 'description', 'icon', 'order', 'status','section_enabled',];
 
     protected $casts = [
         'status' => 'boolean',
+        'section_enabled' => 'boolean',
     ];
 
     public function scopeActive($query)

@@ -44,6 +44,7 @@ class CMSDataSeeder extends Seeder
             ['key' => 'facebook_url', 'value' => '#', 'label' => 'Facebook URL', 'group' => 'social'],
             ['key' => 'instagram_url', 'value' => '#', 'label' => 'Instagram URL', 'group' => 'social'],
             ['key' => 'linkedin_url', 'value' => '#', 'label' => 'LinkedIn URL', 'group' => 'social'],
+            ['key' => 'youtube_url', 'value' => '#', 'label' => 'YouTube URL', 'group' => 'social'],
         ];
 
         foreach ($settings as $setting) {
