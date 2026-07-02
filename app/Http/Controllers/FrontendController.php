@@ -74,22 +74,34 @@ class FrontendController extends Controller
 
     public function topicsByYear($yearSlug = null)
     {
-        $years = \App\Models\AcademicYear::active()->orderBy('order')->get();
+        $years = \App\Models\AcademicYear::active()
+            ->orderBy('order')
+            ->get();
 
         $currentYear = $yearSlug
             ? \App\Models\AcademicYear::where('slug', $yearSlug)->active()->firstOrFail()
-            : \App\Models\AcademicYear::active()->orderBy('order')->first();
+            : $years->first();
 
-        // Topics grouped by Subject for the selected year (top-level only)
+        // Agar admin ne saare academic years delete kar diye hon
+        if (! $currentYear) {
+            $topics = collect();
+
+            return view('topics-year', compact('years', 'currentYear', 'topics'));
+        }
+
+        // Topics grouped by Subject for the selected year
         $topics = \App\Models\Topic::active()
             ->where('academic_year_id', $currentYear->id)
             ->whereNull('parent_id')
-            ->with(['subject', 'subtopics' => function($q) {
-                $q->active();
-            }])
+            ->with([
+                'subject',
+                'subtopics' => function ($q) {
+                    $q->active();
+                },
+            ])
             ->orderBy('order')
             ->get()
-            ->groupBy(function($topic) {
+            ->groupBy(function ($topic) {
                 return $topic->subject->name ?? 'Academic Core';
             });
 
