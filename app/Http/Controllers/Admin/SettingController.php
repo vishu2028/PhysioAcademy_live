@@ -11,22 +11,26 @@ class SettingController extends Controller
 {
     public function index()
     {
-        return view('admin.settings.index');
+        $socialSettings = Setting::where('group', 'social')
+            ->orderBy('label')
+            ->get();
+
+        return view('admin.settings.index', compact('socialSettings'));
     }
 
     public function update(Request $request)
     {
         if ($request->has('settings')) {
             $settingsData = $request->settings;
-            
+
             // Explicitly handle checkbox being unchecked
             $checkboxes = [
-                'maintenance_mode', 
-                'enable_content_protection', 
-                'protection_disable_right_click', 
-                'protection_disable_devtools', 
-                'protection_disable_copy', 
-                'protection_disable_drag', 
+                'maintenance_mode',
+                'enable_content_protection',
+                'protection_disable_right_click',
+                'protection_disable_devtools',
+                'protection_disable_copy',
+                'protection_disable_drag',
                 'protection_enable_watermark'
             ];
             foreach ($checkboxes as $checkbox) {
@@ -38,11 +42,15 @@ class SettingController extends Controller
             foreach ($settingsData as $key => $value) {
                 Setting::updateOrCreate(
                     ['key' => $key],
-                    ['value' => $value, 'label' => ucfirst(str_replace('_', ' ', $key))]
+                    [
+                        'value' => $value,
+                        'label' => ucfirst(str_replace('_', ' ', $key)),
+                        'type' => 'text',
+                    ]
                 );
             }
         }
-        
+
         // Validate file uploads if present
         $request->validate([
             'site_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
