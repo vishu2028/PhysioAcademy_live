@@ -239,12 +239,17 @@
                     $user = auth()->user();
 
                     $name = trim($user->name ?? '');
-                    $emailName = explode('@', $user->email ?? 'user')[0];
+                    $email = trim($user->email ?? '');
+                    $emailName = explode('@', $email ?: 'user')[0];
 
-                    $parts = preg_split('/\s+/', $name ?: $emailName);
+                    $displayName = $name ?: ucfirst($emailName);
+
+                    $parts = preg_split('/\s+/', $displayName);
 
                     if (count($parts) >= 2) {
-                        $initials = strtoupper(mb_substr($parts[0], 0, 1) . mb_substr($parts[1], 0, 1));
+                        $initials = strtoupper(
+                            mb_substr($parts[0], 0, 1) . mb_substr($parts[1], 0, 1)
+                        );
                     } else {
                         $initials = strtoupper(mb_substr($parts[0] ?? 'U', 0, 2));
                     }
@@ -256,18 +261,41 @@
                     </button>
 
                     <div class="nav-user-dropdown">
-                        <form action="{{ route('logout') }}" method="POST" class="nav-user-logout-form">
-                            @csrf
+                        <div class="nav-user-dropdown-card">
 
-                            <button type="submit" class="nav-user-logout-btn">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                    <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M20 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M12 19H6C4.89543 19 4 18.1046 4 17V7C4 5.89543 4.89543 5 6 5H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                                <span>Logout</span>
-                            </button>
-                        </form>
+                            <div class="nav-user-info">
+                                <div class="nav-user-info-avatar">
+                                    {{ $initials }}
+                                </div>
+
+                                <div class="nav-user-info-text">
+                                    <strong title="{{ $displayName }}">
+                                        {{ $displayName }}
+                                    </strong>
+
+                                    <span title="{{ $email }}">
+                            {{ $email ?: 'No email available' }}
+                        </span>
+                                </div>
+                            </div>
+
+                            <div class="nav-user-divider"></div>
+
+                            <form action="{{ route('logout') }}" method="POST" class="nav-user-logout-form">
+                                @csrf
+
+                                <button type="submit" class="nav-user-logout-btn">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                        <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M20 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M12 19H6C4.89543 19 4 18.1046 4 17V7C4 5.89543 4.89543 5 6 5H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+
+                                    <span>Logout</span>
+                                </button>
+                            </form>
+
+                        </div>
                     </div>
                 </div>
             @endauth
@@ -437,6 +465,7 @@
         cursor: pointer;
         box-shadow: 0 10px 25px rgba(37, 99, 235, 0.22);
         transition: all 0.22s ease;
+        padding: 0;
     }
 
     .nav-user-avatar:hover {
@@ -449,7 +478,7 @@
         position: absolute;
         top: calc(100% + 10px);
         right: 0;
-        width: 155px;
+        width: 300px;
         opacity: 0;
         visibility: hidden;
         transform: translateY(8px) scale(0.98);
@@ -476,18 +505,80 @@
         transform: rotate(45deg);
         border-left: 1px solid rgba(37, 99, 235, 0.08);
         border-top: 1px solid rgba(37, 99, 235, 0.08);
-        z-index: -1;
+        z-index: 0;
     }
 
-    /* Logout Box */
-    .nav-user-logout-form {
-        margin: 0;
-        padding: 7px;
+    /* Dropdown Card */
+    .nav-user-dropdown-card {
+        position: relative;
+        z-index: 1;
+        padding: 14px;
         background: rgba(255, 255, 255, 0.98);
         border-radius: 18px;
         border: 1px solid rgba(37, 99, 235, 0.10);
         box-shadow: 0 14px 35px rgba(37, 99, 235, 0.14);
         backdrop-filter: blur(10px);
+    }
+
+    /* User Info */
+    .nav-user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .nav-user-info-avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 700;
+        flex-shrink: 0;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.20);
+    }
+
+    .nav-user-info-text {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .nav-user-info-text strong {
+        display: block;
+        color: #1e293b;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .nav-user-info-text span {
+        display: block;
+        color: #64748b;
+        font-size: 13px;
+        margin-top: 4px;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .nav-user-divider {
+        height: 1px;
+        background: rgba(37, 99, 235, 0.10);
+        margin: 12px 0;
+    }
+
+    /* Logout Form */
+    .nav-user-logout-form {
+        margin: 0;
+        padding: 0;
     }
 
     /* Logout Button */
@@ -537,7 +628,7 @@
         }
 
         .nav-user-dropdown {
-            width: 145px;
+            width: 280px;
             right: -4px;
         }
 

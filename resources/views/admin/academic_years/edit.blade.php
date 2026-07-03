@@ -24,23 +24,37 @@
                         <label class="form-label fw-bold">Description</label>
                         <input type="text" name="description" class="form-control" value="{{ old('description', $academicYear->description) }}">
                     </div>
-                    
+
                     <hr class="my-4">
-                    
+
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <label class="form-label fw-bold mb-0">Semesters</label>
+                        <label class="form-label fw-bold mb-0">Subjects</label>
                         <button type="button" class="btn btn-sm btn-outline-primary" id="addSemester">
-                            <i class="bi bi-plus-lg"></i> Add Semester
+                            <i class="bi bi-plus-lg"></i> Add Subject
                         </button>
                     </div>
-                    
+
                     <div id="semesterContainer">
                         @foreach($academicYear->semesters as $index => $semester)
-                        <div class="input-group mb-2 semester-item">
-                            <input type="hidden" name="semesters[{{ $index }}][id]" value="{{ $semester->id }}">
-                            <input type="text" name="semesters[{{ $index }}][name]" class="form-control" value="{{ $semester->name }}">
-                            <button class="btn btn-outline-danger remove-semester" type="button"><i class="bi bi-trash"></i></button>
-                        </div>
+                            <div class="input-group mb-2 semester-item">
+                                <input
+                                    type="hidden"
+                                    name="semesters[{{ $index }}][id]"
+                                    value="{{ $semester->id }}"
+                                >
+
+                                <input
+                                    type="text"
+                                    name="semesters[{{ $index }}][name]"
+                                    class="form-control"
+                                    placeholder="e.g. Subject {{ $loop->iteration }}"
+                                    value="{{ str_replace('Semester', 'Subject', $semester->name) }}"
+                                >
+
+                                <button class="btn btn-outline-danger remove-semester" type="button">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
                         @endforeach
                     </div>
                 </div>
@@ -79,26 +93,38 @@
 </form>
 
 @push('scripts')
-<script>
-    let semCount = {{ $academicYear->semesters->count() }};
-    document.getElementById('addSemester').addEventListener('click', function() {
-        const container = document.getElementById('semesterContainer');
-        const count = container.querySelectorAll('.semester-item').length + 1;
-        const div = document.createElement('div');
-        div.className = 'input-group mb-2 semester-item';
-        div.innerHTML = `
-            <input type="text" name="semesters[new_${semCount}][name]" class="form-control" placeholder="e.g. Semester ${count}" value="Semester ${count}">
-            <button class="btn btn-outline-danger remove-semester" type="button"><i class="bi bi-trash"></i></button>
-        `;
-        container.appendChild(div);
-        semCount++;
-    });
+    <script>
+        document.getElementById('addSemester').addEventListener('click', function () {
+            const container = document.getElementById('semesterContainer');
+            const count = container.querySelectorAll('.semester-item').length;
 
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.remove-semester')) {
-            e.target.closest('.semester-item').remove();
-        }
-    });
-</script>
+            const displayCount = count + 1;
+
+            const div = document.createElement('div');
+            div.className = 'input-group mb-2 semester-item';
+
+            div.innerHTML = `
+            <input
+                type="text"
+                name="semesters[${count}][name]"
+                class="form-control"
+                placeholder="e.g. Subject ${displayCount}"
+                value="Subject ${displayCount}"
+            >
+
+            <button class="btn btn-outline-danger remove-semester" type="button">
+                <i class="bi bi-trash"></i>
+            </button>
+        `;
+
+            container.appendChild(div);
+        });
+
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('.remove-semester')) {
+                e.target.closest('.semester-item').remove();
+            }
+        });
+    </script>
 @endpush
 @endsection

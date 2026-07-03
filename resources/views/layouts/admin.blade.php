@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Admin Dashboard - {{ get_setting('site_name', config('app.name', 'Physio Academy')) }}</title>
-    
+
     @if(get_setting('site_favicon'))
         <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . get_setting('site_favicon')) }}">
     @endif
@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    
+
     <style>
         /* ─── ADMIN PANEL RESET ────────────────────────────────── */
         *, *::before, *::after { box-sizing: border-box; }
@@ -354,6 +354,17 @@
                 @endphp
                 <a href="{{ route('admin.messages.index') }}" class="nav-link-admin @if(request()->routeIs('admin.messages.*')) active @endif">
                     <i class="bi bi-envelope"></i> Inquiries @if($unreadMessages > 0) <span class="badge bg-danger ms-auto rounded-pill">{{ $unreadMessages }}</span> @endif
+                </a>
+                @php
+                    $pendingDoubts = \App\Models\Doubt::where('status', 'pending')->count();
+                @endphp
+
+                <a href="{{ route('admin.doubts.index') }}" class="nav-link-admin @if(request()->routeIs('admin.doubts.*')) active @endif">
+                    <i class="bi bi-question-circle"></i> Student Doubts
+
+                    @if($pendingDoubts > 0)
+                        <span class="badge bg-danger ms-auto rounded-pill">{{ $pendingDoubts }}</span>
+                    @endif
                 </a>
                 <a href="{{ route('admin.users.index') }}" class="nav-link-admin @if(request()->routeIs('admin.users.*')) active @endif">
                     <i class="bi bi-people"></i> User Management

@@ -21,7 +21,7 @@
       <div class="typage-section-label">Academic Foundations</div>
       <div class="typage-cards-grid">
         @foreach($years as $y)
-        <a href="{{ route('topics.year', ['year' => $y->slug]) }}" class="typage-card {{ ($currentYear->id == $y->id) ? 'active' : '' }}">
+            <a href="{{ route('topics.year', ['year' => $y->slug]) }}" class="typage-card {{ ($currentYear && $currentYear->id == $y->id) ? 'active' : '' }}">
 {{--          <div class="typage-year-number text-uppercase">{{ Str::limit($y->name, 2, '') }}</div>--}}
           <div class="typage-year-label">{{ $y->name }}</div>
           <p class="typage-year-desc">{{ $y->description }}</p>
@@ -43,117 +43,157 @@
   @endif
 
   <!-- SUBJECTS EXPLORER -->
-  <section class="typage-explorer">
-    <div class="typage-explorer-inner">
-        <div class="typage-hero-card">
-            <div class="typage-hero-copy">
-                <div class="typage-chip">{{ $currentYear->name }} Curriculum</div>
-                <h2 class="typage-hero-title">{{ $currentYear->name }} <br>Academic Syllabus</h2>
-                <p class="typage-hero-subtitle">{{ $currentYear->description ?: 'Comprehensive coverage of core subjects including theory, practical applications, and exam preparation guides for '.$currentYear->name.' students.' }}</p>
-                <div class="typage-hero-stats">
-                    <div class="typage-stat"><strong>{{ $topics->count() }}</strong><span>Subjects</span></div>
-                    <div class="typage-stat"><strong>{{ $topics->flatten()->count() }}</strong><span>Topics</span></div>
-                </div>
-            </div>
-            <div class="typage-hero-visual">
-                <div class="typage-body-map"></div>
-                <div class="typage-label-pill one">Skeletal System</div>
-                <div class="typage-label-pill two">Muscular Flow</div>
-                <div class="typage-label-pill three">Nervous Supply</div>
-            </div>
-        </div>
+    @if($currentYear)
 
-        <div class="typage-syllabus-grid">
-            @php
-                $visibleSubjects = auth()->check() ? $topics : $topics->take(ceil($topics->count() / 2));
-            @endphp
+        <section class="typage-explorer">
+            <div class="typage-explorer-inner">
+                <div class="typage-hero-card">
+                    <div class="typage-hero-copy">
+                        <div class="typage-chip">{{ $currentYear->name }} Curriculum</div>
 
-            @forelse($visibleSubjects as $subjectName => $items)
-            <div class="typage-subject-panel">
-                <div class="typage-subject-head">
-                    <div>
-                        <h3>{{ $subjectName }}</h3>
-                        @php
-                            $totalCount = $items->count() + $items->sum(fn($i) => $i->subtopics->count());
-                        @endphp
-                        <p>{{ $totalCount }} active modules in this subject</p>
+                        <h2 class="typage-hero-title">
+                            {{ $currentYear->name }} <br>Academic Syllabus
+                        </h2>
+
+                        <p class="typage-hero-subtitle">
+                            {{ $currentYear->description ?: 'Comprehensive coverage of core subjects including theory, practical applications, and exam preparation guides for '.$currentYear->name.' students.' }}
+                        </p>
+
+                        <div class="typage-hero-stats">
+                            <div class="typage-stat">
+                                <strong>{{ $topics->count() }}</strong>
+                                <span>Subjects</span>
+                            </div>
+
+                            <div class="typage-stat">
+                                <strong>{{ $topics->flatten()->count() }}</strong>
+                                <span>Topics</span>
+                            </div>
+                        </div>
                     </div>
-                    <span class="typage-subject-icon">📚</span>
+
+                    <div class="typage-hero-visual">
+                        <div class="typage-body-map"></div>
+                        <div class="typage-label-pill one">Skeletal System</div>
+                        <div class="typage-label-pill two">Muscular Flow</div>
+                        <div class="typage-label-pill three">Nervous Supply</div>
+                    </div>
                 </div>
 
-                <div class="typage-topic-cloud">
+                <div class="typage-syllabus-grid">
                     @php
-                        $visibleItems = auth()->check() ? $items : $items->take(ceil($items->count() / 2));
+                        $visibleSubjects = auth()->check() ? $topics : $topics->take(ceil($topics->count() / 2));
                     @endphp
 
-                    @foreach($visibleItems as $item)
-                    <div class="typage-topic-group">
-                        <div class="typage-topic-chip-wrapper">
-                            <a href="{{ route('topics.show', ['slug' => $item->slug]) }}" class="typage-topic-chip">
-                                {{ $item->title }}
-                            </a>
-                            <button onclick="toggleBookmark({{ $item->id }}, 'Topic', this)"
-                                    class="typage-mini-bookmark {{ $item->isBookmarked() ? 'active' : '' }}"
-                                    title="Bookmark Topic">
-                                <i class="bi {{ $item->isBookmarked() ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
-                            </button>
-                        </div>
-                        @if($item->subtopics->count() > 0)
-                            <div class="typage-sub-chips">
-                                @foreach($item->subtopics as $sub)
-                                    <div class="typage-sub-chip-wrapper">
-                                        <a href="{{ route('topics.show', ['slug' => $sub->slug]) }}" class="typage-sub-chip">
-                                            {{ $sub->title }}
-                                        </a>
-                                        <button onclick="toggleBookmark({{ $sub->id }}, 'Topic', this)"
-                                                class="typage-micro-bookmark {{ $sub->isBookmarked() ? 'active' : '' }}"
-                                                title="Bookmark Subtopic">
-                                            <i class="bi {{ $sub->isBookmarked() ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
-                                        </button>
+                    @forelse($visibleSubjects as $subjectName => $items)
+                        <div class="typage-subject-panel">
+                            <div class="typage-subject-head">
+                                <div>
+                                    <h3>{{ $subjectName }}</h3>
+
+                                    @php
+                                        $totalCount = $items->count() + $items->sum(fn($i) => $i->subtopics->count());
+                                    @endphp
+
+                                    <p>{{ $totalCount }} active modules in this subject</p>
+                                </div>
+
+                                <span class="typage-subject-icon">📚</span>
+                            </div>
+
+                            <div class="typage-topic-cloud">
+                                @php
+                                    $visibleItems = auth()->check() ? $items : $items->take(ceil($items->count() / 2));
+                                @endphp
+
+                                @foreach($visibleItems as $item)
+                                    <div class="typage-topic-group">
+                                        <div class="typage-topic-chip-wrapper">
+                                            <a href="{{ route('topics.show', ['slug' => $item->slug]) }}" class="typage-topic-chip">
+                                                {{ $item->title }}
+                                            </a>
+
+                                            <button onclick="toggleBookmark({{ $item->id }}, 'Topic', this)"
+                                                    class="typage-mini-bookmark {{ $item->isBookmarked() ? 'active' : '' }}"
+                                                    title="Bookmark Topic">
+                                                <i class="bi {{ $item->isBookmarked() ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
+                                            </button>
+                                        </div>
+
+                                        @if($item->subtopics->count() > 0)
+                                            <div class="typage-sub-chips">
+                                                @foreach($item->subtopics as $sub)
+                                                    <div class="typage-sub-chip-wrapper">
+                                                        <a href="{{ route('topics.show', ['slug' => $sub->slug]) }}" class="typage-sub-chip">
+                                                            {{ $sub->title }}
+                                                        </a>
+
+                                                        <button onclick="toggleBookmark({{ $sub->id }}, 'Topic', this)"
+                                                                class="typage-micro-bookmark {{ $sub->isBookmarked() ? 'active' : '' }}"
+                                                                title="Bookmark Subtopic">
+                                                            <i class="bi {{ $sub->isBookmarked() ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
+                                                        </button>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </div>
                                 @endforeach
-                            </div>
-                        @endif
-                    </div>
-                    @endforeach
 
-                    @guest
-                        <div class="typage-topic-group">
-                             <div class="typage-topic-chip px-4 py-2 border-dashed bg-light text-muted small">
-                                <i class="bi bi-lock-fill me-1"></i> More topics locked...
-                             </div>
+                                @guest
+                                    <div class="typage-topic-group">
+                                        <div class="typage-topic-chip px-4 py-2 border-dashed bg-light text-muted small">
+                                            <i class="bi bi-lock-fill me-1"></i> More topics locked...
+                                        </div>
+                                    </div>
+                                @endguest
+                            </div>
                         </div>
-                    @endguest
+                    @empty
+                        <div class="typage-empty-panel">
+                            <div class="typage-empty-icon">📦</div>
+                            <h3>Work in Progress</h3>
+                            <p>We're currently cataloging topics for this year. Check back soon or request a specific topic if you need it faster.</p>
+                            <a href="{{ route('search') }}">Request a Topic</a>
+                        </div>
+                    @endforelse
+                </div>
+
+                @guest
+                    <div class="typage-subject-panel p-5 text-center mt-4" style="background: linear-gradient(135deg, #fff, #f8fbff); border: 2px dashed #cbd5e1;">
+                        <div class="mb-4">
+                            <i class="bi bi-shield-lock display-4 text-blue-600"></i>
+                        </div>
+
+                        <h3 class="fw-bold mb-3">Academic Access Restricted</h3>
+
+                        <p class="text-muted mb-4 mx-auto" style="max-width: 600px;">
+                            We have over <strong>{{ $topics->flatten()->count() }}</strong> modules for {{ $currentYear->name }} available.
+                            Login now to unlock the full syllabus, download clinical notes, and access viva prep materials.
+                        </p>
+
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{{ route('login') }}" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow">Student Login</a>
+                            <a href="{{ route('register') }}" class="btn btn-outline-primary rounded-pill px-5 py-2 fw-bold">Register Free</a>
+                        </div>
+                    </div>
+                @endguest
+            </div>
+        </section>
+
+    @else
+
+        <section class="typage-explorer">
+            <div class="typage-explorer-inner">
+                <div class="typage-empty-panel text-center">
+                    <div class="typage-empty-icon">📦</div>
+                    <h3>No Academic Years Found</h3>
+                    <p>No academic years are available at the moment. Please add an academic year from the admin panel.</p>
                 </div>
             </div>
-            @empty
-            <div class="typage-empty-panel">
-                <div class="typage-empty-icon">📦</div>
-                <h3>Work in Progress</h3>
-                <p>We're currently cataloging topics for this year. Check back soon or request a specific topic if you need it faster.</p>
-                <a href="{{ route('search') }}">Request a Topic</a>
-            </div>
-            @endforelse
-        </div>
+        </section>
 
-        @guest
-        <div class="typage-subject-panel p-5 text-center mt-4" style="background: linear-gradient(135deg, #fff, #f8fbff); border: 2px dashed #cbd5e1;">
-            <div class="mb-4">
-                <i class="bi bi-shield-lock display-4 text-blue-600"></i>
-            </div>
-            <h3 class="fw-bold mb-3">Academic Access Restricted</h3>
-            <p class="text-muted mb-4 mx-auto" style="max-width: 600px;">
-                We have over <strong>{{ $topics->flatten()->count() }}</strong> modules for {{ $currentYear->name }} available.
-                Login now to unlock the full syllabus, download clinical notes, and access viva prep materials.
-            </p>
-            <div class="d-flex justify-content-center gap-3">
-                <a href="{{ route('login') }}" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow">Student Login</a>
-                <a href="{{ route('register') }}" class="btn btn-outline-primary rounded-pill px-5 py-2 fw-bold">Register Free</a>
-            </div>
-        </div>
-        @endguest
-    </div>
-  </section>
+    @endif
 </div>
 
 @push('styles')

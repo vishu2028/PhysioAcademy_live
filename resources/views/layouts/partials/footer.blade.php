@@ -68,12 +68,46 @@
         <span>Phone</span>
         {{ get_setting('contact_phone_display', '+91 XXXXX XXXXX') }}
       </a>
-      <div class="footer-socials" aria-label="Social links">
-        <a href="{{ get_setting('social_instagram', '#') }}" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
-        <a href="{{ get_setting('social_linkedin', '#') }}" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
-        <a href="{{ get_setting('social_youtube', '#') }}" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
-        <a href="{{ get_setting('social_facebook', '#') }}" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
-      </div>
+        @php
+            $socialLinks = [
+                'instagram_url' => [
+                    'label' => 'Instagram',
+                    'icon' => 'bi bi-instagram',
+                ],
+                'linkedin_url' => [
+                    'label' => 'LinkedIn',
+                    'icon' => 'bi bi-linkedin',
+                ],
+                'youtube_url' => [
+                    'label' => 'YouTube',
+                    'icon' => 'bi bi-youtube',
+                ],
+                'facebook_url' => [
+                    'label' => 'Facebook',
+                    'icon' => 'bi bi-facebook',
+                ],
+            ];
+        @endphp
+
+        <div class="footer-socials" aria-label="Social links">
+            @foreach($socialLinks as $key => $social)
+                @php
+                    $url = trim((string) get_setting($key, ''));
+                @endphp
+
+                @if($url !== '' && $url !== '#')
+                    <a href="{{ $url }}" target="_blank" rel="noopener" aria-label="{{ $social['label'] }}">
+                        <i class="{{ $social['icon'] }}"></i>
+                    </a>
+                @endif
+            @endforeach
+        </div>
+{{--      <div class="footer-socials" aria-label="Social links">--}}
+{{--        <a href="{{ get_setting('social_instagram', '#') }}" aria-label="Instagram"><i class="bi bi-instagram"></i></a>--}}
+{{--        <a href="{{ get_setting('social_linkedin', '#') }}" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>--}}
+{{--        <a href="{{ get_setting('social_youtube', '#') }}" aria-label="YouTube"><i class="bi bi-youtube"></i></a>--}}
+{{--        <a href="{{ get_setting('social_facebook', '#') }}" aria-label="Facebook"><i class="bi bi-facebook"></i></a>--}}
+{{--      </div>--}}
     </div>
 
     <div class="footer-newsletter">

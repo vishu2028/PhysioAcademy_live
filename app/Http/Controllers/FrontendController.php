@@ -11,16 +11,31 @@ class FrontendController extends Controller
     public function home()
     {
         $hero = \App\Models\HeroSection::active()->first() ?? new \App\Models\HeroSection();
+        $sectionEnabled = \App\Models\Feature::query()->value('section_enabled');
+        $sectionEnabled = is_null($sectionEnabled) ? true : (bool) $sectionEnabled;
+
+        $visibleFeatures = $sectionEnabled
+            ? \App\Models\Feature::active()->ordered()->get()
+            : collect();
         $features = \App\Models\Feature::active()->ordered()->get();
         // Curriculum data: Active years with topics count
         $years = \App\Models\AcademicYear::active()->withCount(['topics' => function($q) {
             $q->active();
         }])->orderBy('order')->get();
+        // Doubt form subjects
+        $subjects = \App\Models\Subject::query()
+            ->orderBy('name')
+            ->get();
 
         // Trending Topics
         $trendingTopics = \App\Models\Topic::active()->with('subject')->orderBy('order')->limit(4)->get();
 
-        $testimonials = \App\Models\Testimonial::active()->ordered()->get();
+        $testimonialSectionEnabled = \App\Models\Testimonial::query()->value('section_enabled');
+        $testimonialSectionEnabled = is_null($testimonialSectionEnabled) ? true : (bool) $testimonialSectionEnabled;
+
+        $testimonials = $testimonialSectionEnabled
+            ? \App\Models\Testimonial::active()->ordered()->get()
+            : collect();
         $faqs = \App\Models\FAQ::active()->ordered()->limit(6)->get();
         $banners = \App\Models\Banner::active()->ordered()->get();
         $sliders = \App\Models\Slider::active()->ordered()->get();
@@ -33,7 +48,7 @@ class FrontendController extends Controller
             ->first();
 
         return view('welcome', compact(
-            'hero', 'features', 'years', 'trendingTopics', 'testimonials', 'faqs', 'banners', 'sliders','mostRequestedTopic'
+            'hero', 'features','subjects','sectionEnabled','visibleFeatures','testimonialSectionEnabled', 'years', 'trendingTopics', 'testimonials', 'faqs', 'banners', 'sliders','mostRequestedTopic'
         ));
     }
 
@@ -63,22 +78,34 @@ class FrontendController extends Controller
 
     public function topicsByYear($yearSlug = null)
     {
-        $years = \App\Models\AcademicYear::active()->orderBy('order')->get();
+        $years = \App\Models\AcademicYear::active()
+            ->orderBy('order')
+            ->get();
 
         $currentYear = $yearSlug
             ? \App\Models\AcademicYear::where('slug', $yearSlug)->active()->firstOrFail()
-            : \App\Models\AcademicYear::active()->orderBy('order')->first();
+            : $years->first();
 
-        // Topics grouped by Subject for the selected year (top-level only)
+        // Agar admin ne saare academic years delete kar diye hon
+        if (! $currentYear) {
+            $topics = collect();
+
+            return view('topics-year', compact('years', 'currentYear', 'topics'));
+        }
+
+        // Topics grouped by Subject for the selected year
         $topics = \App\Models\Topic::active()
             ->where('academic_year_id', $currentYear->id)
             ->whereNull('parent_id')
-            ->with(['subject', 'subtopics' => function($q) {
-                $q->active();
-            }])
+            ->with([
+                'subject',
+                'subtopics' => function ($q) {
+                    $q->active();
+                },
+            ])
             ->orderBy('order')
             ->get()
-            ->groupBy(function($topic) {
+            ->groupBy(function ($topic) {
                 return $topic->subject->name ?? 'Academic Core';
             });
 

@@ -11,7 +11,22 @@ class FeatureController extends Controller
     public function index()
     {
         $features = Feature::ordered()->get();
-        return view('admin.features.index', compact('features'));
+
+        $sectionEnabled = Feature::query()->value('section_enabled');
+
+        $sectionEnabled = is_null($sectionEnabled) ? true : (bool) $sectionEnabled;
+
+        return view('admin.features.index', compact('features', 'sectionEnabled'));
+    }
+    public function sectionToggle(Request $request)
+    {
+        $sectionEnabled = $request->boolean('section_enabled');
+
+        Feature::query()->update([
+            'section_enabled' => $sectionEnabled,
+        ]);
+
+        return back()->with('success', 'Platform Features section visibility updated successfully.');
     }
 
     public function create()
