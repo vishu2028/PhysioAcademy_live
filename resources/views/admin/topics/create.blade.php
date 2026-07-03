@@ -86,7 +86,7 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Semester (Optional)</label>
+                        <label class="form-label fw-bold">Subject (Optional)</label>
                         <select name="semester_id" id="semesterSelect" class="form-select">
                             <option value="">-- Select Semester --</option>
                         </select>
