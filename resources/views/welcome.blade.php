@@ -292,11 +292,13 @@
 </section>
 
 <!-- ACADEMIC SUPPORT / PLATFORM FEATURES -->
+@if($sectionEnabled)
 <section class="section support-section" id="support">
   <div class="section-container">
     @php
         $visibleFeatures = auth()->check() ? $features : $features->take(ceil($features->count() / 2));
     @endphp
+
       <div class="restriction-container">
 
           <div class="pf-section-head">
@@ -308,7 +310,7 @@
               </p>
           </div>
 
-          @if($sectionEnabled)
+
               <div class="support-grid reveal-stagger">
                   @forelse($visibleFeatures as $feature)
                       <div class="support-card">
