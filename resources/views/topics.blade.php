@@ -5,7 +5,7 @@
 @section('content')
 <div class="topics-subj-page">
   <x-page-hero
-    title="Syllabus by Subjects"
+    title="Syllabus by Subject"
     subtitle="Complete physiotherapy curriculum organized by core subjects, units, and clinical modules."
     breadcrumbLabel="Subjects"
   >
@@ -19,7 +19,7 @@
     <div class="tspage-search-wrapper">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #64748b; flex-shrink: 0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="topicSearch" placeholder="Search any topic, subject or unit...">
-      <div class="tspage-search-count" id="searchCount">Browse all modules</div>
+{{--      <div class="tspage-search-count" id="searchCount">Browse all modules</div>--}}
     </div>
   </div>
 
@@ -29,9 +29,11 @@
       <div class="tspage-requested-box">
         <span class="tspage-hot-badge">🔥 Most Requested</span>
         <div class="tspage-requested-topics">
-          @foreach(['Brachial Plexus', 'Gait Cycle', 'Muscle Contraction', 'UMN vs LMN', 'Reflex Arc'] as $tag)
-            <a href="{{ route('search', ['query' => $tag]) }}">{{ $tag }}</a>
-          @endforeach
+            @forelse($requestedTags as $tag)
+                <a href="{{ route('search', ['query' => $tag]) }}">{{ $tag }}</a>
+            @empty
+                <span class="text-muted small">No requested topics yet.</span>
+            @endforelse
         </div>
       </div>
 
@@ -107,11 +109,11 @@
             <a href="{{ route('register') }}" class="btn btn-primary rounded-pill px-5 py-2">Join the Academy</a>
         </div>
         @endguest
-        <div class="tspage-empty-state">
-            <div>📂</div>
-            <h3>Library Syncing</h3>
-            <p>We are currently updating our subject database.</p>
-        </div>
+{{--        <div class="tspage-empty-state">--}}
+{{--            <div>📂</div>--}}
+{{--            <h3>Library Syncing</h3>--}}
+{{--            <p>We are currently updating our subject database.</p>--}}
+{{--        </div>--}}
         </div>
       </div>
 
@@ -189,7 +191,7 @@
   /* Content */
   .tspage-list-section { padding: 40px 24px 100px; }
   .tspage-list-inner { max-width: 1100px; margin: 0 auto; }
-  
+
   .tspage-requested-box {
       background: rgba(236,72,153,0.04);
       border: 1px solid rgba(236,72,153,0.1);

@@ -76,13 +76,30 @@ class FrontendController extends Controller
         return view('about', compact('page', 'pageProtected', 'sections'));
     }
 
+//    public function topics()
+//    {
+//        $subjects = \App\Models\Subject::active()->withCount(['topics' => function($q) {
+//            $q->active()->whereNull('parent_id');
+//        }])->orderBy('order')->get();
+//
+//        return view('topics', compact('subjects'));
+//    }
     public function topics()
     {
         $subjects = \App\Models\Subject::active()->withCount(['topics' => function($q) {
             $q->active()->whereNull('parent_id');
         }])->orderBy('order')->get();
 
-        return view('topics', compact('subjects'));
+        $requestedTags = \App\Models\Message::select('subject')
+            ->selectRaw('COUNT(*) as total')
+            ->whereNotNull('subject')
+            ->where('subject', '!=', '')
+            ->groupBy('subject')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->pluck('subject');
+
+        return view('topics', compact('subjects', 'requestedTags'));
     }
 
     public function topicsByYear($yearSlug = null)
