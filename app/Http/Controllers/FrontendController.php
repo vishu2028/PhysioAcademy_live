@@ -19,9 +19,15 @@ class FrontendController extends Controller
             : collect();
         $features = \App\Models\Feature::active()->ordered()->get();
         // Curriculum data: Active years with topics count
-        $years = \App\Models\AcademicYear::active()->withCount(['topics' => function($q) {
-            $q->active();
-        }])->orderBy('order')->get();
+        $years = \App\Models\AcademicYear::active()
+            ->withCount([
+                'semesters as units_count',
+                'topics as topics_count' => function ($q) {
+                    $q->active()->whereNull('parent_id');
+                },
+            ])
+            ->orderBy('order')
+            ->get();
         // Doubt form subjects
         $subjects = \App\Models\Subject::query()
             ->orderBy('name')
@@ -79,6 +85,12 @@ class FrontendController extends Controller
     public function topicsByYear($yearSlug = null)
     {
         $years = \App\Models\AcademicYear::active()
+            ->withCount([
+                'semesters as units_count',
+                'topics as topics_count' => function ($q) {
+                    $q->active()->whereNull('parent_id');
+                },
+            ])
             ->orderBy('order')
             ->get();
 

@@ -44,12 +44,41 @@
 <!-- NAVBAR -->
 <nav class="navbar" id="navbar">
   <div class="nav-container">
-    <a href="{{ url('/') }}" class="nav-logo">
-      <div class="logo-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-      </div>
-      <span class="logo-text">Physio <span class="logo-accent">Academy</span></span>
-    </a>
+{{--    <a href="{{ url('/') }}" class="nav-logo">--}}
+{{--      <div class="logo-icon">--}}
+{{--        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>--}}
+{{--      </div>--}}
+{{--      <span class="logo-text">Physio <span class="logo-accent">Academy</span></span>--}}
+{{--    </a>--}}
+      <a href="{{ url('/') }}" class="nav-logo">
+          @php
+              $siteLogo = get_setting('site_logo');
+              $siteName = get_setting('site_name') ?? config('app.name');
+          @endphp
+
+          @if($siteLogo)
+              <img
+                  src="{{ asset('storage/' . $siteLogo) }}"
+                  alt="{{ $siteName }}"
+                  class="nav-logo-img"
+                  width="180"
+                  height="48"
+                  style="height: 48px; max-height: 48px; width: auto; max-width: 180px; object-fit: contain; display: block;"
+              >
+          @else
+              <div class="logo-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                      <path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                      <path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                  </svg>
+              </div>
+
+              <span class="logo-text">
+            {{ $siteName }}
+        </span>
+          @endif
+      </a>
 
       <div class="nav-links" id="navLinks">
           @php
