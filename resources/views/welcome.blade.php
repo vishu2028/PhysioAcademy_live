@@ -715,8 +715,17 @@
         <h3>Question Bank</h3>
         <p>Year-wise, subject-wise organized questions with pattern analysis and frequency mapping.</p>
         <div class="exam-stats">
-          <div><span class="es-num">2400+</span><span class="es-label">Questions</span></div>
-          <div><span class="es-num">98%</span><span class="es-label">Coverage</span></div>
+            <div class="exam-stats">
+                <div>
+                    <span class="es-num">{{ number_format($examTopicsCount ?? 0) }}+</span>
+                    <span class="es-label">Topics</span>
+                </div>
+
+                <div>
+                    <span class="es-num">{{ number_format($examSubjectsCount ?? 0) }}+</span>
+                    <span class="es-label">Subjects</span>
+                </div>
+            </div>
         </div>
         <a href="{{ route('exam-aid') }}" class="exam-btn" style="text-decoration: none; display: inline-block; text-align: center;">Open Question Bank</a>
       </div>

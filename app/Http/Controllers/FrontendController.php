@@ -52,9 +52,11 @@ class FrontendController extends Controller
             ->groupBy('subject')
             ->orderByDesc('total')
             ->first();
+        $examTopicsCount = \App\Models\Topic::active()->count();
+        $examSubjectsCount = \App\Models\Subject::count();
 
         return view('welcome', compact(
-            'hero', 'features','subjects','sectionEnabled','visibleFeatures','testimonialSectionEnabled', 'years', 'trendingTopics', 'testimonials', 'faqs', 'banners', 'sliders','mostRequestedTopic'
+            'hero', 'features','examTopicsCount','examSubjectsCount','subjects','sectionEnabled','visibleFeatures','testimonialSectionEnabled', 'years', 'trendingTopics', 'testimonials', 'faqs', 'banners', 'sliders','mostRequestedTopic'
         ));
     }
 
@@ -79,6 +81,7 @@ class FrontendController extends Controller
         $subjects = \App\Models\Subject::active()->withCount(['topics' => function($q) {
             $q->active()->whereNull('parent_id');
         }])->orderBy('order')->get();
+
         return view('topics', compact('subjects'));
     }
 
