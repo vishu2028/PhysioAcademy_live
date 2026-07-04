@@ -243,13 +243,13 @@
           <div class="curriculum-card {{ $index == 1 ? 'featured' : '' }}" data-tilt>
             @if($index == 1) <div class="cc-featured-label">Most Active</div> @endif
             <div class="cc-glow"></div>
-            <div class="cc-icon" style="--icon-color:{{ $color }}">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-              </svg>
-            </div>
-            <div class="cc-year-badge" style="--badge-color:{{ $color }}">{{ $y->name }}</div>
+{{--            <div class="cc-icon" style="--icon-color:{{ $color }}">--}}
+{{--              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">--}}
+{{--                <path d="M12 2L2 7l10 5 10-5-10-5z"/>--}}
+{{--                <path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>--}}
+{{--              </svg>--}}
+{{--            </div>--}}
+{{--            <div class="cc-year-badge" style="--badge-color:{{ $color }}">{{ $y->name }}</div>--}}
             <h3>{{ $y->name }}</h3>
             <p>
                 @if($unique_subjects->count() > 0)
