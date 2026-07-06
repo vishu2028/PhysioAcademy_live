@@ -20,10 +20,10 @@
                     <h5 class="fw-bold mb-0">Topic Details</h5>
                 </div>
                 <div class="card-body p-4 pt-0">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Topic Title</label>
-                        <input type="text" name="title" class="form-control" value="{{ old('title', $topic->title) }}" required>
-                    </div>
+{{--                    <div class="mb-3">--}}
+{{--                        <label class="form-label fw-bold">Topic Title</label>--}}
+{{--                        <input type="text" name="title" class="form-control" value="{{ old('title', $topic->title) }}" required>--}}
+{{--                    </div>--}}
                     <div class="mb-3">
                         <label class="form-label fw-bold">Description / Overview</label>
                         <textarea name="description" class="form-control" rows="4">{{ old('description', $topic->description) }}</textarea>
@@ -106,12 +106,26 @@
                 <div class="card-body p-4 pt-0">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Subject</label>
-                        <select name="subject_id" class="form-select" required>
+                        <select name="subject_id" id="subjectSelect" class="form-select" required>
                             <option value="">-- Select Subject --</option>
                             @foreach($subjects as $subject)
                                 <option value="{{ $subject->id }}" {{ (old('subject_id', $topic->subject_id) == $subject->id) ? 'selected' : '' }}>{{ $subject->name }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Unit</label>
+                        <select name="unit_id" id="unitSelect" class="form-select" required>
+                            <option value="">-- Select Unit --</option>
+                            @foreach($units as $unit)
+                                <option value="{{ $unit->id }}" {{ old('unit_id', $topic->unit_id) == $unit->id ? 'selected' : '' }}>
+                                    {{ $unit->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('unit_id')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Academic Year</label>
@@ -207,6 +221,34 @@
 @push('scripts')
 <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 <script>
+    const subjectSelect = document.getElementById('subjectSelect');
+    const unitSelect = document.getElementById('unitSelect');
+
+    if (subjectSelect && unitSelect) {
+        subjectSelect.addEventListener('change', function () {
+            const subjectId = this.value;
+
+            unitSelect.innerHTML = '<option value="">Loading...</option>';
+
+            if (!subjectId) {
+                unitSelect.innerHTML = '<option value="">-- Select Unit --</option>';
+                return;
+            }
+
+            fetch("{{ url('/admin/units/by-subject') }}/" + subjectId)
+                .then(response => response.json())
+                .then(units => {
+                    unitSelect.innerHTML = '<option value="">-- Select Unit --</option>';
+
+                    units.forEach(unit => {
+                        unitSelect.innerHTML += `<option value="${unit.id}">${unit.name}</option>`;
+                    });
+                })
+                .catch(() => {
+                    unitSelect.innerHTML = '<option value="">-- Select Unit --</option>';
+                });
+        });
+    }f
     // --- Material JS (registered first, independent of CKEditor) ---
     let materialIndex = {{ $topic->materials->count() }};
     const yearsData = @json($years);

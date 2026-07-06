@@ -325,6 +325,12 @@
                 <a href="{{ route('admin.academic-years.index') }}" class="nav-link-admin @if(request()->routeIs('admin.academic-years.*')) active @endif">
                     <i class="bi bi-calendar-check"></i> Academic Years
                 </a>
+                <a href="{{ route('admin.units.index') }}" class="nav-link-admin @if(request()->routeIs('admin.units.*')) active @endif">
+                    <i class="bi bi-diagram-3"></i> Units
+                </a>
+                <a href="{{ route('admin.unit-topics.index') }}" class="nav-link-admin @if(request()->routeIs('admin.unit-topics.*')) active @endif">
+                    <i class="bi bi-list-task"></i> Topics
+                </a>
                 <a href="{{ route('admin.topics.index') }}" class="nav-link-admin @if(request()->routeIs('admin.topics.*')) active @endif">
                     <i class="bi bi-mortarboard"></i> Topics & LMS
                 </a>
