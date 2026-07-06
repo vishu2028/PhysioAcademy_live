@@ -87,9 +87,38 @@ class FrontendController extends Controller
 //    }
     public function topics()
     {
-        $subjects = \App\Models\Subject::active()->withCount(['topics' => function($q) {
-            $q->active()->whereNull('parent_id');
-        }])->orderBy('order')->get();
+        $subjects = \App\Models\Subject::active()
+            ->whereHas('units', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->with([
+                'units' => function ($query) {
+                    $query->where('is_active', true)
+                        ->orderBy('sort_order')
+                        ->orderBy('name');
+                },
+
+                'units.unitTopics' => function ($query) {
+                    $query->where('status', true)
+                        ->orderBy('sort_order')
+                        ->orderBy('title');
+                },
+
+                'units.unitTopics.lmsTopics' => function ($query) {
+                    $query->where('status', true)
+                        ->whereNull('parent_id')
+                        ->with([
+                            'academicYear',
+                            'subtopics' => function ($subQuery) {
+                                $subQuery->where('status', true)
+                                    ->orderBy('order');
+                            },
+                        ])
+                        ->orderBy('order');
+                },
+            ])
+            ->orderBy('order')
+            ->get();
 
         $requestedTags = \App\Models\Message::select('subject')
             ->selectRaw('COUNT(*) as total')
