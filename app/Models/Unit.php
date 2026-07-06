@@ -32,4 +32,8 @@ class Unit extends Model
     {
         return $this->hasMany(UnitTopic::class);
     }
+    public function parentTopics()
+    {
+        return $this->hasMany(ParentTopic::class);
+    }
 }

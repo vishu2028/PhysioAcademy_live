@@ -23,23 +23,6 @@
                     </div>
 
                     <div class="card-body p-4 pt-0">
-{{--                        <div class="mb-3">--}}
-{{--                            <label class="form-label fw-bold">Topic Title</label>--}}
-
-{{--                            <input--}}
-{{--                                type="text"--}}
-{{--                                name="title"--}}
-{{--                                class="form-control @error('title') is-invalid @enderror"--}}
-{{--                                placeholder="e.g. Brachial Plexus"--}}
-{{--                                value="{{ old('title') }}"--}}
-{{--                                required--}}
-{{--                            >--}}
-
-{{--                            @error('title')--}}
-{{--                            <div class="invalid-feedback">{{ $message }}</div>--}}
-{{--                            @enderror--}}
-{{--                        </div>--}}
-
                         <div class="mb-3">
                             <label class="form-label fw-bold">Description / Overview</label>
 
@@ -192,6 +175,29 @@
                             @enderror
                         </div>
 
+                        <!-- Parent Topic -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Parent Topic (Optional)</label>
+
+                            <select
+                                name="parent_topic_id"
+                                id="parentTopicSelect"
+                                class="form-select @error('parent_topic_id') is-invalid @enderror"
+                            >
+                                <option value="">-- None (Core Topic) --</option>
+
+                                @foreach($parentTopics as $parentTopic)
+                                    <option value="{{ $parentTopic->id }}" {{ old('parent_topic_id') == $parentTopic->id ? 'selected' : '' }}>
+                                        {{ $parentTopic->title }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            @error('parent_topic_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <!-- Academic Year -->
                         <div class="mb-3">
                             <label class="form-label fw-bold">Academic Year</label>
@@ -229,25 +235,6 @@
                             </select>
 
                             @error('semester_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Parent Topic -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Parent Topic (Optional)</label>
-
-                            <select name="parent_id" class="form-select @error('parent_id') is-invalid @enderror">
-                                <option value="">-- None (Core Topic) --</option>
-
-                                @foreach($topics as $t)
-                                    <option value="{{ $t->id }}" {{ old('parent_id') == $t->id ? 'selected' : '' }}>
-                                        {{ $t->title }}
-                                    </option>
-                                @endforeach
-                            </select>
-
-                            @error('parent_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -310,7 +297,13 @@
             <div class="row g-3">
                 <div class="col-md-8">
                     <label class="form-label small fw-bold">Material Title</label>
-                    <input type="text" name="materials[INDEX][title]" class="form-control form-control-sm" placeholder="e.g. Lecture Note PDF" required>
+                    <input
+                        type="text"
+                        name="materials[INDEX][title]"
+                        class="form-control form-control-sm"
+                        placeholder="e.g. Lecture Note PDF"
+                        required
+                    >
                 </div>
 
                 <div class="col-md-4">
@@ -331,17 +324,32 @@
 
                 <div class="col-12 mt-2 type-fields d-none" data-type="video">
                     <label class="form-label small fw-bold">Video URL / Embed Code</label>
-                    <textarea name="materials[INDEX][content]" class="form-control form-control-sm" rows="2" placeholder="YouTube link or iframe..."></textarea>
+                    <textarea
+                        name="materials[INDEX][content]"
+                        class="form-control form-control-sm"
+                        rows="2"
+                        placeholder="YouTube link or iframe..."
+                    ></textarea>
                 </div>
 
                 <div class="col-12 mt-2 type-fields d-none" data-type="link">
                     <label class="form-label small fw-bold">External URL</label>
-                    <input type="url" name="materials[INDEX][url]" class="form-control form-control-sm" placeholder="https://...">
+                    <input
+                        type="url"
+                        name="materials[INDEX][url]"
+                        class="form-control form-control-sm"
+                        placeholder="https://..."
+                    >
                 </div>
 
                 <div class="col-12 mt-2 type-fields d-none" data-type="note">
                     <label class="form-label small fw-bold">Note Content</label>
-                    <textarea name="materials[INDEX][content]" class="form-control form-control-sm" rows="3" placeholder="Write your notes here..."></textarea>
+                    <textarea
+                        name="materials[INDEX][content]"
+                        class="form-control form-control-sm"
+                        rows="3"
+                        placeholder="Write your notes here..."
+                    ></textarea>
                 </div>
             </div>
         </div>
@@ -357,6 +365,7 @@
             const subjectSelect = document.getElementById('subjectSelect');
             const unitSelect = document.getElementById('unitSelect');
             const unitTopicSelect = document.getElementById('unitTopicSelect');
+            const parentTopicSelect = document.getElementById('parentTopicSelect');
             const yearSelect = document.getElementById('yearSelect');
             const semesterSelect = document.getElementById('semesterSelect');
             const addMaterialButton = document.getElementById('addMaterial');
@@ -368,6 +377,7 @@
             const oldSubjectId = "{{ old('subject_id') }}";
             const oldUnitId = "{{ old('unit_id') }}";
             const oldUnitTopicId = "{{ old('unit_topic_id') }}";
+            const oldParentTopicId = "{{ old('parent_topic_id') }}";
             const oldAcademicYearId = "{{ old('academic_year_id') }}";
             const oldSemesterId = "{{ old('semester_id') }}";
 
@@ -388,9 +398,17 @@
                 if (unitTopicSelect) {
                     unitTopicSelect.innerHTML = '<option value="">-- Select Topic --</option>';
                 }
+
+                resetParentTopics();
             }
 
-            function loadUnits(subjectId, selectedUnitId = null, selectedTopicId = null) {
+            function resetParentTopics() {
+                if (parentTopicSelect) {
+                    parentTopicSelect.innerHTML = '<option value="">-- None (Core Topic) --</option>';
+                }
+            }
+
+            function loadUnits(subjectId, selectedUnitId = null, selectedTopicId = null, selectedParentTopicId = null) {
                 resetUnits();
 
                 if (!subjectId || !unitSelect) {
@@ -406,6 +424,7 @@
 
                         units.forEach(unit => {
                             const option = document.createElement('option');
+
                             option.value = unit.id;
                             option.textContent = unit.name;
 
@@ -417,7 +436,7 @@
                         });
 
                         if (selectedUnitId) {
-                            loadUnitTopics(selectedUnitId, selectedTopicId);
+                            loadUnitTopics(selectedUnitId, selectedTopicId, selectedParentTopicId);
                         }
                     })
                     .catch(() => {
@@ -425,7 +444,7 @@
                     });
             }
 
-            function loadUnitTopics(unitId, selectedTopicId = null) {
+            function loadUnitTopics(unitId, selectedTopicId = null, selectedParentTopicId = null) {
                 resetUnitTopics();
 
                 if (!unitId || !unitTopicSelect) {
@@ -441,6 +460,7 @@
 
                         topics.forEach(topic => {
                             const option = document.createElement('option');
+
                             option.value = topic.id;
                             option.textContent = topic.title;
 
@@ -450,9 +470,48 @@
 
                             unitTopicSelect.appendChild(option);
                         });
+
+                        if (selectedTopicId) {
+                            loadParentTopics(selectedTopicId, selectedParentTopicId);
+                        }
                     })
                     .catch(() => {
                         resetUnitTopics();
+                    });
+            }
+
+            function loadParentTopics(unitTopicId, selectedParentTopicId = null) {
+                resetParentTopics();
+
+                if (!unitTopicId || !parentTopicSelect) {
+                    return;
+                }
+
+                parentTopicSelect.innerHTML = '<option value="">Loading...</option>';
+
+                fetch("{{ url('/admin/parent-topics/by-topic') }}/" + unitTopicId)
+                    .then(response => response.json())
+                    .then(parentTopics => {
+                        parentTopicSelect.innerHTML = '<option value="">-- None (Core Topic) --</option>';
+
+                        parentTopics.forEach(parentTopic => {
+                            const option = document.createElement('option');
+
+                            option.value = parentTopic.id;
+                            option.textContent = parentTopic.title;
+
+                            if (
+                                selectedParentTopicId &&
+                                String(selectedParentTopicId) === String(parentTopic.id)
+                            ) {
+                                option.selected = true;
+                            }
+
+                            parentTopicSelect.appendChild(option);
+                        });
+                    })
+                    .catch(() => {
+                        resetParentTopics();
                     });
             }
 
@@ -472,6 +531,7 @@
                 if (year && year.semesters) {
                     year.semesters.forEach(semester => {
                         const option = document.createElement('option');
+
                         option.value = semester.id;
                         option.textContent = semester.name;
 
@@ -498,6 +558,13 @@
                 });
             }
 
+            // --- Topic -> Parent Topics ---
+            if (unitTopicSelect && parentTopicSelect) {
+                unitTopicSelect.addEventListener('change', function () {
+                    loadParentTopics(this.value);
+                });
+            }
+
             // --- Year -> Semesters ---
             if (yearSelect && semesterSelect) {
                 yearSelect.addEventListener('change', function () {
@@ -507,7 +574,7 @@
 
             // --- Restore old values after validation error ---
             if (oldSubjectId) {
-                loadUnits(oldSubjectId, oldUnitId, oldUnitTopicId);
+                loadUnits(oldSubjectId, oldUnitId, oldUnitTopicId, oldParentTopicId);
             }
 
             if (oldAcademicYearId) {
