@@ -19,4 +19,12 @@ class Subject extends Model
     {
         return $query->where('status', true);
     }
+    public function units()
+    {
+        return $this->hasMany(Unit::class);
+    }
+    public function unitTopics()
+    {
+        return $this->hasMany(UnitTopic::class);
+    }
 }

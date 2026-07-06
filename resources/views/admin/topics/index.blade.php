@@ -10,9 +10,9 @@
     </div>
 </div>
 
-<x-admin.data-table 
-    title="Topic List" 
-    :headers="['Title', 'Subject', 'Year/Semester', 'Module', 'Materials', 'Status', 'Actions']" 
+<x-admin.data-table
+    title="Topic List"
+    :headers="['Title', 'Subject', 'Unit', 'Year/Semester', 'Module', 'Materials', 'Status', 'Actions']"
     :createRoute="route('admin.topics.create')"
 >
     @foreach($topics as $topic)
@@ -22,6 +22,11 @@
             <div class="small text-muted">{{ Str::limit(strip_tags($topic->description), 40) }}</div>
         </td>
         <td><span class="badge bg-primary-subtle text-primary">{{ $topic->subject->name ?? 'N/A' }}</span></td>
+        <td>
+    <span class="badge bg-secondary-subtle text-secondary">
+        {{ $topic->unit->name ?? 'N/A' }}
+    </span>
+        </td>
         <td>
             <div class="small fw-bold">{{ $topic->academicYear->name ?? 'N/A' }}</div>
             <div class="small text-muted">{{ $topic->semester->name ?? '' }}</div>

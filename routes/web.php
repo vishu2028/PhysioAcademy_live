@@ -55,6 +55,16 @@ Route::middleware(['auth', 'role:super_admin|admin'])->prefix('admin')->name('ad
 
     Route::resource('subjects', \App\Http\Controllers\Admin\SubjectController::class);
     Route::resource('academic-years', \App\Http\Controllers\Admin\AcademicYearController::class);
+    Route::get('units/by-subject/{subject}', [\App\Http\Controllers\Admin\UnitController::class, 'bySubject'])
+        ->name('units.by-subject');
+    Route::patch('units/{unit}/toggle-status', [\App\Http\Controllers\Admin\UnitController::class, 'toggleStatus'])
+        ->name('units.toggle-status');
+
+    Route::resource('units', \App\Http\Controllers\Admin\UnitController::class);
+    Route::get('unit-topics/by-unit/{unit}', [\App\Http\Controllers\Admin\UnitTopicController::class, 'byUnit'])
+        ->name('unit-topics.by-unit');
+
+    Route::resource('unit-topics', \App\Http\Controllers\Admin\UnitTopicController::class);
     Route::post('topics/upload-image', [\App\Http\Controllers\Admin\TopicController::class, 'uploadImage'])->name('topics.upload_image');
     Route::resource('topics', \App\Http\Controllers\Admin\TopicController::class);
     Route::patch('testimonials/section-toggle', [\App\Http\Controllers\Admin\TestimonialController::class, 'sectionToggle'])
