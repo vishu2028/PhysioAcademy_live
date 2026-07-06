@@ -1157,6 +1157,26 @@
 </style>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.typage-unit-select').forEach(function (select) {
+            select.addEventListener('change', function () {
+                const subjectId = this.dataset.subjectId;
+                const selectedPanelId = this.value;
+
+                document
+                    .querySelectorAll('.typage-unit-topic-panel[data-subject-id="' + subjectId + '"]')
+                    .forEach(function (panel) {
+                        panel.classList.add('d-none');
+                    });
+
+                const selectedPanel = document.getElementById(selectedPanelId);
+
+                if (selectedPanel) {
+                    selectedPanel.classList.remove('d-none');
+                }
+            });
+        });
+    });
     function toggleBookmark(id, type, btn) {
         @if(!auth()->check())
             window.location.href = "{{ route('login') }}";

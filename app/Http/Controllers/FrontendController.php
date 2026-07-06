@@ -33,6 +33,7 @@ class FrontendController extends Controller
             ->orderBy('name')
             ->get();
 
+
         // Trending Topics
         $trendingTopics = \App\Models\Topic::active()->with('subject')->orderBy('order')->limit(4)->get();
 
@@ -122,7 +123,14 @@ class FrontendController extends Controller
         if (! $currentYear) {
             $topics = collect();
 
-            return view('topics-year', compact('years', 'currentYear', 'topics'));
+            $curriculumSubjects = $this->getCurriculumSubjectsForYear($currentYear);
+
+            return view('topics-year', compact(
+                'years',
+                'currentYear',
+                'topics',
+                'curriculumSubjects'
+            ));
         }
 
         // Topics grouped by Subject for the selected year
@@ -141,7 +149,14 @@ class FrontendController extends Controller
                 return $topic->subject->name ?? 'Academic Core';
             });
 
-        return view('topics-year', compact('years', 'currentYear', 'topics'));
+        $curriculumSubjects = $this->getCurriculumSubjectsForYear($currentYear);
+
+        return view('topics-year', compact(
+            'years',
+            'currentYear',
+            'topics',
+            'curriculumSubjects'
+        ));
     }
 
     public function topicShow($slug)
@@ -318,5 +333,45 @@ class FrontendController extends Controller
         }
 
         return response()->download($path);
+    }
+    private function getCurriculumSubjectsForYear($currentYear)
+    {
+        if (! $currentYear) {
+            return collect();
+        }
+
+        return \App\Models\Subject::active()
+            ->whereHas('units', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->with([
+                // Subject ke andar sari active units load hongi
+                'units' => function ($query) {
+                    $query->where('is_active', true)
+                        ->orderBy('sort_order')
+                        ->orderBy('name');
+                },
+
+                // Har unit ke andar active topic-module topics load hongay
+                'units.unitTopics' => function ($query) {
+                    $query->where('status', true)
+                        ->orderBy('sort_order')
+                        ->orderBy('title');
+                },
+
+                // LMS topics sirf current academic year ke according load hongay
+                'units.unitTopics.lmsTopics' => function ($query) use ($currentYear) {
+                    $query->where('status', true)
+                        ->whereNull('parent_id')
+                        ->where('academic_year_id', $currentYear->id)
+                        ->with(['subtopics' => function ($subQuery) {
+                            $subQuery->where('status', true)
+                                ->orderBy('order');
+                        }])
+                        ->orderBy('order');
+                },
+            ])
+            ->orderBy('name')
+            ->get();
     }
 }
