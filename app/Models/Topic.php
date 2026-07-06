@@ -9,7 +9,7 @@ class Topic extends Model
     use \App\Traits\Loggable;
 
     protected $fillable = [
-        'title', 'slug', 'description', 'subject_id','unit_topic_id', 'academic_year_id',
+        'title', 'slug', 'description', 'subject_id','parent_topic_id','unit_topic_id', 'academic_year_id',
         'semester_id', 'parent_id', 'module_number', 'status', 'order', 'is_protected'
     ];
 
@@ -64,5 +64,9 @@ class Topic extends Model
     public function unitTopic()
     {
         return $this->belongsTo(UnitTopic::class, 'unit_topic_id');
+    }
+    public function parentTopicGroup()
+    {
+        return $this->belongsTo(ParentTopic::class, 'parent_topic_id');
     }
 }

@@ -103,58 +103,150 @@
                 <div class="card-header bg-white p-4 border-0">
                     <h5 class="fw-bold mb-0">Categorization</h5>
                 </div>
+
                 <div class="card-body p-4 pt-0">
+                    <!-- Subject -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">Subject</label>
-                        <select name="subject_id" id="subjectSelect" class="form-select" required>
+
+                        <select
+                            name="subject_id"
+                            id="subjectSelect"
+                            class="form-select @error('subject_id') is-invalid @enderror"
+                            required
+                        >
                             <option value="">-- Select Subject --</option>
+
                             @foreach($subjects as $subject)
-                                <option value="{{ $subject->id }}" {{ (old('subject_id', $topic->subject_id) == $subject->id) ? 'selected' : '' }}>{{ $subject->name }}</option>
+                                <option value="{{ $subject->id }}" {{ old('subject_id', $topic->subject_id) == $subject->id ? 'selected' : '' }}>
+                                    {{ $subject->name }}
+                                </option>
                             @endforeach
                         </select>
+
+                        @error('subject_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
+
+                    <!-- Unit -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">Unit</label>
-                        <select name="unit_id" id="unitSelect" class="form-select" required>
+
+                        <select
+                            name="unit_id"
+                            id="unitSelect"
+                            class="form-select @error('unit_id') is-invalid @enderror"
+                            required
+                        >
                             <option value="">-- Select Unit --</option>
+
                             @foreach($units as $unit)
-                                <option value="{{ $unit->id }}" {{ old('unit_id', $topic->unit_id) == $unit->id ? 'selected' : '' }}>
+                                <option value="{{ $unit->id }}" {{ old('unit_id', $selectedUnitId ?? $topic->unitTopic?->unit_id) == $unit->id ? 'selected' : '' }}>
                                     {{ $unit->name }}
                                 </option>
                             @endforeach
                         </select>
+
                         @error('unit_id')
-                        <div class="text-danger small mt-1">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+
+                    <!-- Topic -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Academic Year</label>
-                        <select name="academic_year_id" id="yearSelect" class="form-select" required>
-                            <option value="">-- Select Year --</option>
-                            @foreach($years as $year)
-                                <option value="{{ $year->id }}" {{ (old('academic_year_id', $topic->academic_year_id) == $year->id) ? 'selected' : '' }}>{{ $year->name }}</option>
+                        <label class="form-label fw-bold">Topic</label>
+
+                        <select
+                            name="unit_topic_id"
+                            id="unitTopicSelect"
+                            class="form-select @error('unit_topic_id') is-invalid @enderror"
+                            required
+                        >
+                            <option value="">-- Select Topic --</option>
+
+                            @foreach($unitTopics as $unitTopic)
+                                <option value="{{ $unitTopic->id }}" {{ old('unit_topic_id', $topic->unit_topic_id) == $unitTopic->id ? 'selected' : '' }}>
+                                    {{ $unitTopic->title }}
+                                </option>
                             @endforeach
                         </select>
+
+                        @error('unit_topic_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
+
+                    <!-- Parent Topic -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Subject (Optional)</label>
-                        <select name="semester_id" id="semesterSelect" class="form-select">
+                        <label class="form-label fw-bold">Parent Topic (Optional)</label>
+
+                        <select
+                            name="parent_topic_id"
+                            id="parentTopicSelect"
+                            class="form-select @error('parent_topic_id') is-invalid @enderror"
+                        >
+                            <option value="">-- None (Core Topic) --</option>
+
+                            @foreach($parentTopics as $parentTopic)
+                                <option value="{{ $parentTopic->id }}" {{ old('parent_topic_id', $topic->parent_topic_id) == $parentTopic->id ? 'selected' : '' }}>
+                                    {{ $parentTopic->title }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        @error('parent_topic_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <!-- Academic Year -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Academic Year</label>
+
+                        <select
+                            name="academic_year_id"
+                            id="yearSelect"
+                            class="form-select @error('academic_year_id') is-invalid @enderror"
+                            required
+                        >
+                            <option value="">-- Select Year --</option>
+
+                            @foreach($years as $year)
+                                <option value="{{ $year->id }}" {{ old('academic_year_id', $topic->academic_year_id) == $year->id ? 'selected' : '' }}>
+                                    {{ $year->name }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        @error('academic_year_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <!-- Semester -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Semester (Optional)</label>
+
+                        <select
+                            name="semester_id"
+                            id="semesterSelect"
+                            class="form-select @error('semester_id') is-invalid @enderror"
+                        >
                             <option value="">-- Select Semester --</option>
+
                             @if($topic->academicYear)
                                 @foreach($topic->academicYear->semesters as $sem)
-                                    <option value="{{ $sem->id }}" {{ (old('semester_id', $topic->semester_id) == $sem->id) ? 'selected' : '' }}>{{ $sem->name }}</option>
+                                    <option value="{{ $sem->id }}" {{ old('semester_id', $topic->semester_id) == $sem->id ? 'selected' : '' }}>
+                                        {{ $sem->name }}
+                                    </option>
                                 @endforeach
                             @endif
                         </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Parent Topic (Optional)</label>
-                        <select name="parent_id" class="form-select">
-                            <option value="">-- None (Core Topic) --</option>
-                            @foreach($topics as $t)
-                                <option value="{{ $t->id }}" {{ $topic->parent_id == $t->id ? 'selected' : '' }}>{{ $t->title }}</option>
-                            @endforeach
-                        </select>
+
+                        @error('semester_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
             </div>

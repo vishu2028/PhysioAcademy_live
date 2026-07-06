@@ -11,6 +11,7 @@ use App\Models\LearningMaterial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\Unit;
+use App\Models\ParentTopic;
 use App\Models\UnitTopic;
 use Illuminate\Validation\Rule;
 
@@ -56,6 +57,15 @@ class TopicController extends Controller
         $topics = Topic::active()
             ->orderBy('title')
             ->get();
+        $selectedUnitTopicId = old('unit_topic_id');
+
+        $parentTopics = $selectedUnitTopicId
+            ? ParentTopic::where('unit_topic_id', $selectedUnitTopicId)
+                ->where('status', true)
+                ->orderBy('sort_order')
+                ->orderBy('title')
+                ->get()
+            : collect();
 
         return view('admin.topics.create', compact(
             'subjects',
@@ -63,6 +73,7 @@ class TopicController extends Controller
             'topics',
             'units',
             'unitTopics',
+            'parentTopics',
             'selectedSubjectId',
             'selectedUnitId'
         ));
@@ -84,6 +95,12 @@ class TopicController extends Controller
                 'required',
                 Rule::exists('unit_topics', 'id')->where(function ($query) use ($request) {
                     return $query->where('unit_id', $request->unit_id);
+                }),
+            ],
+            'parent_topic_id' => [
+                'nullable',
+                Rule::exists('parent_topics', 'id')->where(function ($query) use ($request) {
+                    return $query->where('unit_topic_id', $request->unit_topic_id);
                 }),
             ],
 
@@ -144,26 +161,62 @@ class TopicController extends Controller
 
     public function edit(Topic $topic)
     {
-        $topic->load(['materials', 'unit']);
+        $topic->load(['materials', 'unitTopic.unit']);
 
         $subjects = Subject::active()->orderBy('name')->get();
-        $years = AcademicYear::active()->with('semesters')->orderBy('order')->get();
+
+        $years = AcademicYear::active()
+            ->with('semesters')
+            ->orderBy('order')
+            ->get();
 
         $selectedSubjectId = old('subject_id', $topic->subject_id);
 
+        $selectedUnitId = old(
+            'unit_id',
+            $topic->unitTopic?->unit_id
+        );
+
+        $selectedUnitTopicId = old(
+            'unit_topic_id',
+            $topic->unit_topic_id
+        );
+
         $units = $selectedSubjectId
             ? Unit::where('subject_id', $selectedSubjectId)
+                ->where('is_active', true)
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get()
             : collect();
 
-        $topics = Topic::active()
-            ->where('id', '!=', $topic->id)
-            ->orderBy('title')
-            ->get();
+        $unitTopics = $selectedUnitId
+            ? UnitTopic::where('unit_id', $selectedUnitId)
+                ->where('status', true)
+                ->orderBy('sort_order')
+                ->orderBy('title')
+                ->get()
+            : collect();
 
-        return view('admin.topics.edit', compact('topic', 'subjects', 'years', 'topics', 'units'));
+        $parentTopics = $selectedUnitTopicId
+            ? ParentTopic::where('unit_topic_id', $selectedUnitTopicId)
+                ->where('status', true)
+                ->orderBy('sort_order')
+                ->orderBy('title')
+                ->get()
+            : collect();
+
+        return view('admin.topics.edit', compact(
+            'topic',
+            'subjects',
+            'years',
+            'units',
+            'unitTopics',
+            'parentTopics',
+            'selectedSubjectId',
+            'selectedUnitId',
+            'selectedUnitTopicId'
+        ));
     }
 
     public function update(Request $request, Topic $topic)
@@ -182,6 +235,12 @@ class TopicController extends Controller
                 'required',
                 Rule::exists('unit_topics', 'id')->where(function ($query) use ($request) {
                     return $query->where('unit_id', $request->unit_id);
+                }),
+            ],
+            'parent_topic_id' => [
+                'nullable',
+                Rule::exists('parent_topics', 'id')->where(function ($query) use ($request) {
+                    return $query->where('unit_topic_id', $request->unit_topic_id);
                 }),
             ],
 

@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class UnitTopic extends Model
+class ParentTopic extends Model
 {
     protected $fillable = [
         'subject_id',
         'unit_id',
+        'unit_topic_id',
         'title',
         'slug',
         'sort_order',
@@ -29,17 +30,18 @@ class UnitTopic extends Model
         return $this->belongsTo(Unit::class);
     }
 
+    public function unitTopic()
+    {
+        return $this->belongsTo(UnitTopic::class);
+    }
+
     public function lmsTopics()
     {
-        return $this->hasMany(Topic::class, 'unit_topic_id');
+        return $this->hasMany(Topic::class, 'parent_topic_id');
     }
 
     public function scopeActive($query)
     {
         return $query->where('status', true);
-    }
-    public function parentTopics()
-    {
-        return $this->hasMany(ParentTopic::class);
     }
 }

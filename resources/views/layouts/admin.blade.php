@@ -334,6 +334,10 @@
                 <a href="{{ route('admin.topics.index') }}" class="nav-link-admin @if(request()->routeIs('admin.topics.*')) active @endif">
                     <i class="bi bi-mortarboard"></i> Topics & LMS
                 </a>
+                <a href="{{ route('admin.parent-topics.index') }}"
+                   class="nav-link-admin @if(request()->routeIs('admin.parent-topics.*')) active @endif">
+                    <i class="bi bi-diagram-3"></i> Parent Topics
+                </a>
 
                 <div class="sidebar-section-label">Content Management</div>
                 <a href="{{ route('admin.pages.index') }}" class="nav-link-admin @if(request()->routeIs('admin.pages.*')) active @endif">

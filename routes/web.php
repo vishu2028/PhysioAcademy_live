@@ -57,6 +57,10 @@ Route::middleware(['auth', 'role:super_admin|admin'])->prefix('admin')->name('ad
     Route::resource('academic-years', \App\Http\Controllers\Admin\AcademicYearController::class);
     Route::get('units/by-subject/{subject}', [\App\Http\Controllers\Admin\UnitController::class, 'bySubject'])
         ->name('units.by-subject');
+    Route::get('parent-topics/by-topic/{unitTopic}', [\App\Http\Controllers\Admin\ParentTopicController::class, 'byTopic'])
+        ->name('parent-topics.by-topic');
+
+    Route::resource('parent-topics', \App\Http\Controllers\Admin\ParentTopicController::class);
     Route::patch('units/{unit}/toggle-status', [\App\Http\Controllers\Admin\UnitController::class, 'toggleStatus'])
         ->name('units.toggle-status');
 
