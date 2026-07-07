@@ -12,7 +12,11 @@
     </div>
 
     @foreach($sections as $section)
-        @php $content = $section->content; @endphp
+        @php
+            $content = is_array($section->content)
+                ? $section->content
+                : (json_decode($section->content, true) ?: []);
+        @endphp
 
         @if($section->type === 'exam_hero')
         <section class="exam-hero">
@@ -129,7 +133,11 @@
           <div class="exam-resource-grid reveal-stagger">
             {{-- Render custom items if they exist for this section --}}
             @foreach($section->items as $item)
-            @php $meta = $item->meta; @endphp
+                  @php
+                      $meta = is_array($item->meta)
+                          ? $item->meta
+                          : (json_decode($item->meta, true) ?: []);
+                  @endphp
             <article class="exam-subject-card">
               <div class="exam-card-top">
                 <span class="exam-difficulty {{ $meta['difficulty'] ?? 'medium' }}">{{ $meta['label'] ?? 'Academic Note' }}</span>
@@ -146,7 +154,7 @@
                     <button onclick="window.location.href='{{ route('login') }}'"><i class="bi bi-lock-fill me-1"></i> Unlock</button>
                   @endauth
                 @endif
-                
+
                 @auth
                   <button>Download</button>
                 @else
@@ -167,7 +175,7 @@
                   <h3>{{ $faq->question }}</h3>
                   <p>{{ Str::limit($faq->answer, 120) }}</p>
                   <div class="exam-card-meta"><span>Topper Verified</span><span>Ready for Exam</span></div>
-                  
+
                   <button class="exam-accordion-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-{{ $faq->id }}">
                     Full Answer Preview <span>+</span>
                   </button>
@@ -185,7 +193,7 @@
                   </div>
                 </article>
                 @endforeach
-                
+
                 @php
                     $topics = \App\Models\Topic::active()->limit(4)->get();
                 @endphp
@@ -227,7 +235,7 @@
     .exam-orb-one { width: 500px; height: 500px; top: -100px; left: -100px; background: rgba(37,99,235,0.2); }
     .exam-orb-two { width: 400px; height: 400px; top: 200px; right: -50px; background: rgba(56,189,248,0.2); }
     .exam-orb-three { width: 300px; height: 300px; bottom: 0; left: 20%; background: rgba(37,99,235,0.1); }
-    
+
     .exam-hero { max-width: 1280px; margin: 0 auto; padding: 80px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
     .exam-kicker { display: inline-flex; align-items: center; gap: 10px; padding: 7px 16px; background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.15); border-radius: 99px; font-size: 0.8rem; font-weight: 600; color: #2563eb; margin-bottom: 24px; }
     .exam-hero-title { font-family: var(--font-display); font-size: clamp(2.5rem, 5vw, 4rem); line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 24px; }

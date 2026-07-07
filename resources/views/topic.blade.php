@@ -10,7 +10,7 @@
             <div class="hero-orb orb-1"></div>
             <div class="hero-orb orb-2"></div>
         </div>
-        
+
         <div class="topic-hero-container">
             <nav class="topic-breadcrumb reveal-up">
                 <a href="{{ route('home') }}">Home</a>
@@ -31,8 +31,8 @@
                     <button class="btn-share" title="Share Topic">
                         <i class="bi bi-share"></i>
                     </button>
-                    <button class="btn-bookmark {{ $topic->isBookmarked() ? 'active' : '' }}" 
-                            onclick="toggleBookmark({{ $topic->id }}, 'Topic', this)" 
+                    <button class="btn-bookmark {{ $topic->isBookmarked() ? 'active' : '' }}"
+                            onclick="toggleBookmark({{ $topic->id }}, 'Topic', this)"
                             title="{{ $topic->isBookmarked() ? 'Remove from Saved' : 'Save for Later' }}">
                         <i class="bi {{ $topic->isBookmarked() ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
                     </button>
@@ -50,7 +50,7 @@
                 <div class="meta-item">
                     <div class="meta-icon"><i class="bi bi-layer-backward"></i></div>
                     <div class="meta-info">
-                        <span class="meta-label">Module / Unit</span>
+                        <span class="meta-label">Unit</span>
                         <span class="meta-value">{{ $topic->module_number ?: 'General Mastery' }}</span>
                     </div>
                 </div>
@@ -104,14 +104,14 @@
                                         <div class="mc-body">
                                             <div class="flex items-center justify-between">
                                                 <h4 class="mc-title">{{ $material->title }}</h4>
-                                                <button onclick="toggleBookmark({{ $material->id }}, 'LearningMaterial', this)" 
+                                                <button onclick="toggleBookmark({{ $material->id }}, 'LearningMaterial', this)"
                                                         class="material-bookmark-btn {{ $material->isBookmarked() ? 'text-blue-600' : 'text-slate-300' }}"
                                                         title="Bookmark Resource">
                                                     <i class="bi {{ $material->isBookmarked() ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
                                                 </button>
                                             </div>
                                             <span class="mc-tag">{{ strtoupper($material->type) }}</span>
-                                            
+
                                             @if($material->type == 'note' && $material->content)
                                                 <div class="mc-note-preview">
                                                     {!! nl2br(e($material->content)) !!}
@@ -279,7 +279,7 @@
     .topic-badge {
         display: inline-block; padding: 6px 16px;
         background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.15);
-        border-radius: 99px; color: var(--topic-blue); font-size: 0.75rem; 
+        border-radius: 99px; color: var(--topic-blue); font-size: 0.75rem;
         font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
         margin-bottom: 12px;
     }
@@ -516,7 +516,7 @@
         @endif
 
         const icon = btn.querySelector('i');
-        
+
         fetch("{{ route('bookmarks.toggle') }}", {
             method: 'POST',
             headers: {

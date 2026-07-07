@@ -21,6 +21,20 @@
                         <input type="text" name="name" class="form-control" value="{{ old('name', $subject->name) }}" required>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label fw-bold">Subject Code</label>
+                        <input
+                            type="text"
+                            name="code"
+                            class="form-control @error('code') is-invalid @enderror"
+                            placeholder="e.g. BPT-401"
+                            value="{{ old('code', $subject->code) }}"
+                        >
+
+                        @error('code')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label fw-bold">Description</label>
                         <textarea name="description" class="form-control" rows="5">{{ old('description', $subject->description) }}</textarea>
                     </div>

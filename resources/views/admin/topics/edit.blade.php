@@ -30,7 +30,7 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Module / Unit Number</label>
+                            <label class="form-label fw-bold">Unit Number</label>
                             <input type="text" name="module_number" class="form-control" value="{{ old('module_number', $topic->module_number) }}">
                         </div>
                         <div class="col-md-6 mb-3">
@@ -311,102 +311,293 @@
 </template>
 
 @push('scripts')
-<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
-<script>
-    const subjectSelect = document.getElementById('subjectSelect');
-    const unitSelect = document.getElementById('unitSelect');
+    {{-- Agar jQuery aur Select2 layout me already added hain to ye 2 lines duplicate na karein --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-    if (subjectSelect && unitSelect) {
-        subjectSelect.addEventListener('change', function () {
-            const subjectId = this.value;
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 
-            unitSelect.innerHTML = '<option value="">Loading...</option>';
+    <script>
+        $(document).ready(function () {
+            // --- Elements ---
+            const subjectSelect = document.getElementById('subjectSelect');
+            const unitSelect = document.getElementById('unitSelect');
+            const unitTopicSelect = document.getElementById('unitTopicSelect');
+            const parentTopicSelect = document.getElementById('parentTopicSelect');
+            const yearSelect = document.getElementById('yearSelect');
+            const semesterSelect = document.getElementById('semesterSelect');
+            const addMaterialButton = document.getElementById('addMaterial');
+            const materialContainer = document.getElementById('materialContainer');
+            const materialTemplate = document.getElementById('materialTemplate');
 
-            if (!subjectId) {
-                unitSelect.innerHTML = '<option value="">-- Select Unit --</option>';
-                return;
-            }
+            let materialIndex = {{ $topic->materials->count() }};
+            const yearsData = @json($years);
 
-            fetch("{{ url('/admin/units/by-subject') }}/" + subjectId)
-                .then(response => response.json())
-                .then(units => {
-                    unitSelect.innerHTML = '<option value="">-- Select Unit --</option>';
-
-                    units.forEach(unit => {
-                        unitSelect.innerHTML += `<option value="${unit.id}">${unit.name}</option>`;
-                    });
-                })
-                .catch(() => {
-                    unitSelect.innerHTML = '<option value="">-- Select Unit --</option>';
-                });
-        });
-    }f
-    // --- Material JS (registered first, independent of CKEditor) ---
-    let materialIndex = {{ $topic->materials->count() }};
-    const yearsData = @json($years);
-
-    // Year-Semester Dynamic Dropdown
-    document.getElementById('yearSelect').addEventListener('change', function() {
-        const yearId = this.value;
-        const semesterSelect = document.getElementById('semesterSelect');
-        semesterSelect.innerHTML = '<option value="">-- Select Semester --</option>';
-        if (yearId) {
-            const year = yearsData.find(y => y.id == yearId);
-            if (year && year.semesters) {
-                year.semesters.forEach(sem => {
-                    semesterSelect.innerHTML += `<option value="${sem.id}">${sem.name}</option>`;
-                });
-            }
-        }
-    });
-
-    // Add Material
-    document.getElementById('addMaterial').addEventListener('click', function() {
-        const container = document.getElementById('materialContainer');
-        const template = document.getElementById('materialTemplate').innerHTML;
-        const html = template.replace(/INDEX/g, 'new_' + materialIndex);
-        const div = document.createElement('div');
-        div.innerHTML = html;
-        container.appendChild(div.firstElementChild);
-        materialIndex++;
-    });
-
-    // Remove Material
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-material')) {
-            e.target.closest('.material-item').remove();
-        }
-    });
-
-    // Type Change Logic
-    document.addEventListener('change', function(e) {
-        if (e.target.classList.contains('material-type-select')) {
-            const type = e.target.value;
-            const parent = e.target.closest('.material-item');
-            parent.querySelectorAll('.type-fields').forEach(field => {
-                field.classList.toggle('d-none', field.dataset.type !== type);
+            // --- Select2 Init ---
+            $('#subjectSelect').select2({
+                placeholder: '-- Select Subject --',
+                allowClear: true,
+                width: '100%'
             });
-        }
-    });
 
-    // --- CKEditor Init (wrapped in try-catch so failures don't block above JS) ---
-    try {
-        if (typeof ClassicEditor !== 'undefined') {
-            ClassicEditor
-                .create(document.querySelector('textarea[name="description"]'), {
-                    ckfinder: {
-                        uploadUrl: '{{ route("admin.topics.upload_image") }}?_token={{ csrf_token() }}'
-                    },
-                    toolbar: [
-                        'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', '|',
-                        'imageUpload', 'insertTable', 'mediaEmbed', 'undo', 'redo'
-                    ]
-                })
-                .catch(error => console.warn('CKEditor init error:', error));
-        }
-    } catch (e) {
-        console.warn('CKEditor not available:', e);
-    }
-</script>
+            $('#unitSelect').select2({
+                placeholder: '-- Select Unit --',
+                allowClear: true,
+                width: '100%'
+            });
+
+            $('#unitTopicSelect').select2({
+                placeholder: '-- Select Topic --',
+                allowClear: true,
+                width: '100%'
+            });
+
+            if ($('#parentTopicSelect').length) {
+                $('#parentTopicSelect').select2({
+                    placeholder: '-- None (Core Topic) --',
+                    allowClear: true,
+                    width: '100%'
+                });
+            }
+
+            // --- Helpers ---
+            function refreshSelect2(selectElement) {
+                if (selectElement) {
+                    $(selectElement).trigger('change.select2');
+                }
+            }
+
+            function resetUnits() {
+                if (unitSelect) {
+                    unitSelect.innerHTML = '<option value="">-- Select Unit --</option>';
+                    refreshSelect2(unitSelect);
+                }
+
+                resetUnitTopics();
+            }
+
+            function resetUnitTopics() {
+                if (unitTopicSelect) {
+                    unitTopicSelect.innerHTML = '<option value="">-- Select Topic --</option>';
+                    refreshSelect2(unitTopicSelect);
+                }
+
+                resetParentTopics();
+            }
+
+            function resetParentTopics() {
+                if (parentTopicSelect) {
+                    parentTopicSelect.innerHTML = '<option value="">-- None (Core Topic) --</option>';
+                    refreshSelect2(parentTopicSelect);
+                }
+            }
+
+            function loadUnits(subjectId) {
+                resetUnits();
+
+                if (!subjectId || !unitSelect) {
+                    return;
+                }
+
+                unitSelect.innerHTML = '<option value="">Loading...</option>';
+                refreshSelect2(unitSelect);
+
+                fetch("{{ url('/admin/units/by-subject') }}/" + subjectId)
+                    .then(response => response.json())
+                    .then(units => {
+                        unitSelect.innerHTML = '<option value="">-- Select Unit --</option>';
+
+                        units.forEach(unit => {
+                            const option = document.createElement('option');
+                            option.value = unit.id;
+                            option.textContent = unit.name;
+                            unitSelect.appendChild(option);
+                        });
+
+                        refreshSelect2(unitSelect);
+                    })
+                    .catch(() => {
+                        resetUnits();
+                    });
+            }
+
+            function loadUnitTopics(unitId) {
+                resetUnitTopics();
+
+                if (!unitId || !unitTopicSelect) {
+                    return;
+                }
+
+                unitTopicSelect.innerHTML = '<option value="">Loading...</option>';
+                refreshSelect2(unitTopicSelect);
+
+                fetch("{{ url('/admin/unit-topics/by-unit') }}/" + unitId)
+                    .then(response => response.json())
+                    .then(topics => {
+                        unitTopicSelect.innerHTML = '<option value="">-- Select Topic --</option>';
+
+                        topics.forEach(topic => {
+                            const option = document.createElement('option');
+                            option.value = topic.id;
+                            option.textContent = topic.title;
+                            unitTopicSelect.appendChild(option);
+                        });
+
+                        refreshSelect2(unitTopicSelect);
+                    })
+                    .catch(() => {
+                        resetUnitTopics();
+                    });
+            }
+
+            function loadParentTopics(unitTopicId) {
+                resetParentTopics();
+
+                if (!unitTopicId || !parentTopicSelect) {
+                    return;
+                }
+
+                parentTopicSelect.innerHTML = '<option value="">Loading...</option>';
+                refreshSelect2(parentTopicSelect);
+
+                fetch("{{ url('/admin/parent-topics/by-topic') }}/" + unitTopicId)
+                    .then(response => response.json())
+                    .then(parentTopics => {
+                        parentTopicSelect.innerHTML = '<option value="">-- None (Core Topic) --</option>';
+
+                        parentTopics.forEach(parentTopic => {
+                            const option = document.createElement('option');
+                            option.value = parentTopic.id;
+                            option.textContent = parentTopic.title;
+                            parentTopicSelect.appendChild(option);
+                        });
+
+                        refreshSelect2(parentTopicSelect);
+                    })
+                    .catch(() => {
+                        resetParentTopics();
+                    });
+            }
+
+            function loadSemesters(yearId) {
+                if (!semesterSelect) {
+                    return;
+                }
+
+                semesterSelect.innerHTML = '<option value="">-- Select Semester --</option>';
+
+                if (!yearId) {
+                    return;
+                }
+
+                const year = yearsData.find(item => String(item.id) === String(yearId));
+
+                if (year && year.semesters) {
+                    year.semesters.forEach(semester => {
+                        const option = document.createElement('option');
+                        option.value = semester.id;
+                        option.textContent = semester.name;
+                        semesterSelect.appendChild(option);
+                    });
+                }
+            }
+
+            // --- Subject -> Units ---
+            $('#subjectSelect').on('change', function () {
+                loadUnits($(this).val());
+            });
+
+            // --- Unit -> Topics ---
+            $('#unitSelect').on('change', function () {
+                loadUnitTopics($(this).val());
+            });
+
+            // --- Topic -> Parent Topics ---
+            $('#unitTopicSelect').on('change', function () {
+                loadParentTopics($(this).val());
+            });
+
+            // --- Year -> Semesters ---
+            if (yearSelect && semesterSelect) {
+                yearSelect.addEventListener('change', function () {
+                    loadSemesters(this.value);
+                });
+            }
+
+            // --- Add Material ---
+            if (addMaterialButton && materialContainer && materialTemplate) {
+                addMaterialButton.addEventListener('click', function () {
+                    const template = materialTemplate.innerHTML;
+                    const html = template.replace(/INDEX/g, 'new_' + materialIndex);
+                    const div = document.createElement('div');
+
+                    div.innerHTML = html;
+                    materialContainer.appendChild(div.firstElementChild);
+
+                    materialIndex++;
+                });
+            }
+
+            // --- Remove Material ---
+            document.addEventListener('click', function (event) {
+                if (event.target.classList.contains('remove-material')) {
+                    const item = event.target.closest('.material-item');
+
+                    if (item) {
+                        item.remove();
+                    }
+                }
+            });
+
+            // --- Material Type Change ---
+            document.addEventListener('change', function (event) {
+                if (event.target.classList.contains('material-type-select')) {
+                    const type = event.target.value;
+                    const parent = event.target.closest('.material-item');
+
+                    if (!parent) {
+                        return;
+                    }
+
+                    parent.querySelectorAll('.type-fields').forEach(field => {
+                        field.classList.toggle('d-none', field.dataset.type !== type);
+                    });
+                }
+            });
+
+            // --- CKEditor ---
+            try {
+                const descriptionTextarea = document.querySelector('textarea[name="description"]');
+
+                if (typeof ClassicEditor !== 'undefined' && descriptionTextarea) {
+                    ClassicEditor
+                        .create(descriptionTextarea, {
+                            ckfinder: {
+                                uploadUrl: '{{ route("admin.topics.upload_image") }}?_token={{ csrf_token() }}'
+                            },
+                            toolbar: [
+                                'heading',
+                                '|',
+                                'bold',
+                                'italic',
+                                'link',
+                                'bulletedList',
+                                'numberedList',
+                                'blockQuote',
+                                '|',
+                                'imageUpload',
+                                'insertTable',
+                                'mediaEmbed',
+                                'undo',
+                                'redo'
+                            ]
+                        })
+                        .catch(error => console.warn('CKEditor init error:', error));
+                }
+            } catch (error) {
+                console.warn('CKEditor not available:', error);
+            }
+        });
+    </script>
 @endpush
 @endsection

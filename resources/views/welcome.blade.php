@@ -230,64 +230,75 @@
       <p class="section-subtitle">Structured academic journey from first year through internship</p>
     </div>
 
-    <div class="restriction-container">
-        <div class="curriculum-grid reveal-stagger">
-          {{-- Visible Years --}}
-          @foreach($visibleYears as $index => $y)
-          @php
-            $colors = ['#2563eb', '#3b82f6', '#2563eb', '#f59e0b', '#10b981'];
-            $color = $colors[$index % count($colors)];
-            $topics_list = \App\Models\Topic::where('academic_year_id', $y->id)->with('subject')->take(3)->get();
-            $unique_subjects = $topics_list->pluck('subject.name')->unique();
-          @endphp
-          <div class="curriculum-card {{ $index == 1 ? 'featured' : '' }}" data-tilt>
-            @if($index == 1) <div class="cc-featured-label">Most Active</div> @endif
-            <div class="cc-glow"></div>
-{{--            <div class="cc-icon" style="--icon-color:{{ $color }}">--}}
-{{--              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">--}}
-{{--                <path d="M12 2L2 7l10 5 10-5-10-5z"/>--}}
-{{--                <path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>--}}
-{{--              </svg>--}}
-{{--            </div>--}}
-{{--            <div class="cc-year-badge" style="--badge-color:{{ $color }}">{{ $y->name }}</div>--}}
-            <h3>{{ $y->name }}</h3>
-            <p>
-                @if($unique_subjects->count() > 0)
-                    {{ $unique_subjects->implode(', ') }}
-                @else
-                    Core modules and clinical focus areas.
-                @endif
-            </p>
-            <div class="cc-subjects">
-              @foreach($unique_subjects as $sub) <span>{{ $sub }}</span> @endforeach
-            </div>
-            <a href="{{ route('topics.year', ['year' => $y->slug]) }}" class="cc-btn">Explore <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-            <div class="cc-count">{{ $y->topics_count }} Topics</div>
+      <div class="restriction-container">
+          <div class="curriculum-grid reveal-stagger">
+              {{-- Visible Years --}}
+              @foreach($visibleYears as $index => $y)
+                  @php
+                      $colors = ['#2563eb', '#3b82f6', '#2563eb', '#f59e0b', '#10b981'];
+                      $color = $colors[$index % count($colors)];
+                      $topics_list = \App\Models\Topic::where('academic_year_id', $y->id)
+                          ->with('subject')
+                          ->take(3)
+                          ->get();
+                      $unique_subjects = $topics_list->pluck('subject.name')->unique();
+                  @endphp
+
+                  <div class="curriculum-card {{ $index == 1 ? 'featured' : '' }}" data-tilt>
+                      @if($index == 1)
+                          <div class="cc-featured-label">Most Active</div>
+                      @endif
+
+                      <div class="cc-glow"></div>
+
+                      <h3>{{ $y->name }}</h3>
+
+                      <p>
+                          @if($unique_subjects->count() > 0)
+                              {{ $unique_subjects->implode(', ') }}
+                          @else
+                              Core units and clinical focus areas.
+                          @endif
+                      </p>
+
+                      <div class="cc-subjects">
+                          @foreach($unique_subjects as $sub)
+                              <span>{{ $sub }}</span>
+                          @endforeach
+                      </div>
+
+                      <a href="{{ route('topics.year', ['year' => $y->slug]) }}" class="cc-btn">
+                          Explore
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                              <line x1="5" y1="12" x2="19" y2="12"/>
+                              <polyline points="12 5 19 12 12 19"/>
+                          </svg>
+                      </a>
+
+                      <div class="cc-count">{{ $y->topics_count }} Topics</div>
+                  </div>
+              @endforeach
+
+              {{-- Restricted Years --}}
+              @foreach($restrictedYears as $index => $y)
+                  <div class="curriculum-card">
+                      <h3>{{ $y->name }}</h3>
+
+                      <p>Core units and clinical focus areas.</p>
+
+                      <a href="{{ route('topics.year', ['year' => $y->slug]) }}" class="cc-btn">
+                          Explore
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                              <line x1="5" y1="12" x2="19" y2="12"/>
+                              <polyline points="12 5 19 12 12 19"/>
+                          </svg>
+                      </a>
+
+                      <div class="cc-count">{{ $y->topics_count ?? 0 }} Topics</div>
+                  </div>
+              @endforeach
           </div>
-          @endforeach
-
-          {{-- Restricted Years --}}
-          @if($restrictedYears->count() > 0)
-            @foreach($restrictedYears as $index => $y)
-              <div class="curriculum-card blurred-content">
-                <h3>{{ $y->name }}</h3>
-                <div class="cc-count">Locked Content</div>
-              </div>
-            @endforeach
-          @endif
-        </div>
-
-        @guest
-        <div class="login-to-unlock">
-            <div class="unlock-card reveal-up">
-                <div class="unlock-icon"><i class="bi bi-lock-fill"></i></div>
-                <h4 class="fw-bold mb-2">Login to Unlock Full Curriculum</h4>
-                <p class="text-muted small mb-4">You're viewing a partial preview. Join thousands of students to access all years and subjects.</p>
-                <a href="{{ route('login') }}" class="btn-hero-primary w-100 justify-content-center">Sign In to Continue</a>
-            </div>
-        </div>
-        @endguest
-    </div>
+      </div>
   </div>
 </section>
 
@@ -305,7 +316,7 @@
               <span class="pf-section-label">Platform Features</span>
               <h2>Explore Our Platform Features</h2>
               <p>
-                  Discover the tools and modules designed to make learning, content management,
+                  Discover the tools and units designed to make learning, content management,
                   and student experience easier.
               </p>
           </div>
@@ -351,20 +362,20 @@
 
       </div>
 
-    @guest
-    <div class="text-center mt-5 reveal-up">
-        <div class="guest-cta-card mx-auto glass-card">
-            <div class="cta-content-inner">
-                <h3>Unlock Full Academic Potential</h3>
-                <p>Join thousands of students accessing structured notes, viva questions, and academic support.</p>
-                <div class="guest-cta-actions">
-                    <a href="{{ route('register') }}" class="btn-cta-primary">Join the Academy</a>
-                    <a href="{{ route('login') }}" class="btn-cta-secondary">Login</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endguest
+{{--    @guest--}}
+{{--    <div class="text-center mt-5 reveal-up">--}}
+{{--        <div class="guest-cta-card mx-auto glass-card">--}}
+{{--            <div class="cta-content-inner">--}}
+{{--                <h3>Unlock Full Academic Potential</h3>--}}
+{{--                <p>Join thousands of students accessing structured notes, viva questions, and academic support.</p>--}}
+{{--                <div class="guest-cta-actions">--}}
+{{--                    <a href="{{ route('register') }}" class="btn-cta-primary">Join the Academy</a>--}}
+{{--                    <a href="{{ route('login') }}" class="btn-cta-secondary">Login</a>--}}
+{{--                </div>--}}
+{{--            </div>--}}
+{{--        </div>--}}
+{{--    </div>--}}
+{{--    @endguest--}}
   </div>
 </section>
 
@@ -791,7 +802,7 @@
           <div class="feed-item">
             <div class="feed-item-icon new-upload"><span class="ui-icon ui-icon-folder"></span></div>
             <div class="feed-item-content">
-              <span class="feed-item-title">New Notes Added: Electrotherapy Module 3</span>
+              <span class="feed-item-title">New Notes Added: Electrotherapy Unit 3</span>
               <span class="feed-item-meta">2 hours ago • Year 3</span>
             </div>
           </div>
@@ -938,7 +949,7 @@
             <div class="tl-content glass-card">
               <span class="tl-year">2025</span>
               <h4>Clinical Cases & Quizzes</h4>
-              <p>Interactive learning modules and clinical case studies coming soon.</p>
+              <p>Interactive learning units and clinical case studies coming soon.</p>
             </div>
           </div>
         </div>

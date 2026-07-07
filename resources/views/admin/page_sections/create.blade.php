@@ -40,6 +40,17 @@
                             <option value="social-links">Social Links</option>
                             <option value="empty-state">Empty State</option>
                             <option value="guest-state">Guest State</option>
+                            <option value="exam_hero" {{ old('type', $section->type ?? '') == 'exam_hero' ? 'selected' : '' }}>
+                                Exam Hero
+                            </option>
+
+                            <option value="exam_filters" {{ old('type', $section->type ?? '') == 'exam_filters' ? 'selected' : '' }}>
+                                Exam Filters
+                            </option>
+
+                            <option value="exam_resources" {{ old('type', $section->type ?? '') == 'exam_resources' ? 'selected' : '' }}>
+                                Exam Resources
+                            </option>
                         </select>
                         <div class="small text-muted mt-1">Selecting a type determines the available management fields after creation.</div>
                     </div>

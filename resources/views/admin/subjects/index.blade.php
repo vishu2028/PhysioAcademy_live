@@ -10,9 +10,9 @@
     </div>
 </div>
 
-<x-admin.data-table 
-    title="Subject List" 
-    :headers="['Icon', 'Name', 'Topics', 'Order', 'Status', 'Actions']" 
+<x-admin.data-table
+    title="Subject List"
+    :headers="['Icon', 'Name', 'Code', 'Topics', 'Order', 'Status', 'Actions']"
     :createRoute="route('admin.subjects.create')"
 >
     @foreach($subjects as $subject)
@@ -27,6 +27,7 @@
             @endif
         </td>
         <td class="fw-bold">{{ $subject->name }}</td>
+        <td>{{ $subject->code ?? '-' }}</td>
         <td>{{ $subject->topics_count ?? $subject->topics()->count() }}</td>
         <td>{{ $subject->order }}</td>
         <td>

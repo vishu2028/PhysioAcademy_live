@@ -12,6 +12,7 @@ class SubjectController extends Controller
     public function index()
     {
         $subjects = Subject::orderBy('order')->get();
+
         return view('admin.subjects.index', compact('subjects'));
     }
 
@@ -24,6 +25,7 @@ class SubjectController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:50',
             'description' => 'nullable|string',
             'icon' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
@@ -32,7 +34,14 @@ class SubjectController extends Controller
         ]);
 
         try {
-            $data = $request->only(['name', 'description', 'icon', 'order']);
+            $data = $request->only([
+                'name',
+                'code',
+                'description',
+                'icon',
+                'order',
+            ]);
+
             $data['slug'] = Str::slug($request->name);
             $data['status'] = $request->has('status') ? 1 : 0;
 
@@ -42,10 +51,15 @@ class SubjectController extends Controller
 
             Subject::create($data);
 
-            return redirect()->route('admin.subjects.index')->with('success', 'Subject created successfully.');
+            return redirect()
+                ->route('admin.subjects.index')
+                ->with('success', 'Subject created successfully.');
         } catch (\Exception $e) {
             \Log::error('Subject create failed: ' . $e->getMessage());
-            return back()->withInput()->with('error', 'Failed to create subject. Please try again.');
+
+            return back()
+                ->withInput()
+                ->with('error', 'Failed to create subject. Please try again.');
         }
     }
 
@@ -58,6 +72,7 @@ class SubjectController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:50',
             'description' => 'nullable|string',
             'icon' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
@@ -66,7 +81,14 @@ class SubjectController extends Controller
         ]);
 
         try {
-            $data = $request->only(['name', 'description', 'icon', 'order']);
+            $data = $request->only([
+                'name',
+                'code',
+                'description',
+                'icon',
+                'order',
+            ]);
+
             $data['slug'] = Str::slug($request->name);
             $data['status'] = $request->has('status') ? 1 : 0;
 
@@ -76,16 +98,22 @@ class SubjectController extends Controller
 
             $subject->update($data);
 
-            return redirect()->route('admin.subjects.index')->with('success', 'Subject updated successfully.');
+            return redirect()
+                ->route('admin.subjects.index')
+                ->with('success', 'Subject updated successfully.');
         } catch (\Exception $e) {
             \Log::error('Subject update failed: ' . $e->getMessage());
-            return back()->withInput()->with('error', 'Failed to update subject. Please try again.');
+
+            return back()
+                ->withInput()
+                ->with('error', 'Failed to update subject. Please try again.');
         }
     }
 
     public function destroy(Subject $subject)
     {
         $subject->delete();
+
         return back()->with('success', 'Subject deleted successfully.');
     }
 }
