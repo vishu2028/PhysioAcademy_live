@@ -149,6 +149,7 @@
                                     id="unit-panel-{{ $subject->id }}-{{ $unit->id }}"
                                     class="typage-unit-topic-panel {{ !$loop->first ? 'd-none' : '' }}"
                                     data-subject-id="{{ $subject->id }}"
+                                    data-unit-name="{{ $unit->name }}"
                                 >
                                     <div class="typage-directory-list">
                                         @forelse($visibleItems as $item)
@@ -590,6 +591,14 @@
                 display: none !important;
             }
 
+            .tspage-search-hidden {
+                display: none !important;
+            }
+
+            .tspage-searching .typage-unit-select-wrap {
+                opacity: 0.55;
+            }
+
             /* CTA */
             .tspage-request-cta {
                 padding: 60px 40px;
@@ -703,61 +712,171 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                document.querySelectorAll('.typage-unit-select').forEach(function (select) {
-                    select.addEventListener('change', function () {
-                        const subjectId = this.dataset.subjectId;
-                        const selectedPanelId = this.value;
+                const topicSearch = document.getElementById('topicSearch');
+                const searchCount = document.getElementById('searchCount');
 
-                        document
-                            .querySelectorAll('.typage-unit-topic-panel[data-subject-id="' + subjectId + '"]')
-                            .forEach(function (panel) {
-                                panel.classList.add('d-none');
-                            });
+                function normalizeText(value) {
+                    return (value || '').toString().trim().toLowerCase();
+                }
 
-                        const selectedPanel = document.getElementById(selectedPanelId);
+                function getSubjectSearchText(subjectPanel) {
+                    const subjectTitle = subjectPanel.querySelector('.typage-subject-title')?.textContent || '';
+                    const subjectCode = subjectPanel.querySelector('.typage-subject-code-value')?.textContent || '';
 
-                        if (selectedPanel) {
-                            selectedPanel.classList.remove('d-none');
-                        }
+                    return normalizeText(subjectTitle + ' ' + subjectCode);
+                }
+
+                function showSelectedUnitOnly(subjectPanel) {
+                    const select = subjectPanel.querySelector('.typage-unit-select');
+                    const unitPanels = subjectPanel.querySelectorAll('.typage-unit-topic-panel');
+
+                    if (!unitPanels.length) {
+                        return;
+                    }
+
+                    unitPanels.forEach(function (unitPanel, index) {
+                        const shouldShow = select && select.value
+                            ? unitPanel.id === select.value
+                            : index === 0;
+
+                        unitPanel.classList.toggle('d-none', !shouldShow);
+                        unitPanel.classList.remove('tspage-search-hidden');
                     });
-                });
+                }
 
-                document.getElementById('topicSearch')?.addEventListener('input', function (event) {
-                    const query = event.target.value.toLowerCase();
-                    let found = 0;
+                function resetRows(subjectPanel) {
+                    subjectPanel.querySelectorAll('.typage-directory-row').forEach(function (row) {
+                        row.classList.remove('tspage-search-hidden');
+                    });
+
+                    subjectPanel.querySelectorAll('.typage-subtopic-directory').forEach(function (subtopicDirectory) {
+                        subtopicDirectory.classList.remove('tspage-search-hidden');
+                    });
+
+                    subjectPanel.querySelectorAll('.typage-empty-item').forEach(function (emptyItem) {
+                        emptyItem.classList.remove('tspage-search-hidden');
+                    });
+                }
+
+                function resetSearch() {
+                    document.querySelectorAll('.topics-subj-page').forEach(function (page) {
+                        page.classList.remove('tspage-searching');
+                    });
 
                     document.querySelectorAll('.typage-subject-panel').forEach(function (subjectPanel) {
-                        let subjectHasVisibleTopic = false;
-
-                        subjectPanel.querySelectorAll('.typage-directory-row').forEach(function (row) {
-                            const text = row.textContent.toLowerCase();
-                            const visible = text.includes(query);
-
-                            row.style.display = visible ? 'grid' : 'none';
-
-                            if (visible) {
-                                subjectHasVisibleTopic = true;
-                                found++;
-                            }
-                        });
-
-                        if (query) {
-                            subjectPanel.style.display = subjectHasVisibleTopic ? 'block' : 'none';
-                        } else {
-                            subjectPanel.style.display = 'block';
-
-                            subjectPanel.querySelectorAll('.typage-directory-row').forEach(function (row) {
-                                row.style.display = 'grid';
-                            });
-                        }
+                        subjectPanel.classList.remove('tspage-search-hidden');
+                        resetRows(subjectPanel);
+                        showSelectedUnitOnly(subjectPanel);
                     });
 
-                    const searchCount = document.getElementById('searchCount');
+                    if (searchCount) {
+                        searchCount.textContent = 'Browse all modules';
+                    }
+                }
+
+                function handleUnitChange(select) {
+                    const subjectPanel = select.closest('.typage-subject-panel');
+
+                    if (!subjectPanel) {
+                        return;
+                    }
+
+                    if (topicSearch && topicSearch.value.trim() !== '') {
+                        topicSearch.dispatchEvent(new Event('input'));
+                        return;
+                    }
+
+                    showSelectedUnitOnly(subjectPanel);
+                }
+
+                document.querySelectorAll('.typage-unit-select').forEach(function (select) {
+                    select.addEventListener('change', function () {
+                        handleUnitChange(this);
+                    });
+                });
+
+                if (!topicSearch) {
+                    resetSearch();
+                    return;
+                }
+
+                topicSearch.addEventListener('input', function (event) {
+                    const query = normalizeText(event.target.value);
+                    let found = 0;
+
+                    if (query === '') {
+                        resetSearch();
+                        return;
+                    }
+
+                    document.querySelectorAll('.topics-subj-page').forEach(function (page) {
+                        page.classList.add('tspage-searching');
+                    });
+
+                    document.querySelectorAll('.typage-subject-panel').forEach(function (subjectPanel) {
+                        let subjectHasMatch = false;
+                        const subjectMatches = getSubjectSearchText(subjectPanel).includes(query);
+                        const unitPanels = subjectPanel.querySelectorAll('.typage-unit-topic-panel');
+
+                        resetRows(subjectPanel);
+
+                        if (!unitPanels.length) {
+                            const panelText = normalizeText(subjectPanel.textContent);
+                            const panelMatches = panelText.includes(query);
+
+                            subjectPanel.classList.toggle('tspage-search-hidden', !panelMatches);
+
+                            if (panelMatches) {
+                                found++;
+                            }
+
+                            return;
+                        }
+
+                        unitPanels.forEach(function (unitPanel) {
+                            let unitHasMatch = false;
+                            const unitName = normalizeText(unitPanel.dataset.unitName);
+                            const unitMatches = unitName.includes(query);
+
+                            unitPanel.querySelectorAll('.typage-directory-row').forEach(function (row) {
+                                const rowMatches = normalizeText(row.textContent).includes(query);
+                                const shouldShow = subjectMatches || unitMatches || rowMatches;
+
+                                row.classList.toggle('tspage-search-hidden', !shouldShow);
+
+                                if (shouldShow) {
+                                    unitHasMatch = true;
+                                    subjectHasMatch = true;
+                                    found++;
+                                }
+                            });
+
+                            unitPanel.querySelectorAll('.typage-subtopic-directory').forEach(function (subtopicDirectory) {
+                                const hasVisibleSubtopic = subtopicDirectory.querySelector(
+                                    '.typage-directory-row:not(.tspage-search-hidden)'
+                                );
+
+                                subtopicDirectory.classList.toggle('tspage-search-hidden', !hasVisibleSubtopic);
+                            });
+
+                            unitPanel.querySelectorAll('.typage-empty-item').forEach(function (emptyItem) {
+                                emptyItem.classList.toggle('tspage-search-hidden', true);
+                            });
+
+                            unitPanel.classList.toggle('d-none', !unitHasMatch);
+                        });
+
+                        subjectPanel.classList.toggle('tspage-search-hidden', !subjectHasMatch);
+                    });
 
                     if (searchCount) {
-                        searchCount.textContent = query ? `${found} results found` : 'Browse all modules';
+                        searchCount.textContent = found > 0
+                            ? `${found} results found`
+                            : 'No results found';
                     }
                 });
+
+                resetSearch();
             });
         </script>
     @endpush
