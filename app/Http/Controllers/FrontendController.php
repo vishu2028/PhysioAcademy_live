@@ -208,14 +208,137 @@ class FrontendController extends Controller
 
     public function examAid()
     {
-        $page = \App\Models\Page::where('slug', 'exam-aid')->active()->firstOrFail();
-        $sections = \App\Models\PageSection::with('items')->where('page_id', $page->id)->where('enabled', true)->orderBy('order')->get();
+        $page = \App\Models\Page::where('slug', 'exam-aid')
+            ->active()
+            ->firstOrFail();
+
+        $sections = \App\Models\PageSection::with([
+            'items' => function ($query) {
+                $query->orderBy('order');
+            }
+        ])
+            ->where('page_id', $page->id)
+            ->where('enabled', true)
+            ->orderBy('order')
+            ->get();
+
+        $defaults = $this->examAidDefaultSections();
+
+        $sections = $sections
+            ->filter(function ($section) use ($defaults) {
+                return isset($defaults[$section->type]);
+            })
+            ->map(function ($section) use ($defaults) {
+                $content = is_array($section->content)
+                    ? $section->content
+                    : (json_decode($section->content, true) ?: []);
+
+                $section->content = array_replace_recursive(
+                    $defaults[$section->type],
+                    $content
+                );
+
+                return $section;
+            })
+            ->values();
+
+        if ($sections->isEmpty()) {
+            $sections = collect([
+                (object) [
+                    'type' => 'exam_hero',
+                    'content' => $defaults['exam_hero'],
+                    'items' => collect(),
+                ],
+                (object) [
+                    'type' => 'exam_filters',
+                    'content' => $defaults['exam_filters'],
+                    'items' => collect(),
+                ],
+                (object) [
+                    'type' => 'exam_resources',
+                    'content' => $defaults['exam_resources'],
+                    'items' => collect(),
+                ],
+            ]);
+        }
+
         $pageProtected = $page->is_protected;
 
-        // We still fetch FAQs for the resource library if the dynamic logic requires it
         $faqs = FAQ::active()->ordered()->get();
 
         return view('exam-aid', compact('page', 'sections', 'pageProtected', 'faqs'));
+    }
+    private function examAidDefaultSections(): array
+    {
+        return [
+            'exam_hero' => [
+                'kicker' => 'Exam Aid Studio',
+                'title' => 'Study smarter with exam-ready resources',
+                'description' => 'Find past papers, viva questions, subject notes and exam guides in one place.',
+                'primary_cta_text' => 'Explore Resources',
+                'primary_cta_url' => '#exam-resources',
+                'secondary_cta_text' => 'Search Subjects',
+                'secondary_cta_url' => '#college-selector',
+                'readiness_score' => 92,
+                'quick_links' => [
+                    [
+                        'icon_num' => '01',
+                        'label' => 'Past Papers',
+                        'url' => '#exam-resources',
+                    ],
+                    [
+                        'icon_num' => '02',
+                        'label' => 'Viva Questions',
+                        'url' => '#exam-resources',
+                    ],
+                    [
+                        'icon_num' => '03',
+                        'label' => 'Subject Notes',
+                        'url' => '#exam-resources',
+                    ],
+                    [
+                        'icon_num' => '04',
+                        'label' => 'Exam Guides',
+                        'url' => '#exam-resources',
+                    ],
+                ],
+                'progress_items' => [
+                    [
+                        'label' => 'Past Papers',
+                        'width' => '85%',
+                    ],
+                    [
+                        'label' => 'Viva Sets',
+                        'width' => '70%',
+                    ],
+                    [
+                        'label' => 'Guides',
+                        'width' => '92%',
+                    ],
+                ],
+                'stats' => [
+                    'papers' => 120,
+                    'questions' => 850,
+                    'guides' => 40,
+                ],
+                'floating_cards' => [
+                    'Updated exam resources',
+                    'Topper verified notes',
+                ],
+            ],
+
+            'exam_filters' => [
+                'eyebrow' => 'Smart Filters',
+                'title' => 'Find the right study material',
+                'description' => 'Filter resources by university, year and resource type.',
+            ],
+
+            'exam_resources' => [
+                'eyebrow' => 'Resource Library',
+                'title' => 'Exam resources built for students',
+                'description' => 'Explore FAQs, topics, past papers and viva preparation material.',
+            ],
+        ];
     }
 
     public function search(Request $request)
