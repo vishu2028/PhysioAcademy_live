@@ -88,7 +88,7 @@
                                     <p>
                                         {{ $subject->units->count() }} active units
                                         •
-                                        {{ $subjectÏModulesCount }} active units in this subject
+                                        {{ $subjectModulesCount }} active units in this subject
                                     </p>
                                 </div>
 
