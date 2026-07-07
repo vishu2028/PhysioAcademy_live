@@ -31,9 +31,9 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label small fw-bold">Module</label>
+                <label class="form-label small fw-bold">Unit</label>
                 <select name="module" class="form-select rounded-3 small">
-                    <option value="">All Modules</option>
+                    <option value="">All Units</option>
                     @foreach($modules as $mod)
                         <option value="{{ $mod }}" {{ request('module') == $mod ? 'selected' : '' }}>{{ $mod }}</option>
                     @endforeach
@@ -59,9 +59,9 @@
     </div>
 </div>
 
-<x-admin.data-table 
-    title="System Activity Stream" 
-    :headers="['Timestamp', 'Admin', 'Action', 'Module', 'Description', 'IP Address']" 
+<x-admin.data-table
+    title="System Activity Stream"
+    :headers="['Timestamp', 'Admin', 'Action', 'Module', 'Description', 'IP Address']"
 >
     @foreach($logs as $log)
     <tr class="align-middle">

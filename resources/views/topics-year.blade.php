@@ -115,7 +115,7 @@
                                                 <span class="typage-subject-code-value">{{ $subject->code }}</span>
                                             </div>
                                         @endif
-                                        <p>{{ $unitCount }} active units • {{ $totalCount }} active modules in this subject</p>
+                                        <p>{{ $unitCount }} active units • {{ $totalCount }} active units in this subject</p>
                                     </div>
 
 

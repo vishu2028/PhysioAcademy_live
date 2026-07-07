@@ -6,7 +6,7 @@
     <div class="topics-subj-page">
         <x-page-hero
             title="Syllabus by Subject"
-            subtitle="Complete physiotherapy curriculum organized by core subjects, units, and clinical modules."
+            subtitle="Complete physiotherapy curriculum organized by core subjects, units, and clinical units."
             breadcrumbLabel="Subjects"
         >
             <x-slot name="icon">
@@ -34,7 +34,7 @@
                 </svg>
 
                 <input type="text" id="topicSearch" placeholder="Search any topic, subject or unit...">
-                <div class="tspage-search-count" id="searchCount">Browse all modules</div>
+                <div class="tspage-search-count" id="searchCount">Browse all units</div>
             </div>
         </div>
 
@@ -88,7 +88,7 @@
                                     <p>
                                         {{ $subject->units->count() }} active units
                                         •
-                                        {{ $subjectModulesCount }} active modules in this subject
+                                        {{ $subjectÏModulesCount }} active units in this subject
                                     </p>
                                 </div>
 
@@ -239,7 +239,7 @@
                         <h2>Missing a specific topic?</h2>
 
                         <p>
-                            Our academic team is constantly adding new clinical and theoretical modules.
+                            Our academic team is constantly adding new clinical and theoretical units.
                             Let us know what you're looking for!
                         </p>
 
@@ -770,7 +770,7 @@
                     });
 
                     if (searchCount) {
-                        searchCount.textContent = 'Browse all modules';
+                        searchCount.textContent = 'Browse all units';
                     }
                 }
 
