@@ -105,9 +105,19 @@
                             <div class="typage-subject-panel">
                                 <div class="typage-subject-head">
                                     <div>
-                                        <h3>{{ $subject->name }}</h3>
+                                        <h3 class="typage-subject-title">
+                                            {{ $subject->name }}
+                                        </h3>
+
+                                        @if(!empty($subject->code))
+                                            <div class="typage-subject-code-wrap">
+                                                <span class="typage-subject-code-label">Subject Code</span>
+                                                <span class="typage-subject-code-value">{{ $subject->code }}</span>
+                                            </div>
+                                        @endif
                                         <p>{{ $unitCount }} active units • {{ $totalCount }} active modules in this subject</p>
                                     </div>
+
 
                                     <span class="typage-subject-icon">📚</span>
                                 </div>
@@ -264,6 +274,35 @@
 
 @push('styles')
 <style>
+    .typage-subject-title {
+        margin-bottom: 8px;
+    }
+
+    .typage-subject-code-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 10px;
+        padding: 5px 10px;
+        background: #f4f7fb;
+        border: 1px solid #e4eaf3;
+        border-radius: 999px;
+    }
+
+    .typage-subject-code-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .typage-subject-code-value {
+        font-size: 13px;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1;
+    }
     /* FINAL OVERRIDE: subject cards 3 per row */
     .typage-syllabus-grid {
         display: grid !important;

@@ -21,6 +21,20 @@
                         <input type="text" name="name" class="form-control" placeholder="e.g. Anatomy" value="{{ old('name') }}" required>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label fw-bold">Subject Code</label>
+                        <input
+                            type="text"
+                            name="code"
+                            class="form-control @error('code') is-invalid @enderror"
+                            placeholder="e.g. BPT-401"
+                            value="{{ old('code') }}"
+                        >
+
+                        @error('code')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label fw-bold">Description</label>
                         <textarea name="description" class="form-control" rows="5" placeholder="Brief overview of this subject...">{{ old('description') }}</textarea>
                     </div>

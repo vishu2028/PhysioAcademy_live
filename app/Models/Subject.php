@@ -8,7 +8,7 @@ class Subject extends Model
 {
     use \App\Traits\Loggable;
 
-    protected $fillable = ['name', 'slug', 'description', 'icon', 'image', 'status', 'order'];
+    protected $fillable = ['name',  'code', 'slug', 'description', 'icon', 'image', 'status', 'order'];
 
     public function topics()
     {
