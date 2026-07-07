@@ -116,7 +116,7 @@
                                 <option value="">-- Select Subject --</option>
 
                                 @foreach($subjects as $subject)
-                                    <option value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>
+                                    <option value="{{ $subject->id }}" {{ old('subject_id', $topic->subject_id ?? '') == $subject->id ? 'selected' : '' }}>
                                         {{ $subject->name }}
                                     </option>
                                 @endforeach
@@ -140,7 +140,10 @@
                                 <option value="">-- Select Unit --</option>
 
                                 @foreach($units as $unit)
-                                    <option value="{{ $unit->id }}" {{ old('unit_id') == $unit->id ? 'selected' : '' }}>
+                                    <option
+                                        value="{{ $unit->id }}"
+                                        {{ old('unit_id', $selectedUnitId ?? '') == $unit->id ? 'selected' : '' }}
+                                    >
                                         {{ $unit->name }}
                                     </option>
                                 @endforeach
@@ -164,7 +167,10 @@
                                 <option value="">-- Select Topic --</option>
 
                                 @foreach($unitTopics as $unitTopic)
-                                    <option value="{{ $unitTopic->id }}" {{ old('unit_topic_id') == $unitTopic->id ? 'selected' : '' }}>
+                                    <option
+                                        value="{{ $unitTopic->id }}"
+                                        {{ old('unit_topic_id', $selectedUnitTopicId ?? '') == $unitTopic->id ? 'selected' : '' }}
+                                    >
                                         {{ $unitTopic->title }}
                                     </option>
                                 @endforeach
@@ -355,12 +361,14 @@
         </div>
     </template>
 @endsection
-
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 @push('scripts')
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function () {
             // --- Elements ---
             const subjectSelect = document.getElementById('subjectSelect');
             const unitSelect = document.getElementById('unitSelect');
@@ -385,10 +393,44 @@
             const yearsData = @json($years);
             let materialIndex = 0;
 
+            // --- Select2 Init ---
+            $('#subjectSelect').select2({
+                placeholder: '-- Select Subject --',
+                allowClear: true,
+                width: '100%'
+            });
+
+            $('#unitSelect').select2({
+                placeholder: '-- Select Unit --',
+                allowClear: true,
+                width: '100%'
+            });
+
+            $('#unitTopicSelect').select2({
+                placeholder: '-- Select Topic --',
+                allowClear: true,
+                width: '100%'
+            });
+
+            if ($('#parentTopicSelect').length) {
+                $('#parentTopicSelect').select2({
+                    placeholder: '-- None (Core Topic) --',
+                    allowClear: true,
+                    width: '100%'
+                });
+            }
+
             // --- Helpers ---
+            function refreshSelect2(selectElement) {
+                if (selectElement) {
+                    $(selectElement).trigger('change.select2');
+                }
+            }
+
             function resetUnits() {
                 if (unitSelect) {
                     unitSelect.innerHTML = '<option value="">-- Select Unit --</option>';
+                    refreshSelect2(unitSelect);
                 }
 
                 resetUnitTopics();
@@ -397,6 +439,7 @@
             function resetUnitTopics() {
                 if (unitTopicSelect) {
                     unitTopicSelect.innerHTML = '<option value="">-- Select Topic --</option>';
+                    refreshSelect2(unitTopicSelect);
                 }
 
                 resetParentTopics();
@@ -405,6 +448,7 @@
             function resetParentTopics() {
                 if (parentTopicSelect) {
                     parentTopicSelect.innerHTML = '<option value="">-- None (Core Topic) --</option>';
+                    refreshSelect2(parentTopicSelect);
                 }
             }
 
@@ -416,6 +460,7 @@
                 }
 
                 unitSelect.innerHTML = '<option value="">Loading...</option>';
+                refreshSelect2(unitSelect);
 
                 fetch("{{ url('/admin/units/by-subject') }}/" + subjectId)
                     .then(response => response.json())
@@ -424,7 +469,6 @@
 
                         units.forEach(unit => {
                             const option = document.createElement('option');
-
                             option.value = unit.id;
                             option.textContent = unit.name;
 
@@ -434,6 +478,8 @@
 
                             unitSelect.appendChild(option);
                         });
+
+                        refreshSelect2(unitSelect);
 
                         if (selectedUnitId) {
                             loadUnitTopics(selectedUnitId, selectedTopicId, selectedParentTopicId);
@@ -452,6 +498,7 @@
                 }
 
                 unitTopicSelect.innerHTML = '<option value="">Loading...</option>';
+                refreshSelect2(unitTopicSelect);
 
                 fetch("{{ url('/admin/unit-topics/by-unit') }}/" + unitId)
                     .then(response => response.json())
@@ -460,7 +507,6 @@
 
                         topics.forEach(topic => {
                             const option = document.createElement('option');
-
                             option.value = topic.id;
                             option.textContent = topic.title;
 
@@ -470,6 +516,8 @@
 
                             unitTopicSelect.appendChild(option);
                         });
+
+                        refreshSelect2(unitTopicSelect);
 
                         if (selectedTopicId) {
                             loadParentTopics(selectedTopicId, selectedParentTopicId);
@@ -488,6 +536,7 @@
                 }
 
                 parentTopicSelect.innerHTML = '<option value="">Loading...</option>';
+                refreshSelect2(parentTopicSelect);
 
                 fetch("{{ url('/admin/parent-topics/by-topic') }}/" + unitTopicId)
                     .then(response => response.json())
@@ -496,19 +545,17 @@
 
                         parentTopics.forEach(parentTopic => {
                             const option = document.createElement('option');
-
                             option.value = parentTopic.id;
                             option.textContent = parentTopic.title;
 
-                            if (
-                                selectedParentTopicId &&
-                                String(selectedParentTopicId) === String(parentTopic.id)
-                            ) {
+                            if (selectedParentTopicId && String(selectedParentTopicId) === String(parentTopic.id)) {
                                 option.selected = true;
                             }
 
                             parentTopicSelect.appendChild(option);
                         });
+
+                        refreshSelect2(parentTopicSelect);
                     })
                     .catch(() => {
                         resetParentTopics();
@@ -531,7 +578,6 @@
                 if (year && year.semesters) {
                     year.semesters.forEach(semester => {
                         const option = document.createElement('option');
-
                         option.value = semester.id;
                         option.textContent = semester.name;
 
@@ -545,25 +591,19 @@
             }
 
             // --- Subject -> Units ---
-            if (subjectSelect && unitSelect) {
-                subjectSelect.addEventListener('change', function () {
-                    loadUnits(this.value);
-                });
-            }
+            $('#subjectSelect').on('change', function () {
+                loadUnits($(this).val());
+            });
 
             // --- Unit -> Topics ---
-            if (unitSelect && unitTopicSelect) {
-                unitSelect.addEventListener('change', function () {
-                    loadUnitTopics(this.value);
-                });
-            }
+            $('#unitSelect').on('change', function () {
+                loadUnitTopics($(this).val());
+            });
 
             // --- Topic -> Parent Topics ---
-            if (unitTopicSelect && parentTopicSelect) {
-                unitTopicSelect.addEventListener('change', function () {
-                    loadParentTopics(this.value);
-                });
-            }
+            $('#unitTopicSelect').on('change', function () {
+                loadParentTopics($(this).val());
+            });
 
             // --- Year -> Semesters ---
             if (yearSelect && semesterSelect) {

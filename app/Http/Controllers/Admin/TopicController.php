@@ -57,6 +57,7 @@ class TopicController extends Controller
         $topics = Topic::active()
             ->orderBy('title')
             ->get();
+
         $selectedUnitTopicId = old('unit_topic_id');
 
         $parentTopics = $selectedUnitTopicId
