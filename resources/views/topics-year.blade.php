@@ -399,17 +399,29 @@
         margin-top: 12px;
     }
 
-    .typage-directory-list {
-        display: grid !important;
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        gap: 12px !important;
+    .typage-unit-topic-panel {
+        margin-top: 12px;
+        height: 151px;
+        overflow: auto;
     }
 
+    /*.typage-directory-list {*/
+    /*    display: grid !important;*/
+    /*    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;*/
+    /*    gap: 12px !important;*/
+    /*}*/
+    body .typage-directory-list {
+        display: flex !important;
+        /* grid-template-columns: repeat(2, minmax(0, 1fr)) !important; */
+        gap: 12px !important;
+        flex-wrap: wrap;
+    }
     .typage-directory-row {
         display: flex;
         align-items: stretch;
         gap: 8px;
         min-width: 0;
+        width:100%;
     }
 
     .typage-directory-item {
@@ -506,9 +518,9 @@
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         }
 
-        .typage-directory-list {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        }
+        /*.typage-directory-list {*/
+        /*    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;*/
+        /*}*/
     }
 
     @media (max-width: 768px) {
