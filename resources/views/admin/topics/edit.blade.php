@@ -42,59 +42,59 @@
             </div>
 
             <!-- Learning Materials (LMS Style) -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-header bg-white p-4 border-0 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold mb-0">Learning Materials</h5>
-                    <button type="button" class="btn btn-sm btn-primary" id="addMaterial">
-                        <i class="bi bi-plus-lg"></i> Add Material
-                    </button>
-                </div>
-                <div class="card-body p-4 pt-0">
-                    <div id="materialContainer">
-                        @foreach($topic->materials as $index => $material)
-                        <div class="material-item border rounded-3 p-3 mb-3 bg-light position-relative">
-                            <button type="button" class="btn-close position-absolute top-0 end-0 m-2 remove-material"></button>
-                            <input type="hidden" name="materials[{{ $index }}][id]" value="{{ $material->id }}">
-                            <div class="row g-3">
-                                <div class="col-md-8">
-                                    <label class="form-label small fw-bold">Material Title</label>
-                                    <input type="text" name="materials[{{ $index }}][title]" class="form-control form-control-sm" value="{{ $material->title }}" required>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-bold">Type</label>
-                                    <select name="materials[{{ $index }}][type]" class="form-select form-select-sm material-type-select">
-                                        <option value="pdf" {{ $material->type == 'pdf' ? 'selected' : '' }}>PDF File</option>
-                                        <option value="video" {{ $material->type == 'video' ? 'selected' : '' }}>Video Embed</option>
-                                        <option value="link" {{ $material->type == 'link' ? 'selected' : '' }}>External Link</option>
-                                        <option value="note" {{ $material->type == 'note' ? 'selected' : '' }}>Text Note</option>
-                                    </select>
-                                </div>
+{{--            <div class="card border-0 shadow-sm rounded-4 mb-4">--}}
+{{--                <div class="card-header bg-white p-4 border-0 d-flex justify-content-between align-items-center">--}}
+{{--                    <h5 class="fw-bold mb-0">Learning Materials</h5>--}}
+{{--                    <button type="button" class="btn btn-sm btn-primary" id="addMaterial">--}}
+{{--                        <i class="bi bi-plus-lg"></i> Add Material--}}
+{{--                    </button>--}}
+{{--                </div>--}}
+{{--                <div class="card-body p-4 pt-0">--}}
+{{--                    <div id="materialContainer">--}}
+{{--                        @foreach($topic->materials as $index => $material)--}}
+{{--                        <div class="material-item border rounded-3 p-3 mb-3 bg-light position-relative">--}}
+{{--                            <button type="button" class="btn-close position-absolute top-0 end-0 m-2 remove-material"></button>--}}
+{{--                            <input type="hidden" name="materials[{{ $index }}][id]" value="{{ $material->id }}">--}}
+{{--                            <div class="row g-3">--}}
+{{--                                <div class="col-md-8">--}}
+{{--                                    <label class="form-label small fw-bold">Material Title</label>--}}
+{{--                                    <input type="text" name="materials[{{ $index }}][title]" class="form-control form-control-sm" value="{{ $material->title }}" required>--}}
+{{--                                </div>--}}
+{{--                                <div class="col-md-4">--}}
+{{--                                    <label class="form-label small fw-bold">Type</label>--}}
+{{--                                    <select name="materials[{{ $index }}][type]" class="form-select form-select-sm material-type-select">--}}
+{{--                                        <option value="pdf" {{ $material->type == 'pdf' ? 'selected' : '' }}>PDF File</option>--}}
+{{--                                        <option value="video" {{ $material->type == 'video' ? 'selected' : '' }}>Video Embed</option>--}}
+{{--                                        <option value="link" {{ $material->type == 'link' ? 'selected' : '' }}>External Link</option>--}}
+{{--                                        <option value="note" {{ $material->type == 'note' ? 'selected' : '' }}>Text Note</option>--}}
+{{--                                    </select>--}}
+{{--                                </div>--}}
 
-                                <div class="col-12 mt-2 type-fields {{ $material->type != 'pdf' ? 'd-none' : '' }}" data-type="pdf">
-                                    <label class="form-label small fw-bold">Upload PDF (Leave empty to keep current)</label>
-                                    @if($material->file_path)
-                                        <div class="mb-1 small"><i class="bi bi-file-earmark-pdf"></i> {{ basename($material->file_path) }}</div>
-                                    @endif
-                                    <input type="file" name="materials[{{ $index }}][file]" class="form-control form-control-sm" accept=".pdf">
-                                </div>
-                                <div class="col-12 mt-2 type-fields {{ $material->type != 'video' ? 'd-none' : '' }}" data-type="video">
-                                    <label class="form-label small fw-bold">Video URL / Embed Code</label>
-                                    <textarea name="materials[{{ $index }}][content]" class="form-control form-control-sm" rows="2">{{ $material->content }}</textarea>
-                                </div>
-                                <div class="col-12 mt-2 type-fields {{ $material->type != 'link' ? 'd-none' : '' }}" data-type="link">
-                                    <label class="form-label small fw-bold">External URL</label>
-                                    <input type="url" name="materials[{{ $index }}][url]" class="form-control form-control-sm" value="{{ $material->url }}">
-                                </div>
-                                <div class="col-12 mt-2 type-fields {{ $material->type != 'note' ? 'd-none' : '' }}" data-type="note">
-                                    <label class="form-label small fw-bold">Note Content</label>
-                                    <textarea name="materials[{{ $index }}][content]" class="form-control form-control-sm" rows="3">{{ $material->content }}</textarea>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
+{{--                                <div class="col-12 mt-2 type-fields {{ $material->type != 'pdf' ? 'd-none' : '' }}" data-type="pdf">--}}
+{{--                                    <label class="form-label small fw-bold">Upload PDF (Leave empty to keep current)</label>--}}
+{{--                                    @if($material->file_path)--}}
+{{--                                        <div class="mb-1 small"><i class="bi bi-file-earmark-pdf"></i> {{ basename($material->file_path) }}</div>--}}
+{{--                                    @endif--}}
+{{--                                    <input type="file" name="materials[{{ $index }}][file]" class="form-control form-control-sm" accept=".pdf">--}}
+{{--                                </div>--}}
+{{--                                <div class="col-12 mt-2 type-fields {{ $material->type != 'video' ? 'd-none' : '' }}" data-type="video">--}}
+{{--                                    <label class="form-label small fw-bold">Video URL / Embed Code</label>--}}
+{{--                                    <textarea name="materials[{{ $index }}][content]" class="form-control form-control-sm" rows="2">{{ $material->content }}</textarea>--}}
+{{--                                </div>--}}
+{{--                                <div class="col-12 mt-2 type-fields {{ $material->type != 'link' ? 'd-none' : '' }}" data-type="link">--}}
+{{--                                    <label class="form-label small fw-bold">External URL</label>--}}
+{{--                                    <input type="url" name="materials[{{ $index }}][url]" class="form-control form-control-sm" value="{{ $material->url }}">--}}
+{{--                                </div>--}}
+{{--                                <div class="col-12 mt-2 type-fields {{ $material->type != 'note' ? 'd-none' : '' }}" data-type="note">--}}
+{{--                                    <label class="form-label small fw-bold">Note Content</label>--}}
+{{--                                    <textarea name="materials[{{ $index }}][content]" class="form-control form-control-sm" rows="3">{{ $material->content }}</textarea>--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
+{{--                        @endforeach--}}
+{{--                    </div>--}}
+{{--                </div>--}}
+{{--            </div>--}}
         </div>
 
         <div class="col-lg-4">
