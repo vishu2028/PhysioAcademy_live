@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Page;
 use App\Models\FAQ;
 use Illuminate\Http\Request;
+use App\Models\ExamAid;
+use App\Models\AcademicYear;
 use App\Models\Message;
 class FrontendController extends Controller
 {
@@ -206,7 +208,7 @@ class FrontendController extends Controller
         return view('topic', compact('topic', 'pageProtected', 'relatedTopics'));
     }
 
-    public function examAid()
+    public function examAid(Request $request)
     {
         $page = \App\Models\Page::where('slug', 'exam-aid')
             ->active()
@@ -266,7 +268,71 @@ class FrontendController extends Controller
 
         $faqs = FAQ::active()->ordered()->get();
 
-        return view('exam-aid', compact('page', 'sections', 'pageProtected', 'faqs'));
+        /*
+        |--------------------------------------------------------------------------
+        | Exam Aid Dynamic Data
+        |--------------------------------------------------------------------------
+        | Ye data admin panel ke Exam Aid form se save hua data frontend par show karega.
+        */
+
+        $years = AcademicYear::orderBy('name')->get();
+
+        $examAids = ExamAid::with([
+            'subject',
+            'unit',
+            'academicYear',
+            'semester',
+            'materials',
+        ])
+            ->where('status', 1)
+
+            // Academic Year filter
+            ->when($request->filled('year') && $request->year !== 'all', function ($query) use ($request) {
+                $query->where('academic_year_id', $request->year);
+            })
+
+            // Learning Material / Resource Type filter
+            ->when($request->filled('resource_type') && $request->resource_type !== 'all', function ($query) use ($request) {
+                if ($request->resource_type === 'viva') {
+                    $query->whereNotNull('viva_question')
+                        ->where('viva_question', '!=', '');
+                } elseif ($request->resource_type === 'exam') {
+                    $query->whereNotNull('exam_question')
+                        ->where('exam_question', '!=', '');
+                } else {
+                    $query->whereHas('materials', function ($materialQuery) use ($request) {
+                        $materialQuery->where('type', $request->resource_type);
+                    });
+                }
+            })
+
+            // Subject / Title / Unit search
+            ->when($request->filled('q'), function ($query) use ($request) {
+                $search = $request->q;
+
+                $query->where(function ($query) use ($search) {
+                    $query->where('title', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhereHas('subject', function ($subjectQuery) use ($search) {
+                            $subjectQuery->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('unit', function ($unitQuery) use ($search) {
+                            $unitQuery->where('name', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->latest()
+            ->paginate(9)
+            ->withQueryString();
+
+        return view('exam-aid', compact(
+            'page',
+            'sections',
+            'pageProtected',
+            'faqs',
+            'years',
+            'examAids'
+        ));
     }
     private function examAidDefaultSections(): array
     {
