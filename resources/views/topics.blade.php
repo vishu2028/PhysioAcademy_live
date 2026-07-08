@@ -570,8 +570,13 @@
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
+                display:none;
             }
-
+            .typage-unit-topic-panel {
+                margin-top: 12px;
+                height: 151px;
+                overflow: auto;
+            }
             .typage-subtopic-row .typage-directory-item {
                 background: #f8fafc !important;
                 font-size: 13px !important;
@@ -660,7 +665,19 @@
                 transform: translateY(-2px);
                 box-shadow: 0 14px 40px rgba(37, 99, 235, 0.4);
             }
-
+            body .typage-directory-list {
+                display: flex !important;
+                /* grid-template-columns: repeat(2, minmax(0, 1fr)) !important; */
+                gap: 12px !important;
+                flex-wrap: wrap;
+            }
+            .typage-directory-row {
+                display: flex;
+                align-items: stretch;
+                gap: 8px;
+                min-width: 0;
+                width:100%;
+            }
             /* Responsive */
             @media (max-width: 1400px) {
                 .typage-syllabus-grid {
