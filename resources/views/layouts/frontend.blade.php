@@ -44,11 +44,10 @@
 <!-- NAVBAR -->
 <nav class="navbar" id="navbar">
   <div class="nav-container">
-      <a href="{{ url('/') }}" class="nav-logo">
+      <a href="{{ url('/') }}" class="nav-logo" style="display: inline-flex; align-items: center; line-height: 0; margin-right: 35px;">
           @php
               $siteLogo = get_setting('site_logo');
               $siteName = get_setting('site_name') ?: config('app.name');
-              $siteNameParts = explode(' ', $siteName, 2);
           @endphp
 
           @if($siteLogo)
@@ -56,27 +55,51 @@
                   src="{{ asset('storage/' . $siteLogo) }}"
                   alt="{{ $siteName }}"
                   class="nav-logo-img"
-                  width="48"
-                  height="48"
-                  style="height: 48px; max-height: 48px; width: auto; max-width: 60px; object-fit: contain; display: block;"
+                  style="height: 62px; max-height: 62px; width: auto; max-width: 140px; object-fit: contain; display: block;"
               >
           @else
               <div class="logo-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
                       <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                       <path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                       <path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                   </svg>
               </div>
           @endif
-
-          <span class="logo-text">
-        {{ $siteNameParts[0] ?? '' }}
-              @if(!empty($siteNameParts[1]))
-                  <span class="logo-accent">{{ $siteNameParts[1] }}</span>
-              @endif
-    </span>
       </a>
+{{--      <a href="{{ url('/') }}" class="nav-logo">--}}
+{{--          @php--}}
+{{--              $siteLogo = get_setting('site_logo');--}}
+{{--              $siteName = get_setting('site_name') ?: config('app.name');--}}
+{{--              $siteNameParts = explode(' ', $siteName, 2);--}}
+{{--          @endphp--}}
+
+{{--          @if($siteLogo)--}}
+{{--              <img--}}
+{{--                  src="{{ asset('storage/' . $siteLogo) }}"--}}
+{{--                  alt="{{ $siteName }}"--}}
+{{--                  class="nav-logo-img"--}}
+{{--                  width="48"--}}
+{{--                  height="48"--}}
+{{--                  style="height: 48px; max-height: 48px; width: auto; max-width: 60px; object-fit: contain; display: block;"--}}
+{{--              >--}}
+{{--          @else--}}
+{{--              <div class="logo-icon">--}}
+{{--                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">--}}
+{{--                      <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>--}}
+{{--                      <path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>--}}
+{{--                      <path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>--}}
+{{--                  </svg>--}}
+{{--              </div>--}}
+{{--          @endif--}}
+
+{{--          <span class="logo-text">--}}
+{{--        {{ $siteNameParts[0] ?? '' }}--}}
+{{--              @if(!empty($siteNameParts[1]))--}}
+{{--                  <span class="logo-accent">{{ $siteNameParts[1] }}</span>--}}
+{{--              @endif--}}
+{{--    </span>--}}
+{{--      </a>--}}
 
       <div class="nav-links" id="navLinks">
           @php
