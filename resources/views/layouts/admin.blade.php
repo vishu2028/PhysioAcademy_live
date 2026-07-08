@@ -334,6 +334,10 @@
                 <a href="{{ route('admin.topics.index') }}" class="nav-link-admin @if(request()->routeIs('admin.topics.*')) active @endif">
                     <i class="bi bi-mortarboard"></i> Topics & LMS
                 </a>
+                <a href="{{ route('admin.exam-aids.index') }}" class="nav-link-admin @if(request()->routeIs('admin.exam-aids.*')) active @endif">
+                    <i class="bi bi-journal-text"></i> Exam Aid
+                </a>
+
                 <a href="{{ route('admin.parent-topics.index') }}"
                    class="nav-link-admin @if(request()->routeIs('admin.parent-topics.*')) active @endif">
                     <i class="bi bi-diagram-3"></i> Parent Topics

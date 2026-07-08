@@ -34,7 +34,7 @@
                 </svg>
 
                 <input type="text" id="topicSearch" placeholder="Search any topic, subject or unit...">
-                <div class="tspage-search-count" id="searchCount">Browse all units</div>
+{{--                <div class="tspage-search-count" id="searchCount">Browse all units</div>--}}
             </div>
         </div>
 

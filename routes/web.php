@@ -71,6 +71,7 @@ Route::middleware(['auth', 'role:super_admin|admin'])->prefix('admin')->name('ad
     Route::resource('unit-topics', \App\Http\Controllers\Admin\UnitTopicController::class);
     Route::post('topics/upload-image', [\App\Http\Controllers\Admin\TopicController::class, 'uploadImage'])->name('topics.upload_image');
     Route::resource('topics', \App\Http\Controllers\Admin\TopicController::class);
+    Route::resource('exam-aids', \App\Http\Controllers\Admin\ExamAidController::class);
     Route::patch('testimonials/section-toggle', [\App\Http\Controllers\Admin\TestimonialController::class, 'sectionToggle'])
         ->name('testimonials.section-toggle');
     Route::resource('testimonials', \App\Http\Controllers\Admin\TestimonialController::class);

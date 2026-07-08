@@ -75,24 +75,24 @@
                 </div>
 
                 <!-- Learning Materials -->
-                <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-header bg-white p-4 border-0 d-flex justify-content-between align-items-center">
-                        <h5 class="fw-bold mb-0">Learning Materials</h5>
+{{--                <div class="card border-0 shadow-sm rounded-4 mb-4">--}}
+{{--                    <div class="card-header bg-white p-4 border-0 d-flex justify-content-between align-items-center">--}}
+{{--                        <h5 class="fw-bold mb-0">Learning Materials</h5>--}}
 
-                        <button type="button" class="btn btn-sm btn-primary" id="addMaterial">
-                            <i class="bi bi-plus-lg"></i> Add Material
-                        </button>
-                    </div>
+{{--                        <button type="button" class="btn btn-sm btn-primary" id="addMaterial">--}}
+{{--                            <i class="bi bi-plus-lg"></i> Add Material--}}
+{{--                        </button>--}}
+{{--                    </div>--}}
 
-                    <div class="card-body p-4 pt-0">
-                        <div id="materialContainer">
-                            <div class="text-center py-4 text-muted" id="noMaterialsMsg">
-                                <i class="bi bi-box fs-1 d-block mb-2"></i>
-                                No materials added yet. Click "Add Material" to start.
-                            </div>
-                        </div>
-                    </div>
-                </div>
+{{--                    <div class="card-body p-4 pt-0">--}}
+{{--                        <div id="materialContainer">--}}
+{{--                            <div class="text-center py-4 text-muted" id="noMaterialsMsg">--}}
+{{--                                <i class="bi bi-box fs-1 d-block mb-2"></i>--}}
+{{--                                No materials added yet. Click "Add Material" to start.--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
+{{--                    </div>--}}
+{{--                </div>--}}
             </div>
 
             <div class="col-lg-4">

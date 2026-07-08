@@ -24,17 +24,13 @@
 
                     <div class="mission-copy glass-card reveal-right">
                         <h2 class="section-heading">Our Mission</h2>
+
                         <div class="divider-line"></div>
+
                         <div class="cms-dynamic-content">
-                            @if(auth()->check())
-                                {!! $page->content !!}
-                            @else
-                                {!! Str::limit($page->content, strlen($page->content) / 2) !!}
-                                <div class="mt-4">
-                                    <a href="javascript:void(0)" onclick="document.getElementById('authOverlay').classList.add('active')" class="btn-cta-secondary btn-sm py-2 px-3 fw-bold">Login to read full mission →</a>
-                                </div>
-                            @endif
+                            {!! $page->content !!}
                         </div>
+
                         <div class="mission-pills">
                             <span class="mission-pill">Structured Learning</span>
                             <span class="mission-pill">Exam Guidance</span>
@@ -62,38 +58,52 @@
         @endphp
         <section class="about-section">
             <div class="about-container section-block reveal-up delay-1" id="why-section">
-                <p class="section-kicker"><span class="dot"></span> Why We Built This</p>
-                <h2 class="section-heading">Why We Built <span class="accent">This</span></h2>
+                <p class="section-kicker">
+                    <span class="dot"></span> Why We Built This
+                </p>
+
+                <h2 class="section-heading">
+                    Why We Built <span class="accent">This</span>
+                </h2>
+
                 <div class="section-divider"></div>
-                <p class="section-subtext">{!! auth()->check() ? $whySubtext : Str::limit($whySubtext, strlen($whySubtext)/2) !!}</p>
+
+                <p class="section-subtext">
+                    {!! $whySubtext !!}
+                </p>
 
                 <div class="restriction-container">
                     <div class="feature-grid">
                         @php
-                            $visibleWhyItems = auth()->check() ? $whyItems : $whyItems->take(3);
-                            $displayWhyItems = $visibleWhyItems->count() > 0 ? $visibleWhyItems : collect(array_slice($defaultWhyItems, 0, auth()->check() ? 6 : 3));
+                            // Guest aur logged-in dono users ke liye full list public
+                            $displayWhyItems = $whyItems->count() > 0
+                                ? $whyItems
+                                : collect($defaultWhyItems);
                         @endphp
-                        
+
                         @foreach($displayWhyItems as $index => $item)
-                            @php 
-                                $delays = ['delay-1','delay-2','delay-3']; $d = $delays[$index % 3];
-                                $item = (object)$item;
+                            @php
+                                $delays = ['delay-1', 'delay-2', 'delay-3'];
+                                $d = $delays[$index % 3];
+
+                                $item = (object) $item;
+
                                 $icon = $item->meta['icon'] ?? ($item->icon ?? 'bi-check-lg');
-                                $title = $item->title;
-                                $body = auth()->check() ? $item->body : Str::limit($item->body, strlen($item->body)/2);
+                                $title = $item->title ?? '';
+                                $body = $item->body ?? '';
                             @endphp
+
                             <article class="feature-card glass-card reveal-up {{ $d }}">
-                                <div class="feature-icon"><i class="bi {{ $icon }}" aria-hidden="true"></i></div>
+                                <div class="feature-icon">
+                                    <i class="bi {{ $icon }}" aria-hidden="true"></i>
+                                </div>
+
                                 <h3>{!! $title !!}</h3>
+
                                 <p>{!! $body !!}</p>
                             </article>
                         @endforeach
                     </div>
-                    @guest
-                    <div class="login-to-unlock" style="background: linear-gradient(to bottom, transparent 0%, rgba(248, 251, 255, 0.9) 80%);">
-                        <a href="{{ route('login') }}" class="cta-button-secondary">Join to view full list</a>
-                    </div>
-                    @endguest
                 </div>
             </div>
         </section>
@@ -114,37 +124,51 @@
         @endphp
         <section class="about-section">
             <div class="about-container section-block reveal-up delay-2" id="explore-section">
-                <p class="section-kicker"><span class="dot"></span> What You Can Explore</p>
-                <h2 class="section-heading">What You Can <span class="accent">Explore</span></h2>
+                <p class="section-kicker">
+                    <span class="dot"></span> What You Can Explore
+                </p>
+
+                <h2 class="section-heading">
+                    What You Can <span class="accent">Explore</span>
+                </h2>
+
                 <div class="section-divider"></div>
-                <p class="section-subtext">{!! auth()->check() ? $exploreSubtext : Str::limit($exploreSubtext, strlen($exploreSubtext)/2) !!}</p>
+
+                <p class="section-subtext">
+                    {!! $exploreSubtext !!}
+                </p>
 
                 <div class="restriction-container">
                     <div class="explore-grid">
                         @php
-                            $visibleExploreItems = auth()->check() ? $exploreItems : $exploreItems->take(3);
-                            $displayExploreItems = $visibleExploreItems->count() > 0 ? $visibleExploreItems : collect(array_slice($defaultExploreItems, 0, auth()->check() ? 6 : 3));
+                            // Guest aur logged-in dono users ke liye full explore items public
+                            $displayExploreItems = $exploreItems->count() > 0
+                                ? $exploreItems
+                                : collect($defaultExploreItems);
                         @endphp
-                        
+
                         @foreach($displayExploreItems as $index => $item)
-                            @php 
-                                $delays = ['delay-1','delay-2','delay-3']; $d = $delays[$index % 3];
-                                $item = (object)$item;
-                                $icon = $item->meta['icon'] ?? ($item->icon ?? 'bi-folder2-open');
-                                $title = $item->title;
-                                $body = auth()->check() ? $item->body : Str::limit($item->body, strlen($item->body)/2);
+                            @php
+                                $delays = ['delay-1', 'delay-2', 'delay-3'];
+                                $d = $delays[$index % 3];
+
+                                $icon = data_get($item, 'meta.icon', data_get($item, 'icon', 'bi-folder2-open'));
+                                $title = data_get($item, 'title', '');
+                                $body = data_get($item, 'body', '');
                             @endphp
+
                             <article class="explore-card glass-card reveal-up {{ $d }}">
-                                <div class="explore-card-icon"><i class="bi {{ $icon }}" aria-hidden="true"></i></div>
-                                <div><h3>{!! $title !!}</h3><p>{!! $body !!}</p></div>
+                                <div class="explore-card-icon">
+                                    <i class="bi {{ $icon }}" aria-hidden="true"></i>
+                                </div>
+
+                                <div>
+                                    <h3>{!! $title !!}</h3>
+                                    <p>{!! $body !!}</p>
+                                </div>
                             </article>
                         @endforeach
                     </div>
-                    @guest
-                    <div class="login-to-unlock" style="background: linear-gradient(to bottom, transparent 0%, rgba(248, 251, 255, 0.9) 80%);">
-                        <a href="{{ route('login') }}" class="cta-button">Access full platform guide</a>
-                    </div>
-                    @endguest
                 </div>
             </div>
         </section>
