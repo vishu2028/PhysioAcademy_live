@@ -304,80 +304,61 @@
 
 <!-- ACADEMIC SUPPORT / PLATFORM FEATURES -->
 @if($sectionEnabled)
-<section class="section support-section" id="support">
-  <div class="section-container">
-    @php
-        $visibleFeatures = auth()->check() ? $features : $features->take(ceil($features->count() / 2));
-    @endphp
+    <section class="section support-section" id="support">
+        <div class="section-container">
+            @php
+                // Guest aur logged-in dono users ke liye all features public
+                $visibleFeatures = $features;
+            @endphp
 
-      <div class="restriction-container">
+            <div class="restriction-container">
 
-          <div class="pf-section-head">
-              <span class="pf-section-label">Platform Features</span>
-              <h2>Explore Our Platform Features</h2>
-              <p>
-                  Discover the tools and units designed to make learning, content management,
-                  and student experience easier.
-              </p>
-          </div>
+                <div class="pf-section-head">
+                    <span class="pf-section-label">Platform Features</span>
 
+                    <h2>Explore Our Platform Features</h2>
 
-              <div class="support-grid reveal-stagger">
-                  @forelse($visibleFeatures as $feature)
-                      <div class="support-card">
-                          <div class="sc-border"></div>
-                          <div class="sc-sweep"></div>
+                    <p>
+                        Discover the tools and units designed to make learning, content management,
+                        and student experience easier.
+                    </p>
+                </div>
 
-                          <div class="sc-icon-wrap" style="{{ $feature->color ? '--sc-color:'.$feature->color : '' }}">
-                              @if(str_contains($feature->icon, '<svg'))
-                                  {!! $feature->icon !!}
-                              @else
-                                  <i class="{{ $feature->icon }}"></i>
-                              @endif
-                          </div>
+                <div class="support-grid reveal-stagger">
+                    @forelse($visibleFeatures as $feature)
+                        <div class="support-card">
+                            <div class="sc-border"></div>
+                            <div class="sc-sweep"></div>
 
-                          <h3>{{ $feature->title }}</h3>
+                            <div class="sc-icon-wrap" style="{{ $feature->color ? '--sc-color:'.$feature->color : '' }}">
+                                @if(!empty($feature->icon) && str_contains($feature->icon, '<svg'))
+                                    {!! $feature->icon !!}
+                                @elseif(!empty($feature->icon))
+                                    <i class="{{ $feature->icon }}"></i>
+                                @else
+                                    <i class="bi bi-grid"></i>
+                                @endif
+                            </div>
 
-                          <p>
-                              {{ auth()->check() ? $feature->description : Str::limit($feature->description, strlen($feature->description) / 2) }}
-                          </p>
+                            <h3>{{ $feature->title }}</h3>
 
-                          <div class="sc-tag">
-                              {{ $feature->button_text ?? 'Explore →' }}
-                          </div>
-                      </div>
-                  @empty
-                      {{-- Fallback logic --}}
-                  @endforelse
-              </div>
-          @endif
+                            <p>
+                                {{ $feature->description }}
+                            </p>
 
-          @guest
-              <div class="login-to-unlock" style="background: linear-gradient(to bottom, transparent 0%, #f8fbff 90%);">
-                  <a href="{{ route('login') }}" class="btn-hero-primary mb-4">
-                      Login to view all features
-                  </a>
-              </div>
-          @endguest
+                            <div class="sc-tag">
+                                {{ $feature->button_text ?? 'Explore →' }}
+                            </div>
+                        </div>
+                    @empty
+                        {{-- Fallback logic --}}
+                    @endforelse
+                </div>
 
-      </div>
-
-{{--    @guest--}}
-{{--    <div class="text-center mt-5 reveal-up">--}}
-{{--        <div class="guest-cta-card mx-auto glass-card">--}}
-{{--            <div class="cta-content-inner">--}}
-{{--                <h3>Unlock Full Academic Potential</h3>--}}
-{{--                <p>Join thousands of students accessing structured notes, viva questions, and academic support.</p>--}}
-{{--                <div class="guest-cta-actions">--}}
-{{--                    <a href="{{ route('register') }}" class="btn-cta-primary">Join the Academy</a>--}}
-{{--                    <a href="{{ route('login') }}" class="btn-cta-secondary">Login</a>--}}
-{{--                </div>--}}
-{{--            </div>--}}
-{{--        </div>--}}
-{{--    </div>--}}
-{{--    @endguest--}}
-  </div>
-</section>
+            </div>
+        </div>
+    </section>
+@endif
 
 <!-- TESTIMONIALS SECTION -->
 @if($testimonialSectionEnabled ?? true)
@@ -432,63 +413,121 @@
 
 <!-- TRENDING TOPICS / HOT RIGHT NOW -->
 <section class="section trending-section" id="topics">
-  <div class="section-container">
-    <div class="section-header reveal-up">
-      <span class="section-tag"><span class="ui-icon ui-icon-flame"></span> Hot Right Now</span>
-      <h2 class="section-title">Most Requested <span class="text-gradient">Topics</span></h2>
-      <p class="section-subtitle">These are what students are asking about most this week</p>
-    </div>
+    <div class="section-container">
+        <div class="section-header reveal-up">
+      <span class="section-tag">
+        <span class="ui-icon ui-icon-flame"></span> Hot Right Now
+      </span>
 
-    @php
-        $visibleTrending = auth()->check() ? $trendingTopics : $trendingTopics->take(ceil($trendingTopics->count() / 2));
-    @endphp
-    <div class="restriction-container">
-        <div class="trending-grid reveal-stagger">
-          @forelse($visibleTrending as $index => $topic)
-          <div class="trending-card">
-            <div class="tc-glow" style="{{ $index == 1 ? '--tc-glow:#3b82f6' : ($index == 2 ? '--tc-glow:#f59e0b' : ($index == 3 ? '--tc-glow:#10b981' : '')) }}"></div>
-            <div class="tc-header">
-              <div class="tc-badge {{ $index == 0 ? 'trending-badge' : '' }}" style="{{ $index > 0 ? 'background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.25);color:#2563eb' : '' }}">
-                <span class="ui-icon ui-icon-{{ $index == 0 ? 'flame' : ($index == 1 ? 'trending' : ($index == 2 ? 'zap' : 'heart-pulse')) }}"></span>
-                Trending #{{ $index + 1 }}
-              </div>
-              <div class="tc-requests"><span class="request-count" data-count="{{ 847 - ($index * 128) }}">0</span> requests</div>
+            <h2 class="section-title">
+                Most Requested <span class="text-gradient">Topics</span>
+            </h2>
+
+            <p class="section-subtitle">
+                These are what students are asking about most this week
+            </p>
+        </div>
+
+        @php
+            // Guest aur logged-in dono users ke liye all trending topics public
+            $visibleTrending = $trendingTopics;
+        @endphp
+
+        <div class="restriction-container">
+            <div class="trending-grid reveal-stagger">
+                @forelse($visibleTrending as $index => $topic)
+                    <div class="trending-card">
+                        <div
+                            class="tc-glow"
+                            style="{{ $index == 1 ? '--tc-glow:#3b82f6' : ($index == 2 ? '--tc-glow:#f59e0b' : ($index == 3 ? '--tc-glow:#10b981' : '')) }}"
+                        ></div>
+
+                        <div class="tc-header">
+                            <div
+                                class="tc-badge {{ $index == 0 ? 'trending-badge' : '' }}"
+                                style="{{ $index > 0 ? 'background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.25);color:#2563eb' : '' }}"
+                            >
+                                <span class="ui-icon ui-icon-{{ $index == 0 ? 'flame' : ($index == 1 ? 'trending' : ($index == 2 ? 'zap' : 'heart-pulse')) }}"></span>
+                                Trending #{{ $index + 1 }}
+                            </div>
+
+                            <div class="tc-requests">
+                                <span class="request-count" data-count="{{ 847 - ($index * 128) }}">0</span> requests
+                            </div>
+                        </div>
+
+                        <div class="tc-subject">
+                            {{ $topic->subject->name ?? 'General' }} • {{ $topic->academicYear->name ?? 'All Years' }}
+                        </div>
+
+                        <h3 class="tc-title">
+                            {{ $topic->title }}
+                        </h3>
+
+                        <p class="tc-desc">
+                            {{ \Illuminate\Support\Str::limit(strip_tags((string) $topic->description), 100) }}
+                        </p>
+
+                        <div class="tc-tags">
+                            @foreach(['Physio', 'Education', 'Guide'] as $tag)
+                                <span>{{ $tag }}</span>
+                            @endforeach
+                        </div>
+
+                        <div class="tc-footer">
+                            <a
+                                href="{{ route('topics.show', ['slug' => $topic->slug]) }}"
+                                class="tc-explore-btn text-decoration-none"
+                            >
+                                Explore Topic
+                            </a>
+
+                            @auth
+                                <button
+                                    type="button"
+                                    class="tc-save-btn {{ $topic->isBookmarked() ? 'active' : '' }}"
+                                    onclick="toggleBookmark({{ $topic->id }}, 'Topic', this)"
+                                    aria-label="Save"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" {!! $topic->isBookmarked() ? 'fill="currentColor"' : '' !!}/>
+                                    </svg>
+                                </button>
+                            @else
+                                <a
+                                    href="{{ route('login') }}"
+                                    class="tc-save-btn"
+                                    aria-label="Login to save"
+                                    title="Login to save"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                </a>
+                            @endauth
+                        </div>
+                    </div>
+                @empty
+                    {{-- Static Fallback --}}
+                @endforelse
             </div>
-            <div class="tc-subject">{{ $topic->subject->name ?? 'General' }} • {{ $topic->academicYear->name ?? 'All Years' }}</div>
-            <h3 class="tc-title">{{ $topic->title }}</h3>
-            <p class="tc-desc">{{ auth()->check() ? Str::limit($topic->description, 100) : Str::limit($topic->description, 50) }}</p>
-            <div class="tc-tags">
-                @foreach(['Physio', 'Education', 'Guide'] as $tag)
-                    <span>{{ $tag }}</span>
-                @endforeach
-            </div>
-            <div class="tc-footer">
-              <a href="{{ route('topics.show', ['slug' => $topic->slug]) }}" class="tc-explore-btn text-decoration-none">Explore Topic</a>
-              <button class="tc-save-btn {{ $topic->isBookmarked() ? 'active' : '' }}"
-                      onclick="toggleBookmark({{ $topic->id }}, 'Topic', this)"
-                      aria-label="Save">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" {!! $topic->isBookmarked() ? 'fill="currentColor"' : '' !!}/>
+        </div>
+
+        <div class="trending-footer reveal-up">
+            <a
+                href="{{ route('topics.index') }}"
+                class="btn-outline-glow"
+                style="text-decoration: none; display: inline-flex; align-items: center; gap: 10px;"
+            >
+                View All Topics
+
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
                 </svg>
-              </button>
-            </div>
-          </div>
-          @empty
-          {{-- Static Fallback --}}
-          @endforelse
+            </a>
         </div>
-        @guest
-        <div class="login-to-unlock" style="background: linear-gradient(to bottom, transparent 0%, #f8fbff 90%);">
-            <p class="mb-3 text-muted fw-bold">Explore over 500+ academic topics...</p>
-            <a href="{{ route('login') }}" class="btn-hero-primary">Login to see all trending topics</a>
-        </div>
-        @endguest
     </div>
-
-    <div class="trending-footer reveal-up">
-      <a href="{{ route('topics.index') }}" class="btn-outline-glow" style="text-decoration: none; display: inline-flex; align-items: center; gap: 10px;">View All Topics <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-    </div>
-  </div>
 </section>
 
 <!-- LEARNING RESOURCES / MATERIALS -->
