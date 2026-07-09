@@ -49,6 +49,16 @@
                                 <label class="form-label small fw-bold text-muted">Contact Email</label>
                                 <input type="email" name="settings[contact_email]" class="form-control rounded-3" value="{{ get_setting('contact_email') }}">
                             </div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold text-muted">Contact Phone</label>
+                                <input
+                                    type="text"
+                                    name="settings[site_phone]"
+                                    class="form-control rounded-3"
+                                    value="{{ old('settings.site_phone', get_setting('site_phone')) }}"
+                                    placeholder="+91 98765 43210"
+                                >
+                            </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold text-muted">Footer Description</label>
                                 <textarea name="settings[footer_text]" class="form-control rounded-3" rows="3">{{ get_setting('footer_text') }}</textarea>

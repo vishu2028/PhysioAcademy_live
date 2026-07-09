@@ -64,10 +64,17 @@
         <span>Email</span>
         {{ get_setting('contact_email', 'support@physioacademy.com') }}
       </a>
-      <a href="tel:{{ get_setting('contact_phone', '#') }}">
-        <span>Phone</span>
-        {{ get_setting('contact_phone_display', '+91 XXXXX XXXXX') }}
-      </a>
+        @php
+            $phone = get_setting('site_phone');
+            $phoneLink = $phone ? preg_replace('/[^0-9+]/', '', $phone) : '#';
+        @endphp
+
+        @if($phone)
+            <a href="tel:{{ $phoneLink }}">
+                <span>Phone</span>
+                {{ $phone }}
+            </a>
+        @endif
         @php
             $socialLinks = [
                 'instagram_url' => [

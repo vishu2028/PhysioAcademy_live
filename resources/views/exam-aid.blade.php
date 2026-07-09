@@ -56,7 +56,12 @@
                             @foreach($content['quick_links'] ?? [] as $link)
                                 <button type="button" onclick="window.location.href='{{ $link['url'] ?? '#' }}'">
                                     <span>{{ $link['icon_num'] ?? '01' }}</span>
+
                                     {{ $link['label'] ?? 'Quick Link' }}
+
+                                    @if(isset($link['count']))
+                                        <small>{{ $link['count'] }} available</small>
+                                    @endif
                                 </button>
                             @endforeach
                         </div>
@@ -169,6 +174,10 @@
                                 <option value="exam" {{ request('resource_type') === 'exam' ? 'selected' : '' }}>
                                     Exam Questions
                                 </option>
+                                <option value="guide" {{ request('resource_type') === 'guide' ? 'selected' : '' }}>
+                                    Exam Guides
+                                </option>
+
                             </select>
                         </label>
 

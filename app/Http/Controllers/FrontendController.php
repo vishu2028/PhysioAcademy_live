@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\ExamAid;
 use App\Models\AcademicYear;
 use App\Models\Message;
+use Illuminate\Support\Facades\DB;
 class FrontendController extends Controller
 {
     public function home()
@@ -264,16 +265,29 @@ class FrontendController extends Controller
             ]);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Dynamic Hero Stats
+        |--------------------------------------------------------------------------
+        | Ye circled hero cards, readiness score, progress bars aur mini stats ko
+        | database se dynamic karega.
+        */
+        $examHeroStats = $this->examAidHeroStats();
+
+        $sections = $sections->map(function ($section) use ($examHeroStats) {
+            if ($section->type === 'exam_hero') {
+                $section->content = array_replace_recursive(
+                    is_array($section->content) ? $section->content : [],
+                    $examHeroStats
+                );
+            }
+
+            return $section;
+        });
+
         $pageProtected = $page->is_protected;
 
         $faqs = FAQ::active()->ordered()->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Exam Aid Dynamic Data
-        |--------------------------------------------------------------------------
-        | Ye data admin panel ke Exam Aid form se save hua data frontend par show karega.
-        */
 
         $years = AcademicYear::orderBy('name')->get();
 
@@ -282,7 +296,9 @@ class FrontendController extends Controller
             'unit',
             'academicYear',
             'semester',
-            'materials',
+            'materials' => function ($query) {
+                $query->orderBy('order');
+            },
         ])
             ->where('status', 1)
 
@@ -294,11 +310,13 @@ class FrontendController extends Controller
             // Learning Material / Resource Type filter
             ->when($request->filled('resource_type') && $request->resource_type !== 'all', function ($query) use ($request) {
                 if ($request->resource_type === 'viva') {
-                    $query->whereNotNull('viva_question')
-                        ->where('viva_question', '!=', '');
+                    $query->whereRaw("TRIM(COALESCE(viva_question, '')) <> ''");
                 } elseif ($request->resource_type === 'exam') {
-                    $query->whereNotNull('exam_question')
-                        ->where('exam_question', '!=', '');
+                    $query->whereRaw("TRIM(COALESCE(exam_question, '')) <> ''");
+                } elseif ($request->resource_type === 'guide') {
+                    $query->whereHas('materials', function ($materialQuery) {
+                        $materialQuery->whereIn('type', ['video', 'link']);
+                    });
                 } else {
                     $query->whereHas('materials', function ($materialQuery) use ($request) {
                         $materialQuery->where('type', $request->resource_type);
@@ -308,7 +326,7 @@ class FrontendController extends Controller
 
             // Subject / Title / Unit search
             ->when($request->filled('q'), function ($query) use ($request) {
-                $search = $request->q;
+                $search = trim($request->q);
 
                 $query->where(function ($query) use ($search) {
                     $query->where('title', 'like', "%{$search}%")
@@ -333,6 +351,111 @@ class FrontendController extends Controller
             'years',
             'examAids'
         ));
+    }
+    private function examAidHeroStats(): array
+    {
+        $totalActiveAids = ExamAid::where('status', 1)->count();
+
+        $materialBaseQuery = DB::table('exam_aid_materials')
+            ->join('exam_aids', 'exam_aids.id', '=', 'exam_aid_materials.exam_aid_id')
+            ->where('exam_aids.status', 1);
+
+        $pastPapersCount = (clone $materialBaseQuery)
+            ->where('exam_aid_materials.type', 'pdf')
+            ->count();
+
+        $subjectNotesCount = (clone $materialBaseQuery)
+            ->where('exam_aid_materials.type', 'note')
+            ->count();
+
+        $videoGuideCount = (clone $materialBaseQuery)
+            ->whereIn('exam_aid_materials.type', ['video', 'link'])
+            ->count();
+
+        $vivaQuestionsCount = ExamAid::where('status', 1)
+            ->whereRaw("TRIM(COALESCE(viva_question, '')) <> ''")
+            ->count();
+
+        $examQuestionsCount = ExamAid::where('status', 1)
+            ->whereRaw("TRIM(COALESCE(exam_question, '')) <> ''")
+            ->count();
+
+        $examGuidesCount = $videoGuideCount;
+
+        $paperCoverage = (clone $materialBaseQuery)
+            ->where('exam_aid_materials.type', 'pdf')
+            ->distinct()
+            ->count('exam_aid_materials.exam_aid_id');
+
+        $vivaCoverage = $vivaQuestionsCount;
+
+        $guideCoverage = ExamAid::where('status', 1)
+            ->whereHas('materials', function ($materialQuery) {
+                $materialQuery->whereIn('type', ['video', 'link']);
+            })
+            ->count();
+
+        $coverageBase = max($totalActiveAids, 1);
+
+        $paperWidth = min(100, round(($paperCoverage / $coverageBase) * 100));
+        $vivaWidth = min(100, round(($vivaCoverage / $coverageBase) * 100));
+        $guideWidth = min(100, round(($guideCoverage / $coverageBase) * 100));
+
+        $readinessScore = $totalActiveAids > 0
+            ? round(($paperWidth + $vivaWidth + $guideWidth) / 3)
+            : 0;
+
+        return [
+            'readiness_score' => $readinessScore,
+
+            'quick_links' => [
+                [
+                    'icon_num' => '01',
+                    'label' => 'Past Papers',
+                    'count' => $pastPapersCount,
+                    'url' => route('exam-aid', ['resource_type' => 'pdf']) . '#exam-resources',
+                ],
+                [
+                    'icon_num' => '02',
+                    'label' => 'Viva Questions',
+                    'count' => $vivaQuestionsCount,
+                    'url' => route('exam-aid', ['resource_type' => 'viva']) . '#exam-resources',
+                ],
+                [
+                    'icon_num' => '03',
+                    'label' => 'Subject Notes',
+                    'count' => $subjectNotesCount,
+                    'url' => route('exam-aid', ['resource_type' => 'note']) . '#exam-resources',
+                ],
+                [
+                    'icon_num' => '04',
+                    'label' => 'Exam Guides',
+                    'count' => $examGuidesCount,
+                    'url' => route('exam-aid', ['resource_type' => 'guide']) . '#exam-resources',
+                ],
+            ],
+
+            'progress_items' => [
+                [
+                    'label' => 'Past Papers',
+                    'width' => $paperWidth . '%',
+                ],
+                [
+                    'label' => 'Viva',
+                    'width' => $vivaWidth . '%',
+                ],
+                [
+                    'label' => 'Guides',
+                    'width' => $guideWidth . '%',
+                ],
+            ],
+
+            'stats' => [
+                'papers' => $pastPapersCount,
+                'questions' => $vivaQuestionsCount + $examQuestionsCount,
+                'guides' => $examGuidesCount,
+            ],
+        ];
     }
     private function examAidDefaultSections(): array
     {
