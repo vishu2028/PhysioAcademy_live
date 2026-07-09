@@ -55,7 +55,7 @@
                   src="{{ asset('storage/' . $siteLogo) }}"
                   alt="{{ $siteName }}"
                   class="nav-logo-img"
-                  style="height: 62px; max-height: 62px; width: auto; max-width: 140px; object-fit: contain; display: block;"
+                  style="height: 70px; max-height: 70px; width: auto; max-width: 170px; object-fit: contain; display: block;"
               >
           @else
               <div class="logo-icon">
