@@ -34,7 +34,7 @@
                 </svg>
 
                 <input type="text" id="topicSearch" placeholder="Search any topic, subject or unit...">
-{{--                <div class="tspage-search-count" id="searchCount">Browse all units</div>--}}
+                {{--                <div class="tspage-search-count" id="searchCount">Browse all units</div>--}}
             </div>
         </div>
 
@@ -721,6 +721,200 @@
 
                 .tspage-cta-content h2 {
                     font-size: 1.6rem;
+                }
+            }
+
+
+            /* ─── SUBJECT TOPICS PAGE: RESPONSIVE OVERRIDES ─────────────── */
+            @media (max-width: 1200px) {
+                .topics-subj-page .typage-syllabus-grid {
+                    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                    gap: 20px !important;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .topics-subj-page {
+                    padding-top: 64px;
+                    overflow-x: hidden;
+                }
+
+                .topics-subj-page .tspage-sticky-search {
+                    top: 64px;
+                    padding: 10px 14px;
+                }
+
+                .topics-subj-page .tspage-search-wrapper {
+                    gap: 10px;
+                    padding: 10px 14px;
+                    border-radius: 16px;
+                }
+
+                .topics-subj-page .tspage-search-wrapper input {
+                    width: 100%;
+                    min-width: 0;
+                    font-size: 16px;
+                }
+
+                .topics-subj-page .tspage-list-section {
+                    padding: 28px 16px 72px;
+                }
+
+                .topics-subj-page .tspage-requested-box {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 14px;
+                    padding: 18px;
+                    margin-bottom: 28px;
+                    border-radius: 18px;
+                }
+
+                .topics-subj-page .tspage-requested-topics {
+                    width: 100%;
+                    gap: 8px;
+                }
+
+                .topics-subj-page .tspage-requested-topics a {
+                    max-width: 100%;
+                    overflow-wrap: anywhere;
+                }
+
+                .topics-subj-page .typage-syllabus-grid {
+                    grid-template-columns: 1fr !important;
+                    gap: 16px !important;
+                    margin-bottom: 42px;
+                }
+
+                .topics-subj-page .typage-subject-panel {
+                    min-width: 0;
+                    padding: 20px;
+                    border-radius: 22px;
+                }
+
+                .topics-subj-page .typage-subject-head {
+                    gap: 12px;
+                    margin-bottom: 18px;
+                }
+
+                .topics-subj-page .typage-subject-head > div:first-child {
+                    min-width: 0;
+                }
+
+                .topics-subj-page .typage-subject-title,
+                .topics-subj-page .typage-subject-head p {
+                    overflow-wrap: anywhere;
+                }
+
+                .topics-subj-page .typage-subject-icon {
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 14px;
+                    flex: 0 0 44px;
+                }
+
+                .topics-subj-page .typage-subject-code-wrap {
+                    max-width: 100%;
+                    flex-wrap: wrap;
+                }
+
+                .topics-subj-page .typage-unit-select {
+                    min-width: 0;
+                    font-size: 16px;
+                    padding: 13px 14px;
+                }
+
+                .topics-subj-page .typage-unit-topic-panel {
+                    height: auto;
+                    max-height: 300px;
+                    overflow-y: auto;
+                    overflow-x: hidden;
+                    -webkit-overflow-scrolling: touch;
+                }
+
+                .topics-subj-page .typage-directory-list {
+                    grid-template-columns: 1fr !important;
+                    width: 100%;
+                }
+
+                .topics-subj-page .typage-directory-row {
+                    width: 100%;
+                    min-width: 0;
+                }
+
+                .topics-subj-page .typage-directory-item {
+                    min-width: 0 !important;
+                    padding: 13px 14px !important;
+                }
+
+                .topics-subj-page .typage-topic-title {
+                    white-space: normal !important;
+                    overflow: visible !important;
+                    text-overflow: clip !important;
+                    overflow-wrap: anywhere !important;
+                }
+
+                .topics-subj-page .typage-subtopic-directory {
+                    margin-left: 6px;
+                    padding-left: 8px;
+                }
+
+                .topics-subj-page .tspage-request-cta {
+                    padding: 38px 22px;
+                    border-radius: 26px;
+                }
+
+                .topics-subj-page .tspage-cta-content h2 {
+                    font-size: clamp(1.55rem, 8vw, 2rem);
+                    overflow-wrap: anywhere;
+                }
+
+                .topics-subj-page .tspage-cta-content p {
+                    font-size: 1rem;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .topics-subj-page .tspage-sticky-search {
+                    padding-left: 10px;
+                    padding-right: 10px;
+                }
+
+                .topics-subj-page .tspage-list-section {
+                    padding-left: 12px;
+                    padding-right: 12px;
+                }
+
+                .topics-subj-page .typage-subject-panel {
+                    padding: 16px;
+                    border-radius: 18px;
+                }
+
+                .topics-subj-page .typage-subject-head h3 {
+                    font-size: 1.1rem;
+                }
+
+                .topics-subj-page .typage-subject-icon {
+                    width: 40px;
+                    height: 40px;
+                    flex-basis: 40px;
+                }
+
+                .topics-subj-page .typage-directory-row {
+                    gap: 6px !important;
+                }
+
+                .topics-subj-page .typage-list-bookmark {
+                    width: 40px !important;
+                    min-width: 40px !important;
+                }
+
+                .topics-subj-page .tspage-request-cta {
+                    padding: 32px 18px;
+                }
+
+                .topics-subj-page .tspage-cta-content a {
+                    width: 100%;
+                    padding: 13px 18px;
                 }
             }
         </style>
