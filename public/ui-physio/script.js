@@ -6,239 +6,263 @@
 
 // ── DOM READY ────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  initScrollProgress();
-  initNavbar();
-  initNavbarDropdowns();
-  initHamburger();
-  initRevealAnimations();
-  initCounters();
-  initParticles();
-  initTiltCards();
-  initSearchInput();    // must run first — exposes window.loadTrending
-  initSearchOverlay();  // uses window.loadTrending on open
-  initAuthModal();
-  initDoubtForm();
-  initBackToTop();
-  initActiveNav();
-  initSaveButtons();
-  initExamAidPage();
-  initCurriculumCardRedirect();
+    initScrollProgress();
+    initNavbar();
+    initNavbarDropdowns();
+    initHamburger();
+    initRevealAnimations();
+    initCounters();
+    initParticles();
+    initTiltCards();
+    initSearchInput();    // must run first — exposes window.loadTrending
+    initSearchOverlay();  // uses window.loadTrending on open
+    initAuthModal();
+    initDoubtForm();
+    initBackToTop();
+    initActiveNav();
+    initSaveButtons();
+    initExamAidPage();
+    initCurriculumCardRedirect();
 });
 
 // ── CUSTOM CURSOR ────────────────────────────────────────────────────
 function initCursor() {
-  const dot = document.getElementById('cursorDot');
-  const ring = document.getElementById('cursorRing');
-  if (!dot || !ring) return;
+    const dot = document.getElementById('cursorDot');
+    const ring = document.getElementById('cursorRing');
+    if (!dot || !ring) return;
 
-  let mouseX = 0, mouseY = 0;
-  let ringX = 0, ringY = 0;
-  let rafId;
+    let mouseX = 0, mouseY = 0;
+    let ringX = 0, ringY = 0;
+    let rafId;
 
-  const hoverTargets = 'a, button, [data-tilt], .trending-card, .curriculum-card, .support-card, .resource-card, input, select, textarea';
+    const hoverTargets = 'a, button, [data-tilt], .trending-card, .curriculum-card, .support-card, .resource-card, input, select, textarea';
 
-  document.addEventListener('mousemove', e => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    dot.style.left = mouseX + 'px';
-    dot.style.top = mouseY + 'px';
-  });
+    document.addEventListener('mousemove', e => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        dot.style.left = mouseX + 'px';
+        dot.style.top = mouseY + 'px';
+    });
 
-  document.addEventListener('mouseover', e => {
-    if (e.target.closest(hoverTargets)) {
-      ring.classList.add('hover');
+    document.addEventListener('mouseover', e => {
+        if (e.target.closest(hoverTargets)) {
+            ring.classList.add('hover');
+        }
+    });
+    document.addEventListener('mouseout', e => {
+        if (e.target.closest(hoverTargets)) {
+            ring.classList.remove('hover');
+        }
+    });
+
+    function animateRing() {
+        ringX += (mouseX - ringX) * 0.12;
+        ringY += (mouseY - ringY) * 0.12;
+        ring.style.left = ringX + 'px';
+        ring.style.top = ringY + 'px';
+        rafId = requestAnimationFrame(animateRing);
     }
-  });
-  document.addEventListener('mouseout', e => {
-    if (e.target.closest(hoverTargets)) {
-      ring.classList.remove('hover');
+    animateRing();
+
+    // Hide on mobile
+    if (window.matchMedia('(hover: none)').matches) {
+        dot.style.display = 'none';
+        ring.style.display = 'none';
     }
-  });
-
-  function animateRing() {
-    ringX += (mouseX - ringX) * 0.12;
-    ringY += (mouseY - ringY) * 0.12;
-    ring.style.left = ringX + 'px';
-    ring.style.top = ringY + 'px';
-    rafId = requestAnimationFrame(animateRing);
-  }
-  animateRing();
-
-  // Hide on mobile
-  if (window.matchMedia('(hover: none)').matches) {
-    dot.style.display = 'none';
-    ring.style.display = 'none';
-  }
 }
 
 // ── SCROLL PROGRESS ──────────────────────────────────────────────────
 function initScrollProgress() {
-  const bar = document.getElementById('scrollProgress');
-  if (!bar) return;
-  window.addEventListener('scroll', () => {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    bar.style.width = (scrollTop / docHeight * 100) + '%';
-  }, { passive: true });
+    const bar = document.getElementById('scrollProgress');
+    if (!bar) return;
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        bar.style.width = (scrollTop / docHeight * 100) + '%';
+    }, { passive: true });
 }
 
 // ── NAVBAR ────────────────────────────────────────────────────────────
 function initNavbar() {
-  const navbar = document.getElementById('navbar');
-  if (!navbar) return;
-  let lastScroll = 0;
+    const navbar = document.getElementById('navbar');
+    if (!navbar) return;
+    let lastScroll = 0;
 
-  window.addEventListener('scroll', () => {
-    const scroll = window.scrollY;
-    if (scroll > 20) {
-      navbar.classList.add('scrolled');
-    } else {
-      navbar.classList.remove('scrolled');
-    }
-    lastScroll = scroll;
-  }, { passive: true });
+    window.addEventListener('scroll', () => {
+        const scroll = window.scrollY;
+        if (scroll > 20) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+        lastScroll = scroll;
+    }, { passive: true });
 }
 
 // ── NAVBAR DROPDOWNS ──────────────────────────────────────────────────
 function initNavbarDropdowns() {
-  const dropdowns = document.querySelectorAll('.nav-dropdown');
-  
-  dropdowns.forEach(dropdown => {
-    const toggle = dropdown.querySelector('.nav-dropdown-toggle');
-    const menu = dropdown.querySelector('.nav-dropdown-menu');
-    
-    if (!toggle || !menu) return;
-    
-    // Toggle dropdown on click
-    toggle.addEventListener('click', (e) => {
-      e.preventDefault();
-      // Close other dropdowns
-      dropdowns.forEach(other => {
-        if (other !== dropdown) {
-          other.classList.remove('active');
+    const dropdowns = document.querySelectorAll('.nav-dropdown');
+
+    dropdowns.forEach(dropdown => {
+        const toggle = dropdown.querySelector('.nav-dropdown-toggle');
+        const menu = dropdown.querySelector('.nav-dropdown-menu');
+
+        if (!toggle || !menu) return;
+
+        // Toggle dropdown on click
+        toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Close other dropdowns
+            dropdowns.forEach(other => {
+                if (other !== dropdown) {
+                    other.classList.remove('active');
+                }
+            });
+            // Toggle current dropdown
+            dropdown.classList.toggle('active');
+        });
+
+        // Close dropdown when clicking on menu items
+        menu.querySelectorAll('.nav-dropdown-item').forEach(item => {
+            item.addEventListener('click', () => {
+                dropdown.classList.remove('active');
+            });
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.nav-dropdown')) {
+            dropdowns.forEach(dropdown => {
+                dropdown.classList.remove('active');
+            });
         }
-      });
-      // Toggle current dropdown
-      dropdown.classList.toggle('active');
     });
-    
-    // Close dropdown when clicking on menu items
-    menu.querySelectorAll('.nav-dropdown-item').forEach(item => {
-      item.addEventListener('click', () => {
-        dropdown.classList.remove('active');
-      });
+
+    // Close dropdowns on escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            dropdowns.forEach(dropdown => {
+                dropdown.classList.remove('active');
+            });
+        }
     });
-  });
-  
-  // Close dropdowns when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.nav-dropdown')) {
-      dropdowns.forEach(dropdown => {
-        dropdown.classList.remove('active');
-      });
-    }
-  });
-  
-  // Close dropdowns on escape
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      dropdowns.forEach(dropdown => {
-        dropdown.classList.remove('active');
-      });
-    }
-  });
 }
 
 // ── HAMBURGER MENU ────────────────────────────────────────────────────
 function initHamburger() {
-  const hamburger = document.getElementById('hamburger');
-  const navLinks = document.getElementById('navLinks');
-  if (!hamburger || !navLinks) return;
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('navLinks');
+    if (!hamburger || !navLinks) return;
 
-  hamburger.addEventListener('click', () => {
-    hamburger.classList.toggle('active');
-    navLinks.classList.toggle('open');
-    document.body.style.overflow = navLinks.classList.contains('open') ? 'hidden' : '';
-  });
+    const closeMenu = () => {
+        hamburger.classList.remove('active');
+        navLinks.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        hamburger.setAttribute('aria-label', 'Open navigation menu');
+        document.body.style.overflow = '';
+    };
 
-  // Close on nav link click
-  navLinks.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', () => {
-      hamburger.classList.remove('active');
-      navLinks.classList.remove('open');
-      document.body.style.overflow = '';
+    const openMenu = () => {
+        hamburger.classList.add('active');
+        navLinks.classList.add('open');
+        hamburger.setAttribute('aria-expanded', 'true');
+        hamburger.setAttribute('aria-label', 'Close navigation menu');
+        document.body.style.overflow = 'hidden';
+    };
+
+    hamburger.addEventListener('click', () => {
+        navLinks.classList.contains('open') ? closeMenu() : openMenu();
     });
-  });
+
+    // Close only when a real navigation/action is selected.
+    // Dropdown toggle buttons must remain open on mobile.
+    navLinks.querySelectorAll('a[href], #searchToggle, .nav-mobile-logout-form button[type="submit"]').forEach(control => {
+        control.addEventListener('click', closeMenu);
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && navLinks.classList.contains('open')) {
+            closeMenu();
+            hamburger.focus();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 991 && navLinks.classList.contains('open')) {
+            closeMenu();
+        }
+    }, { passive: true });
 }
 
 // ── REVEAL ANIMATIONS (IntersectionObserver) ─────────────────────────
 function initRevealAnimations() {
-  const revealEls = document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right');
-  const staggerEls = document.querySelectorAll('.reveal-stagger');
+    const revealEls = document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right');
+    const staggerEls = document.querySelectorAll('.reveal-stagger');
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
 
-  revealEls.forEach(el => observer.observe(el));
-  staggerEls.forEach(el => observer.observe(el));
+    revealEls.forEach(el => observer.observe(el));
+    staggerEls.forEach(el => observer.observe(el));
 }
 
 // ── ANIMATED COUNTERS ─────────────────────────────────────────────────
 function initCounters() {
-  const counters = document.querySelectorAll('[data-count]');
+    const counters = document.querySelectorAll('[data-count]');
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const el = entry.target;
-        const target = parseInt(el.getAttribute('data-count'));
-        animateCounter(el, target);
-        observer.unobserve(el);
-      }
-    });
-  }, { threshold: 0.5 });
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const el = entry.target;
+                const target = parseInt(el.getAttribute('data-count'));
+                animateCounter(el, target);
+                observer.unobserve(el);
+            }
+        });
+    }, { threshold: 0.5 });
 
-  counters.forEach(el => observer.observe(el));
+    counters.forEach(el => observer.observe(el));
 }
 
 function animateCounter(el, target) {
-  const duration = 2000;
-  const start = performance.now();
-  const easeOut = t => 1 - Math.pow(1 - t, 3);
+    const duration = 2000;
+    const start = performance.now();
+    const easeOut = t => 1 - Math.pow(1 - t, 3);
 
-  function update(now) {
-    const elapsed = Math.min((now - start) / duration, 1);
-    const value = Math.round(easeOut(elapsed) * target);
-    el.textContent = value.toLocaleString();
-    if (elapsed < 1) requestAnimationFrame(update);
-    else el.textContent = target.toLocaleString();
-  }
-  requestAnimationFrame(update);
+    function update(now) {
+        const elapsed = Math.min((now - start) / duration, 1);
+        const value = Math.round(easeOut(elapsed) * target);
+        el.textContent = value.toLocaleString();
+        if (elapsed < 1) requestAnimationFrame(update);
+        else el.textContent = target.toLocaleString();
+    }
+    requestAnimationFrame(update);
 }
 
 // ── PARTICLES ─────────────────────────────────────────────────────────
 function initParticles() {
-  const field = document.getElementById('particleField');
-  if (!field) return;
+    const field = document.getElementById('particleField');
+    if (!field) return;
 
-  const count = window.innerWidth < 768 ? 15 : 30;
+    const count = window.innerWidth < 768 ? 15 : 30;
 
-  for (let i = 0; i < count; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = Math.random() * 2 + 1;
-    const x = Math.random() * 100;
-    const delay = Math.random() * 15;
-    const duration = Math.random() * 20 + 15;
-    const drift = (Math.random() - 0.5) * 200;
+    for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random() * 2 + 1;
+        const x = Math.random() * 100;
+        const delay = Math.random() * 15;
+        const duration = Math.random() * 20 + 15;
+        const drift = (Math.random() - 0.5) * 200;
 
-    p.style.cssText = `
+        p.style.cssText = `
       left: ${x}%;
       width: ${size}px; height: ${size}px;
       animation-duration: ${duration}s;
@@ -246,167 +270,167 @@ function initParticles() {
       --drift: ${drift}px;
       opacity: ${Math.random() * 0.5 + 0.1};
     `;
-    field.appendChild(p);
-  }
+        field.appendChild(p);
+    }
 }
 
 // ── TILT EFFECT ────────────────────────────────────────────────────────
 function initTiltCards() {
-  const cards = document.querySelectorAll('[data-tilt]');
-  if (window.matchMedia('(hover: none)').matches) return;
+    const cards = document.querySelectorAll('[data-tilt]');
+    if (window.matchMedia('(hover: none)').matches) return;
 
-  cards.forEach(card => {
-    card.addEventListener('mousemove', e => {
-      const rect = card.getBoundingClientRect();
-      const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
-      const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
-      card.style.transform = `perspective(800px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) translateY(-4px)`;
+    cards.forEach(card => {
+        card.addEventListener('mousemove', e => {
+            const rect = card.getBoundingClientRect();
+            const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
+            const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
+            card.style.transform = `perspective(800px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) translateY(-4px)`;
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = '';
+        });
     });
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = '';
-    });
-  });
 }
 
 // ── CURRICULUM CARD REDIRECT ────────────────────────────────────────────
 function initCurriculumCardRedirect() {
-  document.addEventListener('click', (e) => {
-    const card = e.target.closest('.curriculum-card');
-    if (!card) return;
+    document.addEventListener('click', (e) => {
+        const card = e.target.closest('.curriculum-card');
+        if (!card) return;
 
-    const link = card.querySelector('.cc-btn');
-    if (link && link.href) {
-      e.preventDefault();
-      window.location.href = link.href;
-    }
-  });
+        const link = card.querySelector('.cc-btn');
+        if (link && link.href) {
+            e.preventDefault();
+            window.location.href = link.href;
+        }
+    });
 
-  const cards = document.querySelectorAll('.curriculum-card');
-  cards.forEach(card => {
-    card.style.cursor = 'pointer';
-    card.style.pointerEvents = 'auto';
-  });
+    const cards = document.querySelectorAll('.curriculum-card');
+    cards.forEach(card => {
+        card.style.cursor = 'pointer';
+        card.style.pointerEvents = 'auto';
+    });
 }
 
 // ── SEARCH OVERLAY ─────────────────────────────────────────────────────
 function initSearchOverlay() {
-  const overlay = document.getElementById('searchOverlay');
-  const toggle  = document.getElementById('searchToggle');
-  const close   = document.getElementById('searchClose');
-  const input   = document.getElementById('mainSearch');
-  if (!overlay || !toggle) return;
+    const overlay = document.getElementById('searchOverlay');
+    const toggle  = document.getElementById('searchToggle');
+    const close   = document.getElementById('searchClose');
+    const input   = document.getElementById('mainSearch');
+    if (!overlay || !toggle) return;
 
-  function openSearch() {
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    // Load trending topics from DB when overlay opens
-    if (typeof window.loadTrending === 'function') window.loadTrending();
-    setTimeout(() => input && input.focus(), 200);
-  }
-  function closeSearch() {
-    overlay.classList.remove('active');
-    document.body.style.overflow = '';
-    if (input) input.value = '';
-  }
-
-  toggle.addEventListener('click', openSearch);
-  close && close.addEventListener('click', closeSearch);
-
-  // Close on backdrop click
-  overlay.querySelector('.search-overlay-bg')?.addEventListener('click', closeSearch);
-
-  // Keyboard shortcuts
-  document.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-      e.preventDefault();
-      overlay.classList.contains('active') ? closeSearch() : openSearch();
+    function openSearch() {
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        // Load trending topics from DB when overlay opens
+        if (typeof window.loadTrending === 'function') window.loadTrending();
+        setTimeout(() => input && input.focus(), 200);
     }
-    if (e.key === 'Escape') closeSearch();
-  });
+    function closeSearch() {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+        if (input) input.value = '';
+    }
+
+    toggle.addEventListener('click', openSearch);
+    close && close.addEventListener('click', closeSearch);
+
+    // Close on backdrop click
+    overlay.querySelector('.search-overlay-bg')?.addEventListener('click', closeSearch);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            overlay.classList.contains('active') ? closeSearch() : openSearch();
+        }
+        if (e.key === 'Escape') closeSearch();
+    });
 }
 
 // ── SEARCH INPUT (AJAX-powered) ──────────────────────────────────────────
 function initSearchInput() {
-  const input        = document.getElementById('mainSearch');
-  const suggestWrap  = document.getElementById('searchSuggestions');
-  const dynContainer = document.getElementById('searchSuggestionsDynamic');
-  const noResult     = document.getElementById('searchNoResult');
-  const noResultQ    = document.getElementById('noResultQuery');
-  const requestBtn   = document.getElementById('btnRequestTopic');
-  if (!input) return;
+    const input        = document.getElementById('mainSearch');
+    const suggestWrap  = document.getElementById('searchSuggestions');
+    const dynContainer = document.getElementById('searchSuggestionsDynamic');
+    const noResult     = document.getElementById('searchNoResult');
+    const noResultQ    = document.getElementById('noResultQuery');
+    const requestBtn   = document.getElementById('btnRequestTopic');
+    if (!input) return;
 
-  // Read URLs from <meta> tags injected by the Blade layout
-  const suggestionsUrl = document.querySelector('meta[name="search-suggestions-url"]')?.content || '/search/suggestions';
-  const searchPageUrl  = document.querySelector('meta[name="search-url"]')?.content || '/search';
-  const topicBaseUrl   = document.querySelector('meta[name="topic-base-url"]')?.content || '/topic';
+    // Read URLs from <meta> tags injected by the Blade layout
+    const suggestionsUrl = document.querySelector('meta[name="search-suggestions-url"]')?.content || '/search/suggestions';
+    const searchPageUrl  = document.querySelector('meta[name="search-url"]')?.content || '/search';
+    const topicBaseUrl   = document.querySelector('meta[name="topic-base-url"]')?.content || '/topic';
 
-  const icons = ['ui-icon-flame','ui-icon-trending','ui-icon-zap','ui-icon-heart-pulse',
-                  'ui-icon-brain','ui-icon-book','ui-icon-lightbulb','ui-icon-map','ui-icon-mic'];
+    const icons = ['ui-icon-flame','ui-icon-trending','ui-icon-zap','ui-icon-heart-pulse',
+        'ui-icon-brain','ui-icon-book','ui-icon-lightbulb','ui-icon-map','ui-icon-mic'];
 
-  function showSuggestions() {
-    if (suggestWrap) suggestWrap.style.display = 'block';
-    if (noResult)    noResult.style.display    = 'none';
-  }
-  function showNoResult(query) {
-    if (suggestWrap) suggestWrap.style.display = 'none';
-    if (noResult)    noResult.style.display    = 'block';
-    if (noResultQ)   noResultQ.textContent     = query;
-    if (requestBtn)  requestBtn.href           = searchPageUrl + '?query=' + encodeURIComponent(query);
-  }
-
-  // Render API results into the dynamic container
-  function renderResults(data, type) {
-    if (!dynContainer) return;
-    if (!data || !data.length) {
-      showNoResult(input.value.trim());
-      return;
+    function showSuggestions() {
+        if (suggestWrap) suggestWrap.style.display = 'block';
+        if (noResult)    noResult.style.display    = 'none';
+    }
+    function showNoResult(query) {
+        if (suggestWrap) suggestWrap.style.display = 'none';
+        if (noResult)    noResult.style.display    = 'block';
+        if (noResultQ)   noResultQ.textContent     = query;
+        if (requestBtn)  requestBtn.href           = searchPageUrl + '?query=' + encodeURIComponent(query);
     }
 
-    const label     = type === 'trending' ? '🔥 Trending Topics' : '🔍 Search Results';
-    const itemsHtml = data.map((topic, i) => {
-      const icon    = icons[i % icons.length];
-      const subject = topic.subject ? `<small style="opacity:.55;margin-left:8px;font-size:.75rem;">${topic.subject.name}</small>` : '';
-      const url     = `${topicBaseUrl}/${topic.slug}`;
-      return `<a href="${url}" class="suggestion-item" style="text-decoration:none;display:flex;align-items:center;gap:6px;">
+    // Render API results into the dynamic container
+    function renderResults(data, type) {
+        if (!dynContainer) return;
+        if (!data || !data.length) {
+            showNoResult(input.value.trim());
+            return;
+        }
+
+        const label     = type === 'trending' ? '🔥 Trending Topics' : '🔍 Search Results';
+        const itemsHtml = data.map((topic, i) => {
+            const icon    = icons[i % icons.length];
+            const subject = topic.subject ? `<small style="opacity:.55;margin-left:8px;font-size:.75rem;">${topic.subject.name}</small>` : '';
+            const url     = `${topicBaseUrl}/${topic.slug}`;
+            return `<a href="${url}" class="suggestion-item" style="text-decoration:none;display:flex;align-items:center;gap:6px;">
                 <span class="suggest-icon ui-icon ${icon}" aria-hidden="true"></span>
                 <span>${topic.title}</span>${subject}
               </a>`;
-    }).join('');
+        }).join('');
 
-    dynContainer.innerHTML = `
+        dynContainer.innerHTML = `
       <div class="suggestion-group">
         <span class="suggestion-label">${label}</span>
         <div class="suggestion-items">${itemsHtml}</div>
       </div>`;
 
-    showSuggestions();
-  }
-
-  // Abort controller prevents stale responses
-  let controller;
-  async function fetchSuggestions(query) {
-    if (controller) controller.abort();
-    controller = new AbortController();
-    try {
-      const url = query
-        ? `${suggestionsUrl}?query=${encodeURIComponent(query)}`
-        : suggestionsUrl;
-      const res  = await fetch(url, {
-        signal: controller.signal,
-        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-      });
-      if (!res.ok) return;
-      const json = await res.json();
-      renderResults(json.data || [], json.type || 'search');
-    } catch (e) {
-      if (e.name !== 'AbortError') console.warn('[Search] fetch error:', e);
+        showSuggestions();
     }
-  }
 
-  // Exposed globally so initSearchOverlay can call it on open
-  window.loadTrending = function () {
-    if (dynContainer) {
-      dynContainer.innerHTML = `
+    // Abort controller prevents stale responses
+    let controller;
+    async function fetchSuggestions(query) {
+        if (controller) controller.abort();
+        controller = new AbortController();
+        try {
+            const url = query
+                ? `${suggestionsUrl}?query=${encodeURIComponent(query)}`
+                : suggestionsUrl;
+            const res  = await fetch(url, {
+                signal: controller.signal,
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            });
+            if (!res.ok) return;
+            const json = await res.json();
+            renderResults(json.data || [], json.type || 'search');
+        } catch (e) {
+            if (e.name !== 'AbortError') console.warn('[Search] fetch error:', e);
+        }
+    }
+
+    // Exposed globally so initSearchOverlay can call it on open
+    window.loadTrending = function () {
+        if (dynContainer) {
+            dynContainer.innerHTML = `
         <div class="suggestion-group">
           <span class="suggestion-label">🔥 Trending Topics</span>
           <div class="suggestion-items">
@@ -415,208 +439,208 @@ function initSearchInput() {
             </div>
           </div>
         </div>`;
-    }
-    showSuggestions();
-    fetchSuggestions('');
-  };
+        }
+        showSuggestions();
+        fetchSuggestions('');
+    };
 
-  // Debounced live search on each keystroke
-  let debounceTimer;
-  input.addEventListener('input', () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-      const query = input.value.trim();
-      if (!query) { window.loadTrending(); return; }
-      fetchSuggestions(query);
-    }, 280);
-  });
+    // Debounced live search on each keystroke
+    let debounceTimer;
+    input.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const query = input.value.trim();
+            if (!query) { window.loadTrending(); return; }
+            fetchSuggestions(query);
+        }, 280);
+    });
 
-  // Enter → go to full search results page
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      const query = input.value.trim();
-      if (query) window.location.href = `${searchPageUrl}?query=${encodeURIComponent(query)}`;
-    }
-  });
+    // Enter → go to full search results page
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            const query = input.value.trim();
+            if (query) window.location.href = `${searchPageUrl}?query=${encodeURIComponent(query)}`;
+        }
+    });
 }
 
 // ── AUTH MODAL ─────────────────────────────────────────────────────────
 function initAuthModal() {
-  const overlay = document.getElementById('authOverlay');
-  const openLogin = document.getElementById('openLogin');
-  const openRegister = document.getElementById('openRegister');
-  const closeBtn = document.getElementById('authClose');
-  const tabs = document.querySelectorAll('.auth-tab');
-  const slider = document.getElementById('authTabSlider');
-  const loginPanel = document.getElementById('loginPanel');
-  const registerPanel = document.getElementById('registerPanel');
-  if (!overlay) return;
+    const overlay = document.getElementById('authOverlay');
+    const openLogin = document.getElementById('openLogin');
+    const openRegister = document.getElementById('openRegister');
+    const closeBtn = document.getElementById('authClose');
+    const tabs = document.querySelectorAll('.auth-tab');
+    const slider = document.getElementById('authTabSlider');
+    const loginPanel = document.getElementById('loginPanel');
+    const registerPanel = document.getElementById('registerPanel');
+    if (!overlay) return;
 
-  function openModal(tab = 'login') {
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    switchTab(tab);
-  }
-  function closeModal() {
-    overlay.classList.remove('active');
-    document.body.style.overflow = '';
-  }
-  function switchTab(tab) {
-    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-    if (slider) slider.classList.toggle('right', tab === 'register');
-    if (loginPanel) loginPanel.classList.toggle('hidden', tab !== 'login');
-    if (registerPanel) registerPanel.classList.toggle('hidden', tab !== 'register');
-  }
+    function openModal(tab = 'login') {
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        switchTab(tab);
+    }
+    function closeModal() {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    function switchTab(tab) {
+        tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+        if (slider) slider.classList.toggle('right', tab === 'register');
+        if (loginPanel) loginPanel.classList.toggle('hidden', tab !== 'login');
+        if (registerPanel) registerPanel.classList.toggle('hidden', tab !== 'register');
+    }
 
-  closeBtn?.addEventListener('click', closeModal);
-  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    closeBtn?.addEventListener('click', closeModal);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
 
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-  });
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+    });
 
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && overlay.classList.contains('active')) closeModal();
-  });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && overlay.classList.contains('active')) closeModal();
+    });
 }
 
 // Global password toggle
 window.togglePass = function(id) {
-  const el = document.getElementById(id);
-  if (el) el.type = el.type === 'password' ? 'text' : 'password';
+    const el = document.getElementById(id);
+    if (el) el.type = el.type === 'password' ? 'text' : 'password';
 };
 
 // ── DOUBT FORM ─────────────────────────────────────────────────────────
 function initDoubtForm() {
-  const btn = document.getElementById('submitDoubt');
-  const success = document.getElementById('formSuccess');
-  if (!btn) return;
+    const btn = document.getElementById('submitDoubt');
+    const success = document.getElementById('formSuccess');
+    if (!btn) return;
 
-  btn.addEventListener('click', () => {
-    const year = document.getElementById('doubtYear')?.value;
-    const subject = document.getElementById('doubtSubject')?.value;
-    const topic = document.getElementById('doubtTopic')?.value?.trim();
-    const message = document.getElementById('doubtMessage')?.value?.trim();
+    btn.addEventListener('click', () => {
+        const year = document.getElementById('doubtYear')?.value;
+        const subject = document.getElementById('doubtSubject')?.value;
+        const topic = document.getElementById('doubtTopic')?.value?.trim();
+        const message = document.getElementById('doubtMessage')?.value?.trim();
 
-    if (!year || !subject || !topic || !message) {
-      // Shake effect on missing fields
-      btn.style.animation = 'none';
-      setTimeout(() => {
-        btn.style.animation = 'shakeX 0.4s ease';
-      }, 10);
-      return;
-    }
+        if (!year || !subject || !topic || !message) {
+            // Shake effect on missing fields
+            btn.style.animation = 'none';
+            setTimeout(() => {
+                btn.style.animation = 'shakeX 0.4s ease';
+            }, 10);
+            return;
+        }
 
-    if (success) success.style.display = 'flex';
-    setTimeout(() => {
-      if (success) success.style.display = 'none';
-      ['doubtYear', 'doubtSubject', 'doubtTopic', 'doubtMessage'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-      });
-    }, 3500);
-  });
+        if (success) success.style.display = 'flex';
+        setTimeout(() => {
+            if (success) success.style.display = 'none';
+            ['doubtYear', 'doubtSubject', 'doubtTopic', 'doubtMessage'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+        }, 3500);
+    });
 }
 
 // ── BACK TO TOP ─────────────────────────────────────────────────────────
 function initBackToTop() {
-  const btn = document.getElementById('backToTop');
-  if (!btn) return;
+    const btn = document.getElementById('backToTop');
+    if (!btn) return;
 
-  window.addEventListener('scroll', () => {
-    btn.classList.toggle('visible', window.scrollY > 400);
-  }, { passive: true });
+    window.addEventListener('scroll', () => {
+        btn.classList.toggle('visible', window.scrollY > 400);
+    }, { passive: true });
 
-  btn.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+    btn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 }
 
 // ── ACTIVE NAV HIGHLIGHTING ─────────────────────────────────────────────
 function initActiveNav() {
-  // Robust active nav detection using resolved URLs
-  const navAnchors = Array.from(document.querySelectorAll('.nav-link')).filter(n => n.tagName.toLowerCase() === 'a');
-  const navToggles = Array.from(document.querySelectorAll('.nav-dropdown-toggle'));
+    // Robust active nav detection using resolved URLs
+    const navAnchors = Array.from(document.querySelectorAll('.nav-link')).filter(n => n.tagName.toLowerCase() === 'a');
+    const navToggles = Array.from(document.querySelectorAll('.nav-dropdown-toggle'));
 
-  const currentUrl = new URL(window.location.href);
-  const currentPageName = currentUrl.pathname.split('/').pop() || 'index.html';
+    const currentUrl = new URL(window.location.href);
+    const currentPageName = currentUrl.pathname.split('/').pop() || 'index.html';
 
-  // Clear existing active states
-  document.querySelectorAll('.nav-link.active, .nav-dropdown-toggle.active').forEach(el => el.classList.remove('active'));
+    // Clear existing active states
+    document.querySelectorAll('.nav-link.active, .nav-dropdown-toggle.active').forEach(el => el.classList.remove('active'));
 
-  // Mark direct anchor links active when their resolved filename matches current page
-  navAnchors.forEach(a => {
-    const href = a.getAttribute('href');
-    if (!href) return;
-    try {
-      const resolved = new URL(href, currentUrl);
-      const name = resolved.pathname.split('/').pop();
-      if (name === currentPageName) a.classList.add('active');
-    } catch (err) {
-      // ignore invalid URLs
-    }
-  });
-
-  // For dropdowns, mark toggle active if any dropdown-item resolves to current page
-  document.querySelectorAll('.nav-dropdown').forEach(dropdown => {
-    const toggle = dropdown.querySelector('.nav-dropdown-toggle');
-    const items = dropdown.querySelectorAll('.nav-dropdown-item');
-    let matched = false;
-    items.forEach(item => {
-      const href = item.getAttribute('href');
-      if (!href) return;
-      try {
-        const resolved = new URL(href, currentUrl);
-        const name = resolved.pathname.split('/').pop();
-        if (name === currentPageName) matched = true;
-      } catch (err) {}
-    });
-    if (matched && toggle) toggle.classList.add('active');
-  });
-
-  // If we're on the home page path, also observe sections for in-page highlighting
-  const sections = document.querySelectorAll('section[id]');
-  if (sections.length > 0 && currentPageName === 'index.html') {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const id = entry.target.id;
-          document.querySelectorAll('.nav-link[data-section]').forEach(link => {
-            link.classList.toggle('active', link.dataset.section === id);
-          });
+    // Mark direct anchor links active when their resolved filename matches current page
+    navAnchors.forEach(a => {
+        const href = a.getAttribute('href');
+        if (!href) return;
+        try {
+            const resolved = new URL(href, currentUrl);
+            const name = resolved.pathname.split('/').pop();
+            if (name === currentPageName) a.classList.add('active');
+        } catch (err) {
+            // ignore invalid URLs
         }
-      });
-    }, { threshold: 0.4 });
-    sections.forEach(s => observer.observe(s));
-  }
+    });
+
+    // For dropdowns, mark toggle active if any dropdown-item resolves to current page
+    document.querySelectorAll('.nav-dropdown').forEach(dropdown => {
+        const toggle = dropdown.querySelector('.nav-dropdown-toggle');
+        const items = dropdown.querySelectorAll('.nav-dropdown-item');
+        let matched = false;
+        items.forEach(item => {
+            const href = item.getAttribute('href');
+            if (!href) return;
+            try {
+                const resolved = new URL(href, currentUrl);
+                const name = resolved.pathname.split('/').pop();
+                if (name === currentPageName) matched = true;
+            } catch (err) {}
+        });
+        if (matched && toggle) toggle.classList.add('active');
+    });
+
+    // If we're on the home page path, also observe sections for in-page highlighting
+    const sections = document.querySelectorAll('section[id]');
+    if (sections.length > 0 && currentPageName === 'index.html') {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    document.querySelectorAll('.nav-link[data-section]').forEach(link => {
+                        link.classList.toggle('active', link.dataset.section === id);
+                    });
+                }
+            });
+        }, { threshold: 0.4 });
+        sections.forEach(s => observer.observe(s));
+    }
 }
 
 // ── SAVE / BOOKMARK BUTTONS ─────────────────────────────────────────────
 function initSaveButtons() {
-  document.querySelectorAll('.tc-save-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      btn.classList.toggle('saved');
-      const isSaved = btn.classList.contains('saved');
-      btn.style.transform = 'scale(1.3)';
-      btn.style.color = isSaved ? 'var(--cyan)' : '';
-      btn.style.borderColor = isSaved ? 'rgba(37,99,235,0.4)' : '';
-      setTimeout(() => { btn.style.transform = ''; }, 200);
+    document.querySelectorAll('.tc-save-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            btn.classList.toggle('saved');
+            const isSaved = btn.classList.contains('saved');
+            btn.style.transform = 'scale(1.3)';
+            btn.style.color = isSaved ? 'var(--cyan)' : '';
+            btn.style.borderColor = isSaved ? 'rgba(37,99,235,0.4)' : '';
+            setTimeout(() => { btn.style.transform = ''; }, 200);
 
-      // Mini toast
-      showToast(isSaved ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
+            // Mini toast
+            showToast(isSaved ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
+        });
     });
-  });
 }
 
 // ── TOAST NOTIFICATION ──────────────────────────────────────────────────
 function showToast(message) {
-  const existing = document.querySelector('.toast-notification');
-  if (existing) existing.remove();
+    const existing = document.querySelector('.toast-notification');
+    if (existing) existing.remove();
 
-  const toast = document.createElement('div');
-  toast.className = 'toast-notification';
-  toast.textContent = message;
-  toast.style.cssText = `
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    toast.style.cssText = `
     position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
     background: rgba(255,255,255,0.85); border: 1px solid rgba(37,99,235,0.25);
     color: var(--text-primary); padding: 10px 20px; border-radius: 99px;
@@ -624,195 +648,195 @@ function showToast(message) {
     backdrop-filter: blur(20px); box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     animation: fadeInUp 0.3s ease;
   `;
-  document.body.appendChild(toast);
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transition = 'opacity 0.3s';
-    setTimeout(() => toast.remove(), 300);
-  }, 2500);
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, 2500);
 }
 
 // ── EXAM AID PAGE ───────────────────────────────────────────────────────
 function initExamAidPage() {
-  const page = document.querySelector('.exam-aid-page');
-  if (!page) return;
+    const page = document.querySelector('.exam-aid-page');
+    if (!page) return;
 
-  const college = document.getElementById('examCollegeFilter');
-  const year = document.getElementById('examYearFilter');
-  const semester = document.getElementById('examSemesterFilter');
-  const subjectSearch = document.getElementById('examSubjectSearch');
-  const navSearch = document.getElementById('examNavSearch');
-  const cards = Array.from(document.querySelectorAll('.exam-subject-card'));
-  const empty = document.getElementById('examEmptyState');
-  const quickButtons = document.querySelectorAll('[data-exam-filter]');
+    const college = document.getElementById('examCollegeFilter');
+    const year = document.getElementById('examYearFilter');
+    const semester = document.getElementById('examSemesterFilter');
+    const subjectSearch = document.getElementById('examSubjectSearch');
+    const navSearch = document.getElementById('examNavSearch');
+    const cards = Array.from(document.querySelectorAll('.exam-subject-card'));
+    const empty = document.getElementById('examEmptyState');
+    const quickButtons = document.querySelectorAll('[data-exam-filter]');
 
-  const setLoading = () => {
-    const grid = document.getElementById('examSubjectGrid');
-    if (!grid) return;
-    grid.classList.add('is-loading');
-    setTimeout(() => grid.classList.remove('is-loading'), 320);
-  };
+    const setLoading = () => {
+        const grid = document.getElementById('examSubjectGrid');
+        if (!grid) return;
+        grid.classList.add('is-loading');
+        setTimeout(() => grid.classList.remove('is-loading'), 320);
+    };
 
-  const filterCards = () => {
-    const collegeValue = college?.value || 'all';
-    const yearValue = year?.value || 'all';
-    const semesterValue = semester?.value || 'all';
-    const query = ((subjectSearch?.value || navSearch?.value || '')).trim().toLowerCase();
-    let visibleCount = 0;
+    const filterCards = () => {
+        const collegeValue = college?.value || 'all';
+        const yearValue = year?.value || 'all';
+        const semesterValue = semester?.value || 'all';
+        const query = ((subjectSearch?.value || navSearch?.value || '')).trim().toLowerCase();
+        let visibleCount = 0;
 
-    cards.forEach(card => {
-      const matchesCollege = collegeValue === 'all' || card.dataset.college.includes(collegeValue);
-      const matchesYear = yearValue === 'all' || card.dataset.year === yearValue;
-      const matchesSemester = semesterValue === 'all' || card.dataset.semester === semesterValue;
-      const matchesQuery = !query || card.dataset.subject.includes(query) || card.textContent.toLowerCase().includes(query);
-      const isVisible = matchesCollege && matchesYear && matchesSemester && matchesQuery;
+        cards.forEach(card => {
+            const matchesCollege = collegeValue === 'all' || card.dataset.college.includes(collegeValue);
+            const matchesYear = yearValue === 'all' || card.dataset.year === yearValue;
+            const matchesSemester = semesterValue === 'all' || card.dataset.semester === semesterValue;
+            const matchesQuery = !query || card.dataset.subject.includes(query) || card.textContent.toLowerCase().includes(query);
+            const isVisible = matchesCollege && matchesYear && matchesSemester && matchesQuery;
 
-      card.hidden = !isVisible;
-      if (isVisible) visibleCount += 1;
+            card.hidden = !isVisible;
+            if (isVisible) visibleCount += 1;
+        });
+
+        if (empty) empty.classList.toggle('is-visible', visibleCount === 0);
+    };
+
+    [college, year, semester, subjectSearch, navSearch].forEach(control => {
+        if (!control) return;
+        control.addEventListener('input', () => {
+            setLoading();
+            filterCards();
+        });
+        control.addEventListener('change', () => {
+            setLoading();
+            filterCards();
+        });
     });
 
-    if (empty) empty.classList.toggle('is-visible', visibleCount === 0);
-  };
-
-  [college, year, semester, subjectSearch, navSearch].forEach(control => {
-    if (!control) return;
-    control.addEventListener('input', () => {
-      setLoading();
-      filterCards();
+    quickButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            quickButtons.forEach(item => item.classList.remove('active'));
+            button.classList.add('active');
+            showToast(`Loading ${button.textContent.replace(/[0-9]/g, '').trim()}...`);
+            document.getElementById('exam-resources')?.scrollIntoView({ behavior: 'smooth' });
+        });
     });
-    control.addEventListener('change', () => {
-      setLoading();
-      filterCards();
-    });
-  });
 
-  quickButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      quickButtons.forEach(item => item.classList.remove('active'));
-      button.classList.add('active');
-      showToast(`Loading ${button.textContent.replace(/[0-9]/g, '').trim()}...`);
-      document.getElementById('exam-resources')?.scrollIntoView({ behavior: 'smooth' });
+    document.querySelectorAll('.exam-accordion-toggle').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            const card = toggle.closest('.exam-subject-card');
+            const panel = card?.querySelector('.exam-accordion-panel');
+            const icon = toggle.querySelector('span');
+            const open = card?.classList.toggle('is-open');
+            if (panel) panel.style.maxHeight = open ? `${panel.scrollHeight}px` : '0px';
+            if (icon) icon.textContent = open ? '-' : '+';
+        });
     });
-  });
 
-  document.querySelectorAll('.exam-accordion-toggle').forEach(toggle => {
-    toggle.addEventListener('click', () => {
-      const card = toggle.closest('.exam-subject-card');
-      const panel = card?.querySelector('.exam-accordion-panel');
-      const icon = toggle.querySelector('span');
-      const open = card?.classList.toggle('is-open');
-      if (panel) panel.style.maxHeight = open ? `${panel.scrollHeight}px` : '0px';
-      if (icon) icon.textContent = open ? '-' : '+';
+    document.querySelectorAll('.exam-card-actions button, .exam-quick-grid button, .exam-discussion-grid button').forEach(button => {
+        button.addEventListener('click', () => {
+            button.classList.add('is-loading');
+            const label = button.textContent.trim();
+            setTimeout(() => {
+                button.classList.remove('is-loading');
+                showToast(`${label || 'Resource'} is opening...`);
+            }, 450);
+        });
     });
-  });
 
-  document.querySelectorAll('.exam-card-actions button, .exam-quick-grid button, .exam-discussion-grid button').forEach(button => {
-    button.addEventListener('click', () => {
-      button.classList.add('is-loading');
-      const label = button.textContent.trim();
-      setTimeout(() => {
-        button.classList.remove('is-loading');
-        showToast(`${label || 'Resource'} is opening...`);
-      }, 450);
-    });
-  });
-
-  filterCards();
+    filterCards();
 }
 
 // ── TRENDING REQUEST COUNTS ─────────────────────────────────────────────
 document.querySelectorAll('.request-count[data-count]').forEach(el => {
-  const target = parseInt(el.dataset.count);
-  const observer = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting) {
-      animateCounter(el, target);
-      observer.disconnect();
-    }
-  }, { threshold: 0.5 });
-  observer.observe(el);
+    const target = parseInt(el.dataset.count);
+    const observer = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) {
+            animateCounter(el, target);
+            observer.disconnect();
+        }
+    }, { threshold: 0.5 });
+    observer.observe(el);
 });
 
 // ── EXPLORE TOPIC BUTTONS (demo) ────────────────────────────────────────
 document.querySelectorAll('.tc-explore-btn').forEach(btn => {
-  btn.addEventListener('click', e => {
-    const card = e.target.closest('.trending-card');
-    const subjectText = card?.querySelector('.tc-subject')?.textContent || '';
+    btn.addEventListener('click', e => {
+        const card = e.target.closest('.trending-card');
+        const subjectText = card?.querySelector('.tc-subject')?.textContent || '';
 
-    // Try to extract year from the subject label (e.g. "Anatomy • Year 1")
-    const yearMatch = subjectText.match(/Year\s*(\d+)/i);
-    let yearParam = null;
-    if (yearMatch) {
-      yearParam = yearMatch[1];
-    } else if (/internship/i.test(subjectText)) {
-      yearParam = 'internship';
-    }
+        // Try to extract year from the subject label (e.g. "Anatomy • Year 1")
+        const yearMatch = subjectText.match(/Year\s*(\d+)/i);
+        let yearParam = null;
+        if (yearMatch) {
+            yearParam = yearMatch[1];
+        } else if (/internship/i.test(subjectText)) {
+            yearParam = 'internship';
+        }
 
-    if (yearParam) {
-      // Navigate to the By Year page and open the selected year view
-      window.location.href = `topics-year.html?year=${encodeURIComponent(yearParam)}`;
-      return;
-    }
+        if (yearParam) {
+            // Navigate to the By Year page and open the selected year view
+            window.location.href = `topics-year.html?year=${encodeURIComponent(yearParam)}`;
+            return;
+        }
 
-    const title = card?.querySelector('.tc-title')?.textContent;
-    if (title) showToast(`Opening: ${title}`);
-  });
+        const title = card?.querySelector('.tc-title')?.textContent;
+        if (title) showToast(`Opening: ${title}`);
+    });
 });
 
 // ── SMOOTH SECTION NAVIGATION ───────────────────────────────────────────
 document.querySelectorAll('[href^="#"]').forEach(link => {
-  link.addEventListener('click', e => {
-    const id = link.getAttribute('href').slice(1);
-    const target = document.getElementById(id);
-    if (target) {
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth' });
-    }
-  });
+    link.addEventListener('click', e => {
+        const id = link.getAttribute('href').slice(1);
+        const target = document.getElementById(id);
+        if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
 });
 
 // ── KEYBOARD ACCESSIBILITY ───────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  if (e.key === 'Tab') {
-    document.body.classList.add('keyboard-nav');
-  }
+    if (e.key === 'Tab') {
+        document.body.classList.add('keyboard-nav');
+    }
 });
 document.addEventListener('mousedown', () => {
-  document.body.classList.remove('keyboard-nav');
+    document.body.classList.remove('keyboard-nav');
 });
 
 // ── FOOTER LINK INTERACTIONS ─────────────────────────────────────────────
 document.querySelectorAll('.footer-links-group a').forEach(link => {
-  link.addEventListener('click', e => {
-    const href = link.getAttribute('href');
-    if (!href || href === '#') {
-      e.preventDefault();
-      showToast('Coming soon!');
-    }
-  });
+    link.addEventListener('click', e => {
+        const href = link.getAttribute('href');
+        if (!href || href === '#') {
+            e.preventDefault();
+            showToast('Coming soon!');
+        }
+    });
 });
 
 // ── EXAM BUTTONS ──────────────────────────────────────────────────────────
 document.querySelectorAll('.exam-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const title = btn.closest('.exam-card')?.querySelector('h3')?.textContent;
-    showToast(`Opening ${title || 'module'}...`);
-  });
+    btn.addEventListener('click', () => {
+        const title = btn.closest('.exam-card')?.querySelector('h3')?.textContent;
+        showToast(`Opening ${title || 'module'}...`);
+    });
 });
 
 // ── RESOURCE CARD BUTTONS ─────────────────────────────────────────────────
 document.querySelectorAll('.rc-btn:not(:disabled)').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const title = btn.closest('.resource-card')?.querySelector('h3')?.textContent;
-    showToast(`Loading ${title || 'resources'}...`);
-  });
+    btn.addEventListener('click', () => {
+        const title = btn.closest('.resource-card')?.querySelector('h3')?.textContent;
+        showToast(`Loading ${title || 'resources'}...`);
+    });
 });
 
 // ── COMMUNITY FEED INTERACTIONS ──────────────────────────────────────────
 document.querySelectorAll('.feed-item').forEach(item => {
-  item.addEventListener('click', () => {
-    const title = item.querySelector('.feed-item-title')?.textContent;
-    if (title) showToast(`${title.substring(0, 40)}...`);
-  });
+    item.addEventListener('click', () => {
+        const title = item.querySelector('.feed-item-title')?.textContent;
+        if (title) showToast(`${title.substring(0, 40)}...`);
+    });
 });
 
 // ── CSS INJECTION for shake and keyboard focus ────────────────────────────
