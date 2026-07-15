@@ -405,6 +405,12 @@
     </script>
     @push('styles')
         <style>
+            .exam-shell-wrapper {
+                --exam-brand-blue: #004AAD;
+                --exam-brand-white: #FFFFFF;
+                --exam-brand-grey: #D9D9D9;
+            }
+
             .exam-details-hidden {
                 display: none;
             }
@@ -413,7 +419,7 @@
                 padding-top: 72px;
                 min-height: 100vh;
                 overflow-x: hidden;
-                background: #f8fbff;
+                background: #FFFFFF;
             }
 
             .exam-bg {
@@ -428,8 +434,8 @@
                 position: absolute;
                 inset: 0;
                 background-image:
-                    linear-gradient(rgba(37,99,235,0.05) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(37,99,235,0.05) 1px, transparent 1px);
+                    linear-gradient(rgba(0, 74, 173, 0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0, 74, 173, 0.05) 1px, transparent 1px);
                 background-size: 50px 50px;
                 mask-image: radial-gradient(circle at center, black, transparent 80%);
             }
@@ -446,7 +452,7 @@
                 height: 500px;
                 top: -100px;
                 left: -100px;
-                background: rgba(37,99,235,0.2);
+                background: rgba(0, 74, 173, 0.2);
             }
 
             .exam-orb-two {
@@ -454,7 +460,7 @@
                 height: 400px;
                 top: 200px;
                 right: -50px;
-                background: rgba(56,189,248,0.2);
+                background: rgba(0, 74, 173, 0.2);
             }
 
             .exam-orb-three {
@@ -462,7 +468,7 @@
                 height: 300px;
                 bottom: 0;
                 left: 20%;
-                background: rgba(37,99,235,0.1);
+                background: rgba(0, 74, 173, 0.1);
             }
 
             .exam-hero {
@@ -482,12 +488,12 @@
                 align-items: center;
                 gap: 10px;
                 padding: 7px 16px;
-                background: rgba(37,99,235,0.08);
-                border: 1px solid rgba(37,99,235,0.15);
+                background: rgba(0, 74, 173, 0.08);
+                border: 1px solid rgba(0, 74, 173, 0.15);
                 border-radius: 99px;
                 font-size: 0.8rem;
                 font-weight: 600;
-                color: #2563eb;
+                color: #004AAD;
                 margin-bottom: 24px;
             }
 
@@ -495,7 +501,7 @@
                 width: 8px;
                 height: 8px;
                 border-radius: 50%;
-                background: #2563eb;
+                background: #004AAD;
             }
 
             .exam-hero-title {
@@ -522,8 +528,8 @@
             }
 
             .exam-primary-btn {
-                background: #2563eb;
-                color: #fff;
+                background: #004AAD;
+                color: #FFFFFF;
                 padding: 14px 28px;
                 border-radius: 12px;
                 font-weight: 700;
@@ -533,13 +539,13 @@
             }
 
             .exam-primary-btn:hover {
-                background: #1d4ed8;
-                color: #fff;
+                background: #003B8A;
+                color: #FFFFFF;
             }
 
             .exam-secondary-btn {
-                background: #fff;
-                border: 1px solid rgba(59,130,246,0.12);
+                background: #FFFFFF;
+                border: 1px solid rgba(0, 74, 173, 0.12);
                 color: #64748b;
                 padding: 14px 28px;
                 border-radius: 12px;
@@ -555,8 +561,8 @@
 
             .exam-quick-select button {
                 padding: 14px;
-                background: #fff;
-                border: 1px solid rgba(59,130,246,0.1);
+                background: #FFFFFF;
+                border: 1px solid rgba(0, 74, 173, 0.1);
                 border-radius: 12px;
                 text-align: left;
                 font-size: 0.85rem;
@@ -565,7 +571,7 @@
             }
 
             .exam-quick-select button span {
-                color: #2563eb;
+                color: #004AAD;
                 font-size: 0.7rem;
                 margin-right: 8px;
             }
@@ -585,10 +591,10 @@
                 position: absolute;
                 bottom: -20px;
                 left: -20px;
-                background: #fff;
+                background: #FFFFFF;
                 padding: 24px;
                 border-radius: 20px;
-                border: 1px solid rgba(59,130,246,0.1);
+                border: 1px solid rgba(0, 74, 173, 0.1);
                 box-shadow: 0 25px 60px rgba(0,0,0,0.1);
                 width: 280px;
             }
@@ -639,7 +645,7 @@
 
             .exam-progress-stack b {
                 height: 6px;
-                background: #f1f5f9;
+                background: #D9D9D9;
                 border-radius: 3px;
                 position: relative;
                 overflow: hidden;
@@ -652,7 +658,7 @@
                 top: 0;
                 height: 100%;
                 width: var(--w);
-                background: #2563eb;
+                background: #004AAD;
             }
 
             .exam-mini-metrics {
@@ -675,8 +681,8 @@
 
             .exam-float-card {
                 position: absolute;
-                background: #fff;
-                border: 1px solid rgba(59,130,246,0.1);
+                background: #FFFFFF;
+                border: 1px solid rgba(0, 74, 173, 0.1);
                 border-radius: 14px;
                 padding: 12px 16px;
                 color: #0f172a;
@@ -712,9 +718,9 @@
                 display: inline-flex;
                 padding: 8px 18px;
                 border-radius: 999px;
-                background: rgba(37,99,235,0.08);
-                border: 1px solid rgba(37,99,235,0.15);
-                color: #2563eb;
+                background: rgba(0, 74, 173, 0.08);
+                border: 1px solid rgba(0, 74, 173, 0.15);
+                color: #004AAD;
                 font-weight: 800;
                 font-size: 0.85rem;
                 margin-bottom: 18px;
@@ -738,25 +744,25 @@
                 grid-template-columns: 1.1fr 1.1fr 1.1fr auto;
                 gap: 15px;
                 padding: 25px;
-                background: #fff;
+                background: #FFFFFF;
                 border-radius: 20px;
-                border: 1px solid rgba(59,130,246,0.1);
+                border: 1px solid rgba(0, 74, 173, 0.1);
                 box-shadow: 0 15px 40px rgba(0,0,0,0.03);
             }
 
             .exam-field {
                 min-height: 86px;
-                border: 1px solid rgba(59,130,246,0.12);
+                border: 1px solid rgba(0, 74, 173, 0.12);
                 border-radius: 16px;
                 padding: 16px 20px;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                background: #fff;
+                background: #FFFFFF;
             }
 
             .exam-field span {
-                color: #2563eb;
+                color: #004AAD;
                 text-transform: uppercase;
                 font-size: 0.78rem;
                 font-weight: 800;
@@ -786,8 +792,8 @@
 
             .exam-filter-btn {
                 border: 0;
-                background: #2563eb;
-                color: #fff;
+                background: #004AAD;
+                color: #FFFFFF;
                 padding: 14px 24px;
                 border-radius: 14px;
                 font-weight: 700;
@@ -807,9 +813,9 @@
             }
 
             .exam-subject-card {
-                background: #fff;
+                background: #FFFFFF;
                 border-radius: 20px;
-                border: 1px solid rgba(59,130,246,0.1);
+                border: 1px solid rgba(0, 74, 173, 0.1);
                 padding: 24px;
                 transition: transform 0.3s, box-shadow 0.3s;
                 box-shadow: 0 15px 40px rgba(0,0,0,0.03);
@@ -833,9 +839,9 @@
             .exam-difficulty {
                 padding: 6px 10px;
                 border-radius: 999px;
-                background: rgba(37,99,235,0.08);
-                color: #2563eb;
-                border: 1px solid rgba(37,99,235,0.12);
+                background: rgba(0, 74, 173, 0.08);
+                color: #004AAD;
+                border: 1px solid rgba(0, 74, 173, 0.12);
             }
 
             .exam-subject-card h3 {
@@ -862,8 +868,8 @@
             }
 
             .exam-card-meta span {
-                background: #f8fbff;
-                border: 1px solid rgba(59,130,246,0.1);
+                background: #FFFFFF;
+                border: 1px solid rgba(0, 74, 173, 0.1);
                 padding: 7px 10px;
                 border-radius: 999px;
             }
@@ -878,9 +884,9 @@
             .exam-mini-tags span {
                 font-size: 0.72rem;
                 font-weight: 700;
-                color: #2563eb;
-                background: rgba(37,99,235,0.08);
-                border: 1px solid rgba(37,99,235,0.12);
+                color: #004AAD;
+                background: rgba(0, 74, 173, 0.08);
+                border: 1px solid rgba(0, 74, 173, 0.12);
                 padding: 6px 10px;
                 border-radius: 999px;
             }
@@ -893,22 +899,22 @@
 
             .exam-card-actions button {
                 border: 0;
-                background: #2563eb;
-                color: #fff;
+                background: #004AAD;
+                color: #FFFFFF;
                 padding: 10px 16px;
                 border-radius: 12px;
                 font-weight: 800;
             }
 
             .exam-card-actions button:nth-child(2) {
-                background: #f1f5f9;
+                background: #D9D9D9;
                 color: #0f172a;
             }
 
             .exam-card-details {
                 margin-top: 22px;
                 padding-top: 20px;
-                border-top: 1px solid rgba(59,130,246,0.12);
+                border-top: 1px solid rgba(0, 74, 173, 0.12);
             }
 
             .exam-detail-block {
@@ -928,8 +934,8 @@
                 gap: 16px;
                 padding: 14px;
                 border-radius: 14px;
-                background: #f8fbff;
-                border: 1px solid rgba(59,130,246,0.1);
+                background: #FFFFFF;
+                border: 1px solid rgba(0, 74, 173, 0.1);
                 margin-bottom: 10px;
             }
 
@@ -944,15 +950,15 @@
             }
 
             .exam-material-action a {
-                color: #2563eb;
+                color: #004AAD;
                 font-weight: 800;
                 text-decoration: none;
             }
 
             .exam-question-box,
             .exam-note-content {
-                background: #f8fbff;
-                border: 1px solid rgba(59,130,246,0.1);
+                background: #FFFFFF;
+                border: 1px solid rgba(0, 74, 173, 0.1);
                 border-radius: 14px;
                 padding: 16px;
                 color: #334155;
@@ -968,8 +974,8 @@
 
             .exam-empty-state {
                 grid-column: 1 / -1;
-                background: #fff;
-                border: 1px solid rgba(59,130,246,0.1);
+                background: #FFFFFF;
+                border: 1px solid rgba(0, 74, 173, 0.1);
                 border-radius: 20px;
                 padding: 40px;
                 text-align: center;
@@ -988,6 +994,42 @@
             .exam-pagination {
                 display: flex;
                 justify-content: center;
+            }
+
+
+            /* ─── PHYSIO SOURCE EXAM AID BRAND OVERRIDES ───────────── */
+            .exam-shell-wrapper .exam-secondary-btn,
+            .exam-shell-wrapper .exam-quick-select button,
+            .exam-shell-wrapper .exam-dashboard-card,
+            .exam-shell-wrapper .exam-float-card,
+            .exam-shell-wrapper .exam-filter-panel,
+            .exam-shell-wrapper .exam-field,
+            .exam-shell-wrapper .exam-subject-card,
+            .exam-shell-wrapper .exam-empty-state {
+                background: #FFFFFF;
+            }
+
+            .exam-shell-wrapper .exam-secondary-btn,
+            .exam-shell-wrapper .exam-quick-select button,
+            .exam-shell-wrapper .exam-dashboard-card,
+            .exam-shell-wrapper .exam-float-card,
+            .exam-shell-wrapper .exam-filter-panel,
+            .exam-shell-wrapper .exam-field,
+            .exam-shell-wrapper .exam-subject-card,
+            .exam-shell-wrapper .exam-empty-state {
+                border-color: rgba(0, 74, 173, 0.12);
+            }
+
+            .exam-shell-wrapper .exam-card-actions button:nth-child(2),
+            .exam-shell-wrapper .exam-progress-stack b {
+                background: rgba(217, 217, 217, 0.45);
+            }
+
+            .exam-shell-wrapper .exam-card-meta span,
+            .exam-shell-wrapper .exam-material-item,
+            .exam-shell-wrapper .exam-question-box,
+            .exam-shell-wrapper .exam-note-content {
+                background: rgba(217, 217, 217, 0.18);
             }
 
             @media (max-width: 1024px) {

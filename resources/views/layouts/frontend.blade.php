@@ -44,7 +44,7 @@
 <!-- NAVBAR -->
 <nav class="navbar" id="navbar">
     <div class="nav-container">
-        <a href="{{ url('/') }}" class="nav-logo" style="display: inline-flex; align-items: center; line-height: 0; margin-right: 35px;">
+        <a href="{{ url('/') }}" class="nav-logo">
             @php
                 $siteLogo = get_setting('site_logo');
                 $siteName = get_setting('site_name') ?: config('app.name');
@@ -55,7 +55,6 @@
                     src="{{ asset('storage/' . $siteLogo) }}"
                     alt="{{ $siteName }}"
                     class="nav-logo-img"
-                    style="height: 62px; max-height: 62px; width: auto; max-width: 140px; object-fit: contain; display: block;"
                 >
             @else
                 <div class="logo-icon">

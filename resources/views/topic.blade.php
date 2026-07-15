@@ -79,7 +79,7 @@
                                     @else
                                         <div class="preview-content" style="position: relative;">
                                             {!! Str::limit($topic->description, strlen($topic->description) / 2) !!}
-                                            <div class="content-overlay" style="background: linear-gradient(to bottom, transparent, #fff); height: 100px; margin-top: -100px; position: relative; z-index: 1;"></div>
+                                            <div class="content-overlay" style="background: linear-gradient(to bottom, transparent, #FFFFFF); height: 100px; margin-top: -100px; position: relative; z-index: 1;"></div>
                                             <div class="restricted-notice mt-4 px-4 py-3 rounded-4 border border-blue-100 bg-blue-50/50 text-center">
                                                 <p class="mb-2 fw-bold text-blue-900">✨ Reading in Preview Mode (50%)</p>
                                                 <p class="text-sm text-blue-700 mb-3">Join Physio Academy to unlock full detailed descriptions, diagrams, and clinical insights.</p>
@@ -224,9 +224,9 @@
         <style>
             /* ─── TOPIC DETAIL PAGE STYLES ────────────────────────── */
             :root {
-                --topic-bg: #f8fbff;
-                --topic-blue: #2563eb;
-                --topic-cyan: #38bdf8;
+                --topic-bg: #FFFFFF;
+                --topic-blue: #004AAD;
+                --topic-cyan: #004AAD;
                 --topic-card: rgba(255,255,255,0.7);
             }
 
@@ -241,9 +241,9 @@
             .topic-hero {
                 position: relative;
                 padding: 80px 0 100px;
-                background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(56,189,248,0.06));
+                background: linear-gradient(135deg, rgba(0, 74, 173, 0.06), rgba(0, 74, 173, 0.06));
                 overflow: hidden;
-                border-bottom: 1px solid rgba(37,99,235,0.05);
+                border-bottom: 1px solid rgba(0, 74, 173, 0.05);
             }
 
             .topic-hero-bg {
@@ -253,8 +253,8 @@
             .hero-orb {
                 position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4;
             }
-            .orb-1 { width: 300px; height: 300px; background: rgba(37,99,235,0.15); top: -100px; right: 10%; }
-            .orb-2 { width: 250px; height: 250px; background: rgba(56,189,248,0.15); bottom: -50px; left: -50px; }
+            .orb-1 { width: 300px; height: 300px; background: rgba(0, 74, 173, 0.15); top: -100px; right: 10%; }
+            .orb-2 { width: 250px; height: 250px; background: rgba(0, 74, 173, 0.15); bottom: -50px; left: -50px; }
 
             .topic-hero-container {
                 position: relative; z-index: 1;
@@ -278,7 +278,7 @@
             }
             .topic-badge {
                 display: inline-block; padding: 6px 16px;
-                background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.15);
+                background: rgba(0, 74, 173, 0.08); border: 1px solid rgba(0, 74, 173, 0.15);
                 border-radius: 99px; color: var(--topic-blue); font-size: 0.75rem;
                 font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
                 margin-bottom: 12px;
@@ -293,13 +293,13 @@
             .topic-actions { display: flex; gap: 12px; }
             .btn-share, .btn-bookmark {
                 width: 46px; height: 46px; border-radius: 14px;
-                background: white; border: 1px solid rgba(37,99,235,0.1);
+                background: white; border: 1px solid rgba(0, 74, 173, 0.1);
                 display: grid; place-items: center; font-size: 1.2rem;
                 color: var(--text-secondary); transition: all 0.3s;
             }
             .btn-share:hover, .btn-bookmark:hover, .btn-bookmark.active {
                 background: var(--topic-blue); color: white; transform: translateY(-3px);
-                box-shadow: 0 10px 20px rgba(37,99,235,0.2);
+                box-shadow: 0 10px 20px rgba(0, 74, 173, 0.2);
             }
             .btn-bookmark.active i::before { content: "\f199"; } /* bi-bookmark-fill */
             .material-bookmark-btn { background: none; border: none; padding: 5px; cursor: pointer; transition: all 0.2s; }
@@ -333,7 +333,7 @@
                 background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.8));
                 border: 1px solid rgba(255,255,255,0.8);
                 border-radius: 36px; padding: 40px;
-                box-shadow: 0 30px 60px rgba(37,99,235,0.06);
+                box-shadow: 0 30px 60px rgba(0, 74, 173, 0.06);
             }
 
             .content-section + .content-section { margin-top: 60px; }
@@ -344,7 +344,7 @@
             }
             .section-heading::after {
                 content: ''; height: 2px; flex: 1;
-                background: linear-gradient(90deg, rgba(37,99,235,0.1), transparent);
+                background: linear-gradient(90deg, rgba(0, 74, 173, 0.1), transparent);
             }
 
             .topic-long-desc {
@@ -359,13 +359,13 @@
             .materials-list { display: grid; gap: 16px; }
             .material-card {
                 display: flex; align-items: center; gap: 20px;
-                padding: 24px; border-radius: 24px; background: #fbfdff;
-                border: 1px solid #f1f5f9; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+                padding: 24px; border-radius: 24px; background: #FFFFFF;
+                border: 1px solid #D9D9D9; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
             }
             .material-card:hover {
                 transform: scale(1.01) translateY(-4px);
                 border-color: var(--topic-blue);
-                box-shadow: 0 15px 40px rgba(37,99,235,0.08);
+                box-shadow: 0 15px 40px rgba(0, 74, 173, 0.08);
                 background: white;
             }
 
@@ -375,7 +375,7 @@
                 flex-shrink: 0;
             }
             .type-pdf .mc-icon { background: rgba(239,68,68,0.08); color: #ef4444; }
-            .type-video .mc-icon { background: rgba(37,99,235,0.08); color: #2563eb; }
+            .type-video .mc-icon { background: rgba(0, 74, 173, 0.08); color: #004AAD; }
             .type-link .mc-icon { background: rgba(16,185,129,0.08); color: #10b981; }
             .type-note .mc-icon { background: rgba(245,158,11,0.08); color: #f59e0b; }
 
@@ -394,15 +394,15 @@
             }
             .btn-mc-primary:hover { background: var(--topic-blue); transform: translateY(-2px); }
             .btn-mc-secondary {
-                padding: 10px 24px; background: white; border: 1.5px solid #e2e8f0;
+                padding: 10px 24px; background: white; border: 1.5px solid #D9D9D9;
                 color: var(--text-secondary); border-radius: 14px; font-size: 0.85rem; font-weight: 700;
                 transition: all 0.2s;
             }
             .btn-mc-secondary:hover { border-color: var(--topic-blue); color: var(--topic-blue); }
 
             .empty-materials {
-                padding: 60px 40px; text-align: center; background: #f8fbff;
-                border: 2px dashed #e2e8f0; border-radius: 30px;
+                padding: 60px 40px; text-align: center; background: rgba(217,217,217,0.18);
+                border: 2px dashed #D9D9D9; border-radius: 30px;
             }
             .em-icon { font-size: 3rem; margin-bottom: 16px; }
             .em-icon + h4 { font-family: var(--font-display); font-weight: 800; color: var(--text-primary); }
@@ -418,7 +418,7 @@
             /* ─── SIDEBAR ─────────────────────────────────────── */
             .sidebar-sticky { position: sticky; top: 100px; }
             .sidebar-glass-card {
-                background: white; border: 1px solid #f1f5f9;
+                background: white; border: 1px solid #D9D9D9;
                 padding: 30px; border-radius: 30px;
                 box-shadow: 0 10px 30px rgba(0,0,0,0.02);
             }
@@ -431,7 +431,7 @@
 
             .insight-item {
                 display: flex; justify-content: space-between; align-items: center;
-                padding: 12px 0; border-bottom: 1px solid #f1f5f9;
+                padding: 12px 0; border-bottom: 1px solid #D9D9D9;
             }
             .insight-item:last-child { border: none; }
             .ii-label { font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; }
@@ -439,19 +439,19 @@
             .val-med { color: var(--amber); }
             .val-high { color: #ef4444; }
 
-            .sidebar-cta { margin-top: 24px; padding-top: 24px; border-top: 1px solid #f1f5f9; text-align: center; }
+            .sidebar-cta { margin-top: 24px; padding-top: 24px; border-top: 1px solid #D9D9D9; text-align: center; }
             .sidebar-cta p { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
             .btn-sidebar-primary {
                 display: block; width: 100%; padding: 14px; background: var(--topic-blue);
                 color: white; border-radius: 16px; font-weight: 700; font-size: 0.9rem;
                 transition: all 0.2s;
             }
-            .btn-sidebar-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(37,99,235,0.25); }
+            .btn-sidebar-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0, 74, 173, 0.25); }
 
             .subtopics-nav { display: grid; gap: 10px; }
             .subnav-item {
                 display: flex; align-items: center; gap: 12px;
-                padding: 12px 16px; background: #f8fbff; border-radius: 14px;
+                padding: 12px 16px; background: rgba(217,217,217,0.18); border-radius: 14px;
                 font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);
                 transition: all 0.2s;
             }
@@ -466,7 +466,7 @@
             }
             .related-item:hover { transform: scale(1.02); }
             .ri-icon {
-                width: 44px; height: 44px; background: #f8fbff; border: 1px solid #edf2f7;
+                width: 44px; height: 44px; background: rgba(217,217,217,0.18); border: 1px solid #D9D9D9;
                 border-radius: 12px; display: grid; place-items: center; font-size: 1.2rem;
             }
             .ri-title { display: block; font-size: 0.9rem; font-weight: 800; color: #0f172a; line-height: 1.2; }
@@ -478,6 +478,22 @@
                 text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.2s;
             }
             .btn-all-topics:hover { gap: 12px; }
+
+
+            /* ─── PHYSIO SOURCE TOPIC PAGE BRAND OVERRIDES ─────────── */
+            .topic-page .text-blue-600,
+            .topic-page .text-blue-700,
+            .topic-page .text-blue-900 {
+                color: #004AAD !important;
+            }
+
+            .topic-page .border-blue-100 {
+                border-color: rgba(0, 74, 173, 0.18) !important;
+            }
+
+            .topic-page .bg-blue-50\/50 {
+                background: rgba(0, 74, 173, 0.06) !important;
+            }
 
             /* ─── RESPONSIVE ────────────────────────────────── */
             @media (max-width: 1024px) {

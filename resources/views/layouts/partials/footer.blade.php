@@ -7,7 +7,18 @@
         <div class="footer-brand-card">
             <div class="footer-logo-wrap">
                 <div class="footer-logo">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3L4 7.2v9.2L12 21l8-4.6V7.2L12 3Z" stroke="currentColor" stroke-width="1.7"/><path d="M8.2 12h7.6M12 8.2v7.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+                    @if(get_setting('site_logo'))
+                        <img
+                            src="{{ asset('storage/' . get_setting('site_logo')) }}"
+                            alt="{{ get_setting('site_name', 'Physio Academy') }}"
+                            style="width: 100%; height: 100%; object-fit: contain;"
+                        >
+                    @else
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M12 3L4 7.2v9.2L12 21l8-4.6V7.2L12 3Z" stroke="currentColor" stroke-width="1.7"/>
+                            <path d="M8.2 12h7.6M12 8.2v7.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        </svg>
+                    @endif
                 </div>
                 <span>{{ get_setting('footer_tagline', 'Student Driven Platform') }}</span>
             </div>
@@ -56,9 +67,13 @@
 
         <div class="footer-column footer-contact">
             <h3>Contact</h3>
-            <a href="{{ get_setting('contact_url', 'https://www.physioacademy.com') }}">
+            @php
+                $contactUrl = get_setting('contact_url', 'https://www.physioacademy.com');
+            @endphp
+
+            <a href="{{ $contactUrl }}" target="_blank" rel="noopener noreferrer">
                 <span>URL</span>
-                {{ get_setting('contact_url_display', 'www.physioacademy.com') }}
+                {{ preg_replace('#^https?://#', '', rtrim($contactUrl, '/')) }}
             </a>
             <a href="mailto:{{ get_setting('contact_email', 'support@physioacademy.com') }}">
                 <span>Email</span>

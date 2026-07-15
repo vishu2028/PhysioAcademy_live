@@ -28,7 +28,7 @@
                             {!! $titleParts[0] !!} <br/> for
                             <span class="title-highlight">
               <span class="title-highlight-text">{!! trim($titleParts[1]) !!}</span>
-              <svg class="title-underline" viewBox="0 0 300 12" preserveAspectRatio="none"><path d="M0,8 Q75,0 150,8 Q225,16 300,8" stroke="url(#underlineGrad)" stroke-width="3" fill="none"/><defs><linearGradient id="underlineGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#2563eb"/><stop offset="100%" stop-color="#38bdf8"/></linearGradient></defs></svg>
+              <svg class="title-underline" viewBox="0 0 300 12" preserveAspectRatio="none"><path d="M0,8 Q75,0 150,8 Q225,16 300,8" stroke="url(#underlineGrad)" stroke-width="3" fill="none"/><defs><linearGradient id="underlineGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#004AAD"/><stop offset="100%" stop-color="#004AAD"/></linearGradient></defs></svg>
             </span>
                         @else
                             {!! $heroTitle !!}
@@ -200,7 +200,7 @@
                     @endif
 
                     <div class="float-card float-card-3 glass-card">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#004AAD" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                         <span>
             Registered students:
             <strong>{{ \App\Models\User::role('user')->count() }}</strong>
@@ -236,7 +236,7 @@
                         {{-- Visible Years --}}
                         @foreach($visibleYears as $index => $y)
                             @php
-                                $colors = ['#2563eb', '#3b82f6', '#2563eb', '#f59e0b', '#10b981'];
+                                $colors = ['#004AAD', '#004AAD', '#004AAD', '#004AAD', '#004AAD'];
                                 $color = $colors[$index % count($colors)];
                                 $topics_list = \App\Models\Topic::where('academic_year_id', $y->id)
                                     ->with('subject')
@@ -399,7 +399,7 @@
                             @endforelse
                         </div>
                         @guest
-                            <div class="login-to-unlock" style="background: linear-gradient(to bottom, transparent 0%, #f8fbff 95%);">
+                            <div class="login-to-unlock" style="background: linear-gradient(to bottom, transparent 0%, #FFFFFF 95%);">
                                 <div class="unlock-card reveal-up py-4">
                                     <h4 class="fw-bold mb-3">Community Insights</h4>
                                     <p class="text-muted small mb-3">Join our community of students to read full stories and academic success reviews.</p>
@@ -440,13 +440,13 @@
                             <div class="trending-card">
                                 <div
                                     class="tc-glow"
-                                    style="{{ $index == 1 ? '--tc-glow:#3b82f6' : ($index == 2 ? '--tc-glow:#f59e0b' : ($index == 3 ? '--tc-glow:#10b981' : '')) }}"
+                                    style="{{ $index == 1 ? '--tc-glow:#004AAD' : ($index == 2 ? '--tc-glow:#004AAD' : ($index == 3 ? '--tc-glow:#004AAD' : '')) }}"
                                 ></div>
 
                                 <div class="tc-header">
                                     <div
                                         class="tc-badge {{ $index == 0 ? 'trending-badge' : '' }}"
-                                        style="{{ $index > 0 ? 'background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.25);color:#2563eb' : '' }}"
+                                        style="{{ $index > 0 ? 'background:rgba(0,74,173,0.12);border-color:rgba(0,74,173,0.25);color:#004AAD' : '' }}"
                                     >
                                         <span class="ui-icon ui-icon-{{ $index == 0 ? 'flame' : ($index == 1 ? 'trending' : ($index == 2 ? 'zap' : 'heart-pulse')) }}"></span>
                                         Trending #{{ $index + 1 }}
@@ -551,7 +551,7 @@
                     </div>
 
                     <div class="resource-card" data-tilt>
-                        <div class="rc-glow" style="--rc-glow:#3b82f6"></div>
+                        <div class="rc-glow" style="--rc-glow:#004AAD"></div>
                         <div class="rc-icon-big"><span class="ui-icon ui-icon-book"></span></div>
                         <h3>Theory Notes</h3>
                         <p>In-depth academic notes with diagrams, mechanisms, and reference links.</p>
@@ -560,7 +560,7 @@
                     </div>
 
                     <div class="resource-card" data-tilt>
-                        <div class="rc-glow" style="--rc-glow:#f59e0b"></div>
+                        <div class="rc-glow" style="--rc-glow:#004AAD"></div>
                         <div class="rc-icon-big"><span class="ui-icon ui-icon-mic"></span></div>
                         <h3>Viva Questions</h3>
                         <p>Most asked viva questions with structured answers and examiner tips.</p>
@@ -569,7 +569,7 @@
                     </div>
 
                     <div class="resource-card" data-tilt>
-                        <div class="rc-glow" style="--rc-glow:#10b981"></div>
+                        <div class="rc-glow" style="--rc-glow:#004AAD"></div>
                         <div class="rc-icon-big"><span class="ui-icon ui-icon-map"></span></div>
                         <h3>Diagrams & Flowcharts</h3>
                         <p>Visual learning aids, annotated diagrams, and memory maps for complex topics.</p>
@@ -613,11 +613,11 @@
                                 <span>Response within academic timeline</span>
                             </div>
                             <div class="adf-item">
-                                <div class="adf-dot" style="--dot-color:#3b82f6"></div>
+                                <div class="adf-dot" style="--dot-color:#004AAD"></div>
                                 <span>Structured explanations with references</span>
                             </div>
                             <div class="adf-item">
-                                <div class="adf-dot" style="--dot-color:#10b981"></div>
+                                <div class="adf-dot" style="--dot-color:#004AAD"></div>
                                 <span>Clinical relevance always included</span>
                             </div>
                         </div>
@@ -782,7 +782,7 @@
                     </div>
 
                     <div class="exam-card">
-                        <div class="exam-card-bg" style="--ec-color:#3b82f6"></div>
+                        <div class="exam-card-bg" style="--ec-color:#004AAD"></div>
                         <div class="exam-icon"><span class="ui-icon ui-icon-mic"></span></div>
                         <h3>Viva Mastery</h3>
                         <p>Most asked viva questions by examiners across universities with model answers.</p>
@@ -790,7 +790,7 @@
                     </div>
 
                     <div class="exam-card">
-                        <div class="exam-card-bg" style="--ec-color:#f59e0b"></div>
+                        <div class="exam-card-bg" style="--ec-color:#004AAD"></div>
                         <div class="exam-icon"><span class="ui-icon ui-icon-trending"></span></div>
                         <h3>Expected Questions</h3>
                         <p>AI-assisted prediction of most likely exam questions based on trend analysis.</p>
@@ -798,7 +798,7 @@
                     </div>
 
                     <div class="exam-card">
-                        <div class="exam-card-bg" style="--ec-color:#10b981"></div>
+                        <div class="exam-card-bg" style="--ec-color:#004AAD"></div>
                         <div class="exam-icon"><span class="ui-icon ui-icon-check"></span></div>
                         <h3>Important Topics</h3>
                         <p>Curated list of must-prepare topics that consistently appear in university exams.</p>
@@ -806,7 +806,7 @@
                     </div>
 
                     <div class="exam-card">
-                        <div class="exam-card-bg" style="--ec-color:#ec4899"></div>
+                        <div class="exam-card-bg" style="--ec-color:#004AAD"></div>
                         <div class="exam-icon"><span class="ui-icon ui-icon-lightbulb"></span></div>
                         <h3>Exam Tips</h3>
                         <p>Proven exam strategies, time management, answer presentation, and scoring techniques.</p>
@@ -814,7 +814,7 @@
                     </div>
 
                     <div class="exam-card">
-                        <div class="exam-card-bg" style="--ec-color:#6366f1"></div>
+                        <div class="exam-card-bg" style="--ec-color:#004AAD"></div>
                         <div class="exam-icon"><span class="ui-icon ui-icon-calendar"></span></div>
                         <h3>Study Strategies</h3>
                         <p>Subject-wise study plans, spaced repetition schedules, and revision timetables.</p>
@@ -885,21 +885,21 @@
                             </div>
                             <div class="ann-items">
                                 <div class="ann-item">
-                                    <div class="ann-dot" style="--dot:#2563eb"></div>
+                                    <div class="ann-dot" style="--dot:#004AAD"></div>
                                     <div>
                                         <span class="ann-title">New 2024 Syllabus Fully Mapped</span>
                                         <span class="ann-date">Jan 15, 2025</span>
                                     </div>
                                 </div>
                                 <div class="ann-item">
-                                    <div class="ann-dot" style="--dot:#3b82f6"></div>
+                                    <div class="ann-dot" style="--dot:#004AAD"></div>
                                     <div>
                                         <span class="ann-title">University Exam Pattern Analysis Released</span>
                                         <span class="ann-date">Jan 10, 2025</span>
                                     </div>
                                 </div>
                                 <div class="ann-item">
-                                    <div class="ann-dot" style="--dot:#10b981"></div>
+                                    <div class="ann-dot" style="--dot:#004AAD"></div>
                                     <div>
                                         <span class="ann-title">Clinical Cases Section Coming Soon</span>
                                         <span class="ann-date">Jan 5, 2025</span>
@@ -969,7 +969,7 @@
                                 </div>
                             </div>
                             <div class="tl-item">
-                                <div class="tl-dot" style="--dot:#3b82f6"></div>
+                                <div class="tl-dot" style="--dot:#004AAD"></div>
                                 <div class="tl-content glass-card">
                                     <span class="tl-year">Q2 2024</span>
                                     <h4>Exam Aid Launch</h4>
@@ -977,7 +977,7 @@
                                 </div>
                             </div>
                             <div class="tl-item">
-                                <div class="tl-dot" style="--dot:#10b981"></div>
+                                <div class="tl-dot" style="--dot:#004AAD"></div>
                                 <div class="tl-content glass-card">
                                     <span class="tl-year">Q3 2024</span>
                                     <h4>12,000+ Students</h4>
@@ -985,7 +985,7 @@
                                 </div>
                             </div>
                             <div class="tl-item">
-                                <div class="tl-dot" style="--dot:#f59e0b"></div>
+                                <div class="tl-dot" style="--dot:#004AAD"></div>
                                 <div class="tl-content glass-card">
                                     <span class="tl-year">2025</span>
                                     <h4>Clinical Cases & Quizzes</h4>
@@ -1031,8 +1031,8 @@
                 margin-bottom: 12px;
                 padding: 7px 14px;
                 border-radius: 999px;
-                background: rgba(37, 99, 235, 0.08);
-                color: #2563eb;
+                background: rgba(0, 74, 173, 0.08);
+                color: #004AAD;
                 font-size: 13px;
                 font-weight: 700;
                 letter-spacing: 0.08em;
@@ -1073,8 +1073,8 @@
             .testimonials-section {
                 position: relative;
                 padding: 100px 0;
-                background: radial-gradient(circle at 10% 50%, rgba(37,99,235,0.03), transparent 30%),
-                radial-gradient(circle at 90% 80%, rgba(56,189,248,0.03), transparent 30%);
+                background: radial-gradient(circle at 10% 50%, rgba(0,74,173,0.03), transparent 30%),
+                radial-gradient(circle at 90% 80%, rgba(0, 74, 173, 0.03), transparent 30%);
             }
 
             .testimonials-grid {
@@ -1100,7 +1100,7 @@
                 content: '';
                 position: absolute;
                 top: 0; left: 0; width: 100%; height: 4px;
-                background: linear-gradient(90deg, #2563eb, #38bdf8);
+                background: linear-gradient(90deg, #004AAD, #004AAD);
                 opacity: 0;
                 transition: opacity 0.3s ease;
             }
@@ -1114,7 +1114,7 @@
                 top: 20px;
                 right: 20px;
                 font-size: 3rem;
-                color: rgba(37,99,235,0.05);
+                color: rgba(0,74,173,0.05);
                 transform: rotate(10deg);
             }
 
@@ -1130,7 +1130,7 @@
             }
 
             .tcu-avatar img {
-                border: 2px solid rgba(37,99,235,0.2);
+                border: 2px solid rgba(0,74,173,0.20);
                 padding: 2px;
                 background: #fff;
             }
@@ -1150,6 +1150,52 @@
                     grid-template-columns: 1fr;
                 }
             }
+
+
+            /* ─── PHYSIO SOURCE HOME PAGE BRAND THEME ───────────────── */
+            .home-page {
+                --home-brand-blue: #004AAD;
+                --home-brand-white: #FFFFFF;
+                --home-brand-grey: #D9D9D9;
+            }
+
+            .home-page .pf-section-label,
+            .home-page .section-tag,
+            .home-page .hero-badge,
+            .home-page .tc-save-btn.active {
+                color: var(--home-brand-blue);
+            }
+
+            .home-page .pf-section-label,
+            .home-page .hero-badge {
+                background: rgba(0, 74, 173, 0.08);
+                border-color: rgba(0, 74, 173, 0.16);
+            }
+
+            .home-page .testimonial-card::before {
+                background: var(--home-brand-blue);
+            }
+
+            .home-page .tc-quote {
+                color: rgba(0, 74, 173, 0.07);
+            }
+
+            .home-page .tcu-avatar img {
+                border-color: rgba(0, 74, 173, 0.22);
+                background: var(--home-brand-white);
+            }
+
+            .home-page .unlock-card {
+                background: var(--home-brand-white);
+                border-color: rgba(0, 74, 173, 0.12);
+                box-shadow: 0 20px 40px rgba(0, 74, 173, 0.12);
+            }
+
+            .home-page .unlock-icon {
+                background: rgba(0, 74, 173, 0.10);
+                color: var(--home-brand-blue);
+            }
+
 
             /* CONTENT RESTRICTION */
             .restriction-container {
@@ -1176,7 +1222,7 @@
                 align-items: center;
                 justify-content: flex-end;
                 padding-bottom: 40px;
-                background: linear-gradient(to bottom, transparent 0%, rgba(248, 251, 255, 0.95) 80%);
+                background: linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.95) 80%);
                 z-index: 10;
                 text-align: center;
             }
@@ -1185,28 +1231,28 @@
                 background: white;
                 padding: 30px 40px;
                 border-radius: 20px;
-                box-shadow: 0 20px 40px rgba(37, 99, 235, 0.15);
-                border: 1px solid rgba(37, 99, 235, 0.1);
+                box-shadow: 0 20px 40px rgba(0, 74, 173, 0.15);
+                border: 1px solid rgba(0, 74, 173, 0.10);
                 max-width: 400px;
             }
 
             .unlock-icon {
                 width: 60px;
                 height: 60px;
-                background: rgba(37, 99, 235, 0.1);
+                background: rgba(0, 74, 173, 0.10);
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 margin: 0 auto 20px;
-                color: #2563eb;
+                color: #004AAD;
                 font-size: 1.5rem;
             }
         </style>
     @endpush
 
     <style>
-        .tc-save-btn.active { color: #2563eb; }
+        .tc-save-btn.active { color: #004AAD; }
     </style>
 
     <script>

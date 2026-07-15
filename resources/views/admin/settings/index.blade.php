@@ -41,10 +41,10 @@
                     <div class="tab-pane fade show active" id="general" role="tabpanel">
                         <h5 class="fw-bold mb-4">General Configuration</h5>
                         <div class="row g-3">
-{{--                            <div class="col-md-6">--}}
-{{--                                <label class="form-label small fw-bold text-muted">Site Name</label>--}}
-{{--                                <input type="text" name="settings[site_name]" class="form-control rounded-3" value="{{ get_setting('site_name') }}">--}}
-{{--                            </div>--}}
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Site Name</label>
+                                <input type="text" name="settings[site_name]" class="form-control rounded-3" value="{{ get_setting('site_name') }}">
+                            </div>
                             <div class="col-md-12">
                                 <label class="form-label small fw-bold text-muted">Contact Email</label>
                                 <input type="email" name="settings[contact_email]" class="form-control rounded-3" value="{{ get_setting('contact_email') }}">
@@ -57,6 +57,16 @@
                                     class="form-control rounded-3"
                                     value="{{ old('settings.site_phone', get_setting('site_phone')) }}"
                                     placeholder="+91 98765 43210"
+                                >
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold text-muted">Contact URL</label>
+                                <input
+                                    type="url"
+                                    name="settings[contact_url]"
+                                    class="form-control rounded-3"
+                                    value="{{ old('settings.contact_url', get_setting('contact_url', 'https://www.physioacademy.com')) }}"
+                                    placeholder="https://www.physioacademy.com"
                                 >
                             </div>
                             <div class="col-12">

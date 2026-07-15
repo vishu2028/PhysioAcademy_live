@@ -50,6 +50,7 @@ class SettingController extends Controller
             'settings.instagram_url' => $socialUrlRule,
             'settings.linkedin_url' => $socialUrlRule,
             'settings.youtube_url' => $socialUrlRule,
+            'settings.contact_url' => $socialUrlRule,
             'settings.site_phone' => 'nullable|string|max:50',
             'site_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'site_favicon' => 'nullable|mimes:ico,png,jpg,jpeg,svg|max:1024',

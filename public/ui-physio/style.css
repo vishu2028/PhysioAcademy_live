@@ -306,8 +306,31 @@ img { max-width: 100%; display: block; }
     gap: 40px;
 }
 .nav-logo {
-    display: flex; align-items: center; gap: 10px;
-    flex-shrink: 0;
+    position: relative;
+    width: 150px;
+    height: 72px;
+    display: block;
+    flex: 0 0 150px;
+    overflow: hidden;
+    line-height: 0;
+}
+
+/*
+ * The uploaded Physio Source logo uses a square transparent canvas.
+ * Render the square artwork larger and crop the transparent top/bottom
+ * inside the fixed navbar slot so the visible horizontal logo is clear.
+ */
+.nav-logo-img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 150px !important;
+    height: 150px !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: contain;
+    display: block;
+    transform: translate(-50%, -45%);
 }
 .logo-icon {
     width: 36px; height: 36px;
@@ -4544,15 +4567,19 @@ img { max-width: 100%; display: block; }
     }
 
     .nav-logo {
-        min-width: 0;
+        width: 128px;
+        height: 64px;
+        flex-basis: 128px;
+        min-width: 128px;
         margin-right: 0 !important;
     }
 
     .nav-logo-img {
-        width: auto !important;
-        height: 48px !important;
-        max-height: 48px !important;
-        max-width: 122px !important;
+        width: 132px !important;
+        height: 132px !important;
+        max-width: none !important;
+        max-height: none !important;
+        transform: translate(-50%, -45%);
     }
 
     .logo-text {
@@ -5178,10 +5205,17 @@ img { max-width: 100%; display: block; }
         padding-inline: 12px;
     }
 
+    .nav-logo {
+        width: 112px;
+        flex-basis: 112px;
+        min-width: 112px;
+    }
+
     .nav-logo-img {
-        max-width: 104px !important;
-        height: 44px !important;
-        max-height: 44px !important;
+        width: 118px !important;
+        height: 118px !important;
+        max-width: none !important;
+        max-height: none !important;
     }
 
     .nav-mobile-actions {
@@ -5318,3 +5352,219 @@ img { max-width: 100%; display: block; }
     }
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   PHYSIO SOURCE — SHARED GLOBAL BRAND THEME
+   Client palette:
+   Blue  #004AAD
+   White #FFFFFF
+   Grey  #D9D9D9
+
+   Note:
+   This block intentionally targets shared/global UI only.
+   Page-specific sections with their own inline/scoped styles are handled
+   separately so existing layouts and functionality remain unchanged.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+    --brand-blue: #004AAD;
+    --brand-blue-rgb: 0, 74, 173;
+    --brand-white: #FFFFFF;
+    --brand-grey: #D9D9D9;
+
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #F7F9FC;
+    --bg-card: rgba(255, 255, 255, 0.78);
+    --bg-card-hover: rgba(255, 255, 255, 0.92);
+
+    --glass-border: rgba(0, 74, 173, 0.12);
+    --glass-border-hover: rgba(0, 74, 173, 0.28);
+
+    --cyan: #004AAD;
+    --cyan-dim: rgba(0, 74, 173, 0.10);
+    --cyan-glow: rgba(0, 74, 173, 0.18);
+    --purple: #004AAD;
+    --purple-dim: rgba(0, 74, 173, 0.10);
+
+    --text-primary: #0F172A;
+    --text-secondary: #64748B;
+    --text-muted: #94A3B8;
+
+    --shadow-cyan: 0 10px 40px rgba(0, 74, 173, 0.10);
+    --shadow-purple: 0 10px 40px rgba(0, 74, 173, 0.10);
+}
+
+/* Base background */
+body {
+    background: linear-gradient(
+        180deg,
+        var(--brand-white) 0%,
+        #F7F9FC 48%,
+        var(--brand-white) 100%
+    );
+}
+
+/* Scrollbar / cursor / progress */
+::-webkit-scrollbar-thumb {
+    background: rgba(var(--brand-blue-rgb), 0.28);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--brand-blue-rgb), 0.48);
+}
+
+.cursor-dot {
+    background: var(--brand-blue);
+}
+
+.cursor-ring {
+    border-color: rgba(var(--brand-blue-rgb), 0.50);
+}
+
+.cursor-ring.hover {
+    border-color: var(--brand-blue);
+    background: rgba(var(--brand-blue-rgb), 0.08);
+}
+
+.scroll-progress {
+    background: var(--brand-blue);
+}
+
+/* Shared glass surfaces */
+.glass-card,
+.glass-panel {
+    border-color: rgba(var(--brand-blue-rgb), 0.12);
+    box-shadow: 0 18px 50px rgba(var(--brand-blue-rgb), 0.08);
+}
+
+.glass-card:hover,
+.glass-panel:hover {
+    border-color: rgba(var(--brand-blue-rgb), 0.24);
+    box-shadow: 0 24px 60px rgba(var(--brand-blue-rgb), 0.12);
+}
+
+/* Shared blue accent text */
+.text-gradient {
+    background: linear-gradient(135deg, var(--brand-blue), #2469C7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Back to top */
+.back-to-top {
+    background: rgba(var(--brand-blue-rgb), 0.08);
+    border-color: rgba(var(--brand-blue-rgb), 0.20);
+    color: var(--brand-blue);
+}
+
+.back-to-top:hover {
+    background: rgba(var(--brand-blue-rgb), 0.14);
+    box-shadow: 0 0 20px rgba(var(--brand-blue-rgb), 0.18);
+}
+
+/* Navbar */
+.navbar.scrolled {
+    border-bottom-color: rgba(var(--brand-blue-rgb), 0.10);
+    box-shadow: 0 8px 32px rgba(var(--brand-blue-rgb), 0.06);
+}
+
+.logo-icon {
+    background: rgba(var(--brand-blue-rgb), 0.08);
+    border-color: rgba(var(--brand-blue-rgb), 0.20);
+    color: var(--brand-blue);
+}
+
+.logo-accent,
+.nav-link.active,
+.nav-search-btn:hover,
+.nav-bookmark-btn:hover,
+.btn-ghost:hover,
+.nav-dropdown.active .nav-dropdown-toggle,
+.nav-dropdown.active .nav-dropdown-toggle .dropdown-arrow,
+.nav-dropdown-item:hover,
+.nav-dropdown-item.active {
+    color: var(--brand-blue);
+}
+
+.nav-link::after {
+    background: var(--brand-blue);
+}
+
+.nav-link:hover {
+    background: rgba(var(--brand-blue-rgb), 0.05);
+}
+
+.nav-search-btn:hover,
+.nav-bookmark-btn:hover,
+.nav-dropdown-item:hover,
+.nav-dropdown-item.active {
+    background: rgba(var(--brand-blue-rgb), 0.08);
+}
+
+.btn-ghost {
+    border-color: rgba(var(--brand-blue-rgb), 0.16);
+}
+
+.btn-ghost:hover {
+    border-color: rgba(var(--brand-blue-rgb), 0.32);
+}
+
+.btn-primary-nav {
+    background: var(--brand-blue);
+}
+
+.btn-primary-nav:hover {
+    box-shadow: 0 6px 20px rgba(var(--brand-blue-rgb), 0.28);
+}
+
+.nav-dropdown-menu {
+    border-color: rgba(var(--brand-blue-rgb), 0.15);
+    box-shadow: 0 10px 32px rgba(var(--brand-blue-rgb), 0.08);
+}
+
+/* Shared page hero */
+.page-hero {
+    background: linear-gradient(
+        135deg,
+        rgba(var(--brand-blue-rgb), 0.045),
+        rgba(217, 217, 217, 0.16)
+    );
+    border-bottom-color: rgba(var(--brand-blue-rgb), 0.09);
+}
+
+.page-hero-icon,
+.page-hero-breadcrumb a {
+    color: var(--brand-blue);
+}
+
+/* Shared search UI */
+.search-input-wrap,
+.search-suggestions,
+.search-close {
+    border-color: rgba(var(--brand-blue-rgb), 0.16);
+}
+
+.search-input-wrap {
+    box-shadow: 0 0 32px rgba(var(--brand-blue-rgb), 0.09);
+}
+
+.suggestion-item {
+    background: rgba(var(--brand-blue-rgb), 0.05);
+    border-color: rgba(var(--brand-blue-rgb), 0.12);
+}
+
+.suggestion-item:hover {
+    background: rgba(var(--brand-blue-rgb), 0.10);
+    border-color: rgba(var(--brand-blue-rgb), 0.24);
+    color: var(--brand-blue);
+}
+
+.btn-request-topic {
+    background: rgba(var(--brand-blue-rgb), 0.08);
+    border-color: rgba(var(--brand-blue-rgb), 0.20);
+    color: var(--brand-blue);
+}
+
+.btn-request-topic:hover {
+    background: rgba(var(--brand-blue-rgb), 0.14);
+}
