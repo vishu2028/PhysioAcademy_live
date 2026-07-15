@@ -431,7 +431,7 @@
 
             <div class="bm-dashboard bm-reveal" id="bookmarkGrid">
                 @foreach($bookmarks as $bookmark)
-                    @php 
+                    @php
                         $item = $bookmark->bookmarkable;
                         $type = class_basename($bookmark->bookmarkable_type);
                         $subject = null;
@@ -486,7 +486,7 @@
             </div>
             <div class="bm-recent-track bm-reveal" id="recentTrack">
                 @foreach($bookmarks->take(6) as $bookmark)
-                    @php 
+                    @php
                         $item = $bookmark->bookmarkable;
                         $type = class_basename($bookmark->bookmarkable_type);
                         $subject = null;
@@ -645,10 +645,10 @@
 
     function removeBookmark(id, btn) {
         if (!confirm('Are you sure you want to remove this bookmark?')) return;
-        
+
         btn.classList.add('removing');
         const card = btn.closest('.bm-saved-card');
-        
+
         fetch(`/bookmarks/${id}`, {
             method: 'DELETE',
             headers: {
