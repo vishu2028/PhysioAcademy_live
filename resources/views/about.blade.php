@@ -27,15 +27,26 @@
 
                             <div class="divider-line"></div>
 
-                            <div class="cms-dynamic-content">
-                                {!! $page->content !!}
+                            <div class="cms-dynamic-content mission-client-copy">
+                                <p class="mission-lead">
+                                    To make physiotherapy education easier to understand, more organized, and accessible for every student.
+                                </p>
+
+                                <p>We believe students learn best when concepts are explained:</p>
+
+                                <ul class="mission-principles">
+                                    <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>in a simple language</span></li>
+                                    <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>with proper structure</span></li>
+                                    <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>with exam-oriented clarity</span></li>
+                                    <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>and with real understanding behind the topic</span></li>
+                                </ul>
                             </div>
 
                             <div class="mission-pills">
-                                <span class="mission-pill">Structured Learning</span>
-                                <span class="mission-pill">Exam Guidance</span>
-                                <span class="mission-pill">Topic Navigation</span>
-                                <span class="mission-pill">Student Support</span>
+                                <span class="mission-pill">Simple Language</span>
+                                <span class="mission-pill">Proper Structure</span>
+                                <span class="mission-pill">Exam-Oriented Clarity</span>
+                                <span class="mission-pill">Real Understanding</span>
                             </div>
                         </div>
                     </div>
@@ -44,17 +55,41 @@
 
             {{-- WHY SECTION --}}
             @php
-                $whySection = $sections->get('why-we-built-this');
-                $whySubtext = $whySection ? ($whySection->content['subtext'] ?? 'A modern learning platform should make the syllabus feel navigable, reduce exam anxiety, and present content with the same clarity expected from a polished startup product.') : 'A modern learning platform should make the syllabus feel navigable, reduce exam anxiety, and present content with the same clarity expected from a polished startup product.';
-                $whyItems = $whySection ? $whySection->items->where('enabled', true) : collect();
+                $whySubtext = 'One Place for Better Learning';
                 $defaultWhyItems = [
-                    ['icon' => 'bi-check-lg', 'title' => 'Simplify the syllabus', 'body' => 'Bring structure to dense academic content with a cleaner, more deliberate learning flow.'],
-                    ['icon' => 'bi-check-lg', 'title' => 'Support the new curriculum', 'body' => 'Align the platform around the latest needs of physiotherapy students and evolving subjects.'],
-                    ['icon' => 'bi-check-lg', 'title' => 'Improve answer writing', 'body' => 'Make exam preparation more actionable with focused support for structured responses.'],
-                    ['icon' => 'bi-check-lg', 'title' => 'Provide structured learning', 'body' => 'Organize knowledge into approachable, modern pathways instead of scattered notes.'],
-                    ['icon' => 'bi-check-lg', 'title' => 'Reduce confusion during exams', 'body' => 'Offer a calmer, more navigable experience for revision, recall, and topic discovery.'],
-                    ['icon' => 'bi-check-lg', 'title' => 'Create a student-driven platform', 'body' => 'Let student demand shape the roadmap so the product stays relevant to real learning needs.'],
+                    [
+                        'icon' => 'bi-search',
+                        'title' => 'Learn Without Endless Searching',
+                        'body' => 'Students spend hours searching through different websites just to understand one topic. Physio Source brings physiotherapy-focused content together so students can spend more time learning and less time searching.',
+                    ],
+                    [
+                        'icon' => 'bi-collection',
+                        'title' => 'Study Everything Together',
+                        'body' => 'Notes are on one website, videos on another, diagrams somewhere else, and exam guidance missing completely. Physio Source combines everything related to a topic in one place for a smoother learning experience.',
+                    ],
+                    [
+                        'icon' => 'bi-journal-check',
+                        'title' => 'Follow the Syllabus Clearly',
+                        'body' => 'Many times, online resources do not match the way topics are written in the university syllabus. Physio Source organizes topics in a structured and syllabus-focused way to reduce confusion.',
+                    ],
+                    [
+                        'icon' => 'bi-lightbulb',
+                        'title' => 'Understand Topics More Easily',
+                        'body' => 'Some subjects feel difficult not because students cannot learn them, but because they are not explained clearly. Physio Source simplifies complex topics into easier explanations and visual learning.',
+                    ],
+                    [
+                        'icon' => 'bi-pencil-square',
+                        'title' => 'Write Better in Exams',
+                        'body' => 'Understanding a topic and writing it properly in exams are two different things. Physio Source helps students learn how answers can be presented in a better and more organized way during exams.',
+                    ],
+                    [
+                        'icon' => 'bi-bullseye',
+                        'title' => 'Know Why You Are Studying It',
+                        'body' => 'Students often memorize topics without understanding their actual purpose or relevance in physiotherapy. Physio Source focuses on helping students understand why a topic matters and how it connects to real learning and clinical understanding.',
+                    ],
                 ];
+
+                $displayWhyItems = collect($defaultWhyItems);
             @endphp
             <section class="about-section">
                 <div class="about-container section-block reveal-up delay-1" id="why-section">
@@ -74,13 +109,6 @@
 
                     <div class="restriction-container">
                         <div class="feature-grid">
-                            @php
-                                // Guest aur logged-in dono users ke liye full list public
-                                $displayWhyItems = $whyItems->count() > 0
-                                    ? $whyItems
-                                    : collect($defaultWhyItems);
-                            @endphp
-
                             @foreach($displayWhyItems as $index => $item)
                                 @php
                                     $delays = ['delay-1', 'delay-2', 'delay-3'];
@@ -125,7 +153,7 @@
             <section class="about-section">
                 <div class="about-container section-block reveal-up delay-2" id="explore-section">
                     <p class="section-kicker">
-                        <span class="dot"></span> What You Can Explore
+                        <span class="dot"></span> Learn, Understand, and Prepare
                     </p>
 
                     <h2 class="section-heading">
@@ -219,13 +247,12 @@
 
             {{-- VISION SECTION --}}
             @php
-                $visionSection = $sections->get('our-vision');
-                $visionHeading = $visionSection ? ($visionSection->content['heading'] ?? 'Our Vision') : 'Our Vision';
-                $visionBody = $visionSection ? ($visionSection->content['body'] ?? 'To create a modern academic ecosystem for physiotherapy students that seamlessly combines structured learning, expert academic guidance, and competency-focused education in one accessible place.') : 'To create a modern academic ecosystem for physiotherapy students that seamlessly combines structured learning, expert academic guidance, and competency-focused education in one accessible place.';
+                $visionHeading = 'Our Vision';
+                $visionBody = 'To create a modern and student-friendly learning platform for physiotherapy students that combines structured learning, clear guidance, simplified understanding, and exam-focused support in one accessible place.';
             @endphp
             <section class="about-section">
                 <div class="about-container section-block reveal-up delay-3" id="vision-section">
-                    <p class="section-kicker"><span class="dot"></span> Our Vision</p>
+                    <p class="section-kicker"><span class="dot"></span> Beyond Notes</p>
                     <div class="section-divider"></div>
                     <div class="vision-banner">
                         <h2 class="section-heading" style="text-align:center; margin-bottom: 16px;">{!! $visionHeading !!}</h2>
@@ -236,9 +263,8 @@
 
             {{-- CLOSING SECTION --}}
             @php
-                $closingSection = $sections->get('learn-smarter-study-with-clarity');
-                $closingHeading = $closingSection ? ($closingSection->content['heading'] ?? 'Learn Smarter. Study with Clarity.') : 'Learn Smarter. Study with Clarity.';
-                $closingKicker = $closingSection ? ($closingSection->content['kicker'] ?? 'Closing Banner') : 'Closing Banner';
+                $closingHeading = 'Study Smarter. Learn Better. Grow Further.';
+                $closingKicker = 'One Place for Better Learning';
             @endphp
             <section class="about-section mb-5" id="closing-banner-section">
                 <div class="about-container reveal-up delay-2">
@@ -246,6 +272,9 @@
                         <div>
                             <p class="section-kicker" style="margin-bottom: 10px;"><span class="dot"></span> {!! $closingKicker !!}</p>
                             <h2>{!! $closingHeading !!}</h2>
+                            <p class="closing-supporting-copy">
+                                Learning was never impossible — physiotherapy students just needed better guidance, clearer explanations, and a more organized place to learn everything together.
+                            </p>
                         </div>
                         <div class="closing-actions">
                             <a href="{{ route('topics.index') }}" class="cta-button text-decoration-none">Explore Topics</a>
@@ -386,6 +415,34 @@
             .divider-line { width: 60px; height: 3px; background: #2563eb; border-radius: 10px; margin-bottom: 24px; }
             .cms-dynamic-content { color: #64748b; line-height: 1.75; font-size: 1.05rem; }
 
+            .mission-client-copy .mission-lead {
+                color: #334155;
+                font-weight: 700;
+                font-size: 1.08rem;
+                margin-bottom: 18px;
+            }
+
+            .mission-principles {
+                list-style: none;
+                margin: 16px 0 0;
+                padding: 0;
+                display: grid;
+                gap: 12px;
+            }
+
+            .mission-principles li {
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                color: #475569;
+            }
+
+            .mission-principles i {
+                color: #2563eb;
+                margin-top: 3px;
+                flex-shrink: 0;
+            }
+
             .mission-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
             .mission-pill {
                 padding: 10px 16px;
@@ -424,6 +481,7 @@
 
             /* CLOSING MINIMAL */
             .closing-minimal { padding: 48px; border-radius: 30px; background: white; display: flex; justify-content: space-between; align-items: center; gap: 40px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 30px 80px rgba(0,0,0,0.04); }
+            .closing-supporting-copy { max-width: 720px; margin: 14px 0 0; color: #64748b; line-height: 1.7; }
             .cta-button { padding: 14px 32px; border-radius: 12px; background: #2563eb; color: white; font-weight: 700; text-decoration: none; transition: var(--transition); display: inline-block; }
             .cta-button-secondary { padding: 14px 32px; border-radius: 12px; background: white; border: 1px solid rgba(0,0,0,0.1); color: #0f172a; font-weight: 700; transition: var(--transition); display: inline-block; }
 
