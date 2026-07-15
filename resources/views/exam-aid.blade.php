@@ -1038,6 +1038,372 @@
                     flex-direction: column;
                 }
             }
+
+
+            /* ─── EXAM AID PAGE: RESPONSIVE OVERRIDES ─────────────────── */
+            @media (max-width: 1200px) {
+                .exam-shell-wrapper .exam-hero { gap: 40px; }
+                .exam-shell-wrapper .exam-resource-grid {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+            }
+
+            @media (max-width: 1024px) {
+                .exam-shell-wrapper .exam-hero {
+                    grid-template-columns: 1fr;
+                }
+
+                .exam-shell-wrapper .exam-hero-copy {
+                    max-width: 760px;
+                }
+
+                .exam-shell-wrapper .exam-hero-visual {
+                    min-height: 470px;
+                    max-width: 760px;
+                    width: 100%;
+                    margin: 0 auto;
+                }
+
+                .exam-shell-wrapper .exam-filter-panel {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+
+                .exam-shell-wrapper .exam-filter-actions {
+                    grid-column: 1 / -1;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .exam-shell-wrapper {
+                    padding-top: 64px;
+                    overflow-x: hidden;
+                }
+
+                .exam-shell-wrapper .exam-bg {
+                    height: 620px;
+                }
+
+                .exam-shell-wrapper .exam-orb-one {
+                    width: 320px;
+                    height: 320px;
+                    left: -140px;
+                }
+
+                .exam-shell-wrapper .exam-orb-two {
+                    width: 280px;
+                    height: 280px;
+                    right: -120px;
+                }
+
+                .exam-shell-wrapper .exam-hero {
+                    padding: 42px 16px 54px;
+                    gap: 32px;
+                }
+
+                .exam-shell-wrapper .exam-kicker {
+                    max-width: 100%;
+                    white-space: normal;
+                    line-height: 1.4;
+                }
+
+                .exam-shell-wrapper .exam-hero-title {
+                    font-size: clamp(2.2rem, 11vw, 3rem);
+                    overflow-wrap: anywhere;
+                    margin-bottom: 18px;
+                }
+
+                .exam-shell-wrapper .exam-hero-text {
+                    font-size: 1rem;
+                    line-height: 1.7;
+                    margin-bottom: 28px;
+                    overflow-wrap: anywhere;
+                }
+
+                .exam-shell-wrapper .exam-hero-actions {
+                    flex-direction: column;
+                    align-items: stretch;
+                    gap: 10px;
+                    margin-bottom: 28px;
+                }
+
+                .exam-shell-wrapper .exam-primary-btn,
+                .exam-shell-wrapper .exam-secondary-btn {
+                    width: 100%;
+                    justify-content: center;
+                    text-align: center;
+                    padding: 13px 20px;
+                }
+
+                .exam-shell-wrapper .exam-quick-select {
+                    grid-template-columns: 1fr;
+                    max-width: none;
+                }
+
+                .exam-shell-wrapper .exam-quick-select button {
+                    width: 100%;
+                    min-width: 0;
+                    overflow-wrap: anywhere;
+                }
+
+                .exam-shell-wrapper .exam-hero-visual {
+                    min-height: auto;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 16px;
+                }
+
+                .exam-shell-wrapper .exam-visual-portrait {
+                    width: 100%;
+                }
+
+                .exam-shell-wrapper .ui-illustration-exam {
+                    height: 290px;
+                }
+
+                .exam-shell-wrapper .exam-dashboard-card {
+                    position: relative;
+                    inset: auto;
+                    width: 100%;
+                    margin-top: 0;
+                    padding: 20px;
+                    border-radius: 18px;
+                }
+
+                .exam-shell-wrapper .exam-float-card {
+                    position: relative;
+                    inset: auto;
+                    width: fit-content;
+                    max-width: 100%;
+                    margin: 0;
+                    overflow-wrap: anywhere;
+                }
+
+                .exam-shell-wrapper .exam-float-one {
+                    align-self: flex-start;
+                }
+
+                .exam-shell-wrapper .exam-float-two {
+                    align-self: flex-end;
+                }
+
+                .exam-shell-wrapper .exam-section {
+                    padding: 52px 16px;
+                }
+
+                .exam-shell-wrapper .exam-section-head {
+                    margin-bottom: 30px;
+                }
+
+                .exam-shell-wrapper .exam-section-eyebrow {
+                    max-width: 100%;
+                    white-space: normal;
+                    line-height: 1.4;
+                }
+
+                .exam-shell-wrapper .exam-section-head h2 {
+                    font-size: clamp(1.85rem, 8vw, 2.5rem);
+                    overflow-wrap: anywhere;
+                }
+
+                .exam-shell-wrapper .exam-section-head p {
+                    font-size: 1rem;
+                    line-height: 1.65;
+                    overflow-wrap: anywhere;
+                }
+
+                .exam-shell-wrapper .exam-filter-panel {
+                    grid-template-columns: 1fr;
+                    padding: 18px;
+                    gap: 12px;
+                    border-radius: 18px;
+                }
+
+                .exam-shell-wrapper .exam-field {
+                    min-height: auto;
+                    padding: 14px 16px;
+                    border-radius: 14px;
+                }
+
+                .exam-shell-wrapper .exam-field select,
+                .exam-shell-wrapper .exam-field input {
+                    min-width: 0;
+                    font-size: 16px;
+                }
+
+                .exam-shell-wrapper .exam-filter-actions {
+                    grid-column: auto;
+                    width: 100%;
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+
+                .exam-shell-wrapper .exam-filter-btn,
+                .exam-shell-wrapper .exam-reset-btn {
+                    width: 100%;
+                    text-align: center;
+                    justify-content: center;
+                }
+
+                .exam-shell-wrapper .exam-resource-grid {
+                    grid-template-columns: 1fr;
+                    gap: 16px;
+                }
+
+                .exam-shell-wrapper .exam-subject-card {
+                    min-width: 0;
+                    padding: 20px;
+                    border-radius: 18px;
+                }
+
+                .exam-shell-wrapper .exam-card-top {
+                    flex-wrap: wrap;
+                    align-items: flex-start;
+                }
+
+                .exam-shell-wrapper .exam-card-top > span,
+                .exam-shell-wrapper .exam-difficulty {
+                    max-width: 100%;
+                    overflow-wrap: anywhere;
+                }
+
+                .exam-shell-wrapper .exam-subject-card h3,
+                .exam-shell-wrapper .exam-subject-card p {
+                    overflow-wrap: anywhere;
+                }
+
+                .exam-shell-wrapper .exam-subject-card p {
+                    min-height: 0;
+                }
+
+                .exam-shell-wrapper .exam-card-meta,
+                .exam-shell-wrapper .exam-mini-tags {
+                    gap: 7px;
+                }
+
+                .exam-shell-wrapper .exam-card-actions {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+
+                .exam-shell-wrapper .exam-card-actions button {
+                    width: 100%;
+                }
+
+                .exam-shell-wrapper .exam-material-item {
+                    flex-direction: column;
+                    gap: 10px;
+                    min-width: 0;
+                }
+
+                .exam-shell-wrapper .exam-material-item > div {
+                    min-width: 0;
+                }
+
+                .exam-shell-wrapper .exam-material-item strong,
+                .exam-shell-wrapper .exam-material-action,
+                .exam-shell-wrapper .exam-question-box,
+                .exam-shell-wrapper .exam-note-content {
+                    overflow-wrap: anywhere;
+                }
+
+                .exam-shell-wrapper .exam-material-action a {
+                    display: inline-block;
+                    max-width: 100%;
+                    overflow-wrap: anywhere;
+                }
+
+                .exam-shell-wrapper .exam-embed-content,
+                .exam-shell-wrapper .exam-embed-content iframe,
+                .exam-shell-wrapper .exam-embed-content video,
+                .exam-shell-wrapper .exam-embed-content img {
+                    max-width: 100% !important;
+                    width: 100%;
+                    height: auto;
+                }
+
+                .exam-shell-wrapper .exam-embed-content iframe {
+                    min-height: 220px;
+                }
+
+                .exam-shell-wrapper .exam-empty-state {
+                    padding: 32px 20px;
+                }
+
+                .exam-shell-wrapper .exam-pagination {
+                    overflow-x: auto;
+                    justify-content: flex-start;
+                    padding-bottom: 6px;
+                    -webkit-overflow-scrolling: touch;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .exam-shell-wrapper .exam-hero {
+                    padding: 34px 12px 46px;
+                }
+
+                .exam-shell-wrapper .exam-kicker {
+                    padding: 7px 12px;
+                    font-size: 0.72rem;
+                }
+
+                .exam-shell-wrapper .exam-hero-title {
+                    font-size: clamp(2rem, 12vw, 2.55rem);
+                }
+
+                .exam-shell-wrapper .ui-illustration-exam {
+                    height: 240px;
+                }
+
+                .exam-shell-wrapper .exam-dashboard-card {
+                    padding: 16px;
+                }
+
+                .exam-shell-wrapper .exam-dashboard-top strong {
+                    font-size: 2rem;
+                }
+
+                .exam-shell-wrapper .exam-mini-metrics {
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
+                    gap: 6px;
+                }
+
+                .exam-shell-wrapper .exam-mini-metrics span {
+                    font-size: 0.66rem;
+                }
+
+                .exam-shell-wrapper .exam-section {
+                    padding: 44px 12px;
+                }
+
+                .exam-shell-wrapper .exam-filter-panel,
+                .exam-shell-wrapper .exam-subject-card {
+                    padding: 16px;
+                }
+
+                .exam-shell-wrapper .exam-field {
+                    padding: 13px 14px;
+                }
+
+                .exam-shell-wrapper .exam-card-top {
+                    flex-direction: column;
+                }
+
+                .exam-shell-wrapper .exam-card-meta span,
+                .exam-shell-wrapper .exam-mini-tags span {
+                    max-width: 100%;
+                    overflow-wrap: anywhere;
+                }
+
+                .exam-shell-wrapper .exam-question-box,
+                .exam-shell-wrapper .exam-note-content {
+                    padding: 14px;
+                }
+
+                .exam-shell-wrapper .exam-empty-state {
+                    padding: 28px 16px;
+                }
+            }
         </style>
     @endpush
 @endsection
