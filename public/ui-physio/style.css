@@ -306,8 +306,31 @@ img { max-width: 100%; display: block; }
     gap: 40px;
 }
 .nav-logo {
-    display: flex; align-items: center; gap: 10px;
-    flex-shrink: 0;
+    position: relative;
+    width: 150px;
+    height: 72px;
+    display: block;
+    flex: 0 0 150px;
+    overflow: hidden;
+    line-height: 0;
+}
+
+/*
+ * The uploaded Physio Source logo uses a square transparent canvas.
+ * Render the square artwork larger and crop the transparent top/bottom
+ * inside the fixed navbar slot so the visible horizontal logo is clear.
+ */
+.nav-logo-img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 150px !important;
+    height: 150px !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: contain;
+    display: block;
+    transform: translate(-50%, -45%);
 }
 .logo-icon {
     width: 36px; height: 36px;
@@ -4544,15 +4567,19 @@ img { max-width: 100%; display: block; }
     }
 
     .nav-logo {
-        min-width: 0;
+        width: 128px;
+        height: 64px;
+        flex-basis: 128px;
+        min-width: 128px;
         margin-right: 0 !important;
     }
 
     .nav-logo-img {
-        width: auto !important;
-        height: 48px !important;
-        max-height: 48px !important;
-        max-width: 122px !important;
+        width: 132px !important;
+        height: 132px !important;
+        max-width: none !important;
+        max-height: none !important;
+        transform: translate(-50%, -45%);
     }
 
     .logo-text {
@@ -5178,10 +5205,17 @@ img { max-width: 100%; display: block; }
         padding-inline: 12px;
     }
 
+    .nav-logo {
+        width: 112px;
+        flex-basis: 112px;
+        min-width: 112px;
+    }
+
     .nav-logo-img {
-        max-width: 104px !important;
-        height: 44px !important;
-        max-height: 44px !important;
+        width: 118px !important;
+        height: 118px !important;
+        max-width: none !important;
+        max-height: none !important;
     }
 
     .nav-mobile-actions {
