@@ -90,7 +90,7 @@
 
             @guest
                 @if($results->count() > $visibleResults->count())
-                    <div class="site-search-result-card restricted-search-item mt-3 p-5 text-center d-flex flex-column" style="border: 2px dashed #e2e8f0; background: #f8fbff;">
+                    <div class="site-search-result-card restricted-search-item mt-3 p-5 text-center d-flex flex-column" style="border: 2px dashed #D9D9D9; background: #FFFFFF;">
                         <div class="mb-3"><i class="bi bi-lock-fill display-6 text-primary"></i></div>
                         <h3 class="fw-bold fs-5 mb-2">More results are locked</h3>
                         <p class="text-muted small mb-4 mx-auto" style="max-width: 400px;">We found more relevant topics for your search, but full access is reserved for registered students.</p>
@@ -109,7 +109,7 @@
             /* ─── SEARCH PAGE — FULLY SCOPED ──────────────────────── */
             .site-search-page {
                 min-height: 100vh;
-                background: #fff;
+                background: #FFFFFF;
                 font-family: 'Outfit', sans-serif;
                 padding-top: 72px;
             }
@@ -117,7 +117,7 @@
             .site-search-hero {
                 padding: 80px 24px 60px;
                 text-align: center;
-                background: radial-gradient(circle at 50% 0%, rgba(37,99,235,0.05), transparent 70%);
+                background: radial-gradient(circle at 50% 0%, rgba(0, 74, 173, 0.05), transparent 70%);
             }
 
             .site-search-kicker {
@@ -135,7 +135,7 @@
             .site-search-dot {
                 width: 6px;
                 height: 6px;
-                background: #2563eb;
+                background: #004AAD;
                 border-radius: 50%;
                 display: inline-block;
             }
@@ -163,7 +163,7 @@
                 border-radius: 28px;
                 background: rgba(255,255,255,0.7);
                 backdrop-filter: blur(20px);
-                border: 1px solid rgba(37,99,235,0.1);
+                border: 1px solid rgba(0, 74, 173, 0.1);
                 box-shadow: 0 30px 60px rgba(15,23,42,0.05);
             }
 
@@ -174,13 +174,13 @@
                 background: white;
                 padding: 14px 24px;
                 border-radius: 20px;
-                border: 1px solid rgba(37,99,235,0.15);
+                border: 1px solid rgba(0, 74, 173, 0.15);
                 transition: all 0.3s;
             }
 
             .site-search-input-wrap:focus-within {
-                border-color: #2563eb;
-                box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+                border-color: #004AAD;
+                box-shadow: 0 0 0 4px rgba(0, 74, 173, 0.1);
             }
 
             .site-search-input-wrap svg { color: #94a3b8; flex-shrink: 0; }
@@ -204,7 +204,7 @@
                 white-space: nowrap;
                 padding: 4px 10px;
                 border-radius: 6px;
-                border: 1px solid #e2e8f0;
+                border: 1px solid #D9D9D9;
             }
 
             .site-search-clear:hover { color: #ef4444; border-color: #ef4444; }
@@ -233,9 +233,9 @@
             }
 
             .site-search-filter.active {
-                background: #0f172a;
-                color: white;
-                border-color: #0f172a;
+                background: #004AAD;
+                color: #FFFFFF;
+                border-color: #004AAD;
             }
 
             .site-search-content {
@@ -249,7 +249,7 @@
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 30px;
-                border-bottom: 1px solid #f1f5f9;
+                border-bottom: 1px solid #D9D9D9;
                 padding-bottom: 20px;
             }
 
@@ -266,7 +266,7 @@
             .site-search-toolbar select {
                 padding: 10px 18px;
                 border-radius: 14px;
-                border: 1px solid #e2e8f0;
+                border: 1px solid #D9D9D9;
                 background: white;
                 font-weight: 700;
                 color: #475569;
@@ -287,9 +287,9 @@
             .popular-searches button {
                 padding: 10px 18px;
                 border-radius: 12px;
-                border: 1px solid rgba(37,99,235,0.1);
-                background: rgba(37,99,235,0.03);
-                color: #2563eb;
+                border: 1px solid rgba(0, 74, 173, 0.1);
+                background: rgba(0, 74, 173, 0.03);
+                color: #004AAD;
                 font-weight: 700;
                 font-size: 0.85rem;
                 transition: all 0.2s;
@@ -298,7 +298,7 @@
             }
 
             .popular-searches button:hover {
-                background: #2563eb;
+                background: #004AAD;
                 color: white;
                 transform: translateY(-2px);
             }
@@ -319,14 +319,14 @@
 
             .site-search-result-card:hover {
                 transform: translateX(8px);
-                border-color: #2563eb;
-                box-shadow: 0 20px 40px rgba(37,99,235,0.08);
+                border-color: #004AAD;
+                box-shadow: 0 20px 40px rgba(0, 74, 173, 0.08);
             }
 
             .site-search-result-subject {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #2563eb;
+                color: #004AAD;
                 text-transform: uppercase;
                 letter-spacing: 0.15em;
                 font-family: 'Sora', sans-serif;
@@ -387,13 +387,13 @@
             .site-search-empty a {
                 display: inline-block;
                 padding: 14px 36px;
-                background: #2563eb;
+                background: #004AAD;
                 color: white;
                 border-radius: 16px;
                 text-decoration: none;
                 font-weight: 800;
                 font-family: 'Sora', sans-serif;
-                box-shadow: 0 10px 20px rgba(37,99,235,0.2);
+                box-shadow: 0 10px 20px rgba(0, 74, 173, 0.2);
             }
 
             /* ─── RESPONSIVE ─── */

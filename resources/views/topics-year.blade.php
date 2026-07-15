@@ -236,7 +236,7 @@
                     </div>
 
                     @guest
-                        <div class="typage-subject-panel p-5 text-center mt-4" style="background: linear-gradient(135deg, #fff, #f8fbff); border: 2px dashed #cbd5e1;">
+                        <div class="typage-subject-panel p-5 text-center mt-4" style="background: linear-gradient(135deg, #FFFFFF, #FFFFFF); border: 2px dashed #D9D9D9;">
                             <div class="mb-4">
                                 <i class="bi bi-shield-lock display-4 text-blue-600"></i>
                             </div>
@@ -284,8 +284,8 @@
                 gap: 6px;
                 margin-bottom: 10px;
                 padding: 5px 10px;
-                background: #f4f7fb;
-                border: 1px solid #e4eaf3;
+                background: rgba(217,217,217,0.20);
+                border: 1px solid #D9D9D9;
                 border-radius: 999px;
             }
 
@@ -314,7 +314,7 @@
             /* Subject card */
             .typage-subject-panel {
                 background: white;
-                border: 1px solid #f1f5f9;
+                border: 1px solid #D9D9D9;
                 border-radius: 28px;
                 box-shadow: 0 20px 50px rgba(0, 0, 0, 0.03);
                 padding: 24px;
@@ -323,7 +323,7 @@
             }
 
             .typage-subject-panel:hover {
-                border-color: rgba(37, 99, 235, 0.2);
+                border-color: rgba(0, 74, 173, 0.2);
                 transform: translateY(-4px);
             }
 
@@ -354,7 +354,7 @@
                 width: 48px;
                 height: 48px;
                 border-radius: 16px;
-                background: rgba(37, 99, 235, 0.06);
+                background: rgba(0, 74, 173, 0.06);
                 display: grid;
                 place-items: center;
                 font-size: 1.4rem;
@@ -378,9 +378,9 @@
 
             .typage-unit-select {
                 width: 100%;
-                border: 1px solid #e2e8f0;
-                background: #f3f6f6;
-                color: #0891a6;
+                border: 1px solid #D9D9D9;
+                background: rgba(217,217,217,0.22);
+                color: #004AAD;
                 padding: 14px 16px;
                 border-radius: 8px;
                 font-size: 14px;
@@ -390,8 +390,8 @@
             }
 
             .typage-unit-select:focus {
-                border-color: #0891a6;
-                box-shadow: 0 0 0 3px rgba(8, 145, 166, 0.12);
+                border-color: #004AAD;
+                box-shadow: 0 0 0 3px rgba(0, 74, 173, 0.12);
             }
 
             /* Topic cards: 3 per line inside subject */
@@ -428,8 +428,8 @@
                 flex: 1;
                 min-width: 0;
                 border: 0;
-                background: #f3f6f6;
-                color: #0891a6;
+                background: rgba(217,217,217,0.22);
+                color: #004AAD;
                 padding: 15px 16px;
                 border-radius: 4px;
                 font-size: 14px;
@@ -454,8 +454,8 @@
             }
 
             .typage-directory-item:hover {
-                background: #e0f2f1;
-                color: #047481;
+                background: rgba(0,74,173,0.08);
+                color: #004AAD;
             }
 
             .typage-list-bookmark {
@@ -464,7 +464,7 @@
                 height: auto;
                 border: 0;
                 border-radius: 8px;
-                background: #eef2f7;
+                background: rgba(217,217,217,0.30);
                 color: #64748b;
                 display: flex;
                 align-items: center;
@@ -475,32 +475,32 @@
             }
 
             .typage-list-bookmark:hover {
-                background: #e2e8f0;
-                color: #0891a6;
+                background: #D9D9D9;
+                color: #004AAD;
             }
 
             .typage-list-bookmark.active {
-                background: #fff7ed;
-                color: #f97316;
+                background: rgba(0,74,173,0.10);
+                color: #004AAD;
             }
 
             .typage-subtopic-directory {
                 margin-left: 12px;
                 padding-left: 12px;
-                border-left: 2px dashed #d1d5db;
+                border-left: 2px dashed #D9D9D9;
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
             }
 
             .typage-subtopic-row .typage-directory-item {
-                background: #f8fafc;
+                background: rgba(217,217,217,0.16);
                 font-size: 13px;
                 padding: 12px 14px;
             }
 
             .typage-empty-item {
-                background: #f8fafc;
+                background: rgba(217,217,217,0.16);
                 color: #64748b;
                 padding: 15px 16px;
                 border-radius: 8px;
@@ -510,6 +510,28 @@
 
             .d-none {
                 display: none !important;
+            }
+
+
+            /* ─── PHYSIO SOURCE YEAR TOPICS BRAND OVERRIDES ───────── */
+            .topics-year-page .btn-primary {
+                background-color: #004AAD !important;
+                border-color: #004AAD !important;
+            }
+
+            .topics-year-page .btn-outline-primary {
+                color: #004AAD !important;
+                border-color: #004AAD !important;
+            }
+
+            .topics-year-page .btn-outline-primary:hover {
+                background-color: #004AAD !important;
+                border-color: #004AAD !important;
+                color: #FFFFFF !important;
+            }
+
+            .topics-year-page .text-blue-600 {
+                color: #004AAD !important;
             }
 
             /* Responsive */
@@ -542,7 +564,7 @@
             }
             /* ─── BY YEAR PAGE — FULLY SCOPED ───────────────────── */
             .topics-year-page {
-                background: #fff;
+                background: #FFFFFF;
                 min-height: 100vh;
                 font-family: 'Outfit', sans-serif;
                 padding-top: 72px;
@@ -569,7 +591,7 @@
 
             .typage-card {
                 background: white;
-                border: 1px solid #f1f5f9;
+                border: 1px solid #D9D9D9;
                 border-radius: 24px;
                 padding: 40px 24px;
                 text-align: center;
@@ -580,20 +602,20 @@
             }
             .typage-card:hover {
                 transform: translateY(-8px);
-                border-color: rgba(37,99,235,0.3);
-                box-shadow: 0 20px 40px rgba(37,99,235,0.08);
+                border-color: rgba(0, 74, 173, 0.3);
+                box-shadow: 0 20px 40px rgba(0, 74, 173, 0.08);
             }
             .typage-card.active {
-                border-color: #2563eb;
-                background: rgba(37,99,235,0.02);
-                box-shadow: 0 20px 40px rgba(37,99,235,0.1);
+                border-color: #004AAD;
+                background: rgba(0, 74, 173, 0.02);
+                box-shadow: 0 20px 40px rgba(0, 74, 173, 0.1);
             }
 
             .typage-year-number {
                 font-family: 'Sora', sans-serif;
                 font-size: 3.5rem;
                 font-weight: 900;
-                background: linear-gradient(135deg, #2563eb, #38bdf8);
+                background: linear-gradient(135deg, #004AAD, #004AAD);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
@@ -618,7 +640,7 @@
             .typage-year-info {
                 display: flex;
                 justify-content: space-around;
-                border-top: 1px solid #f1f5f9;
+                border-top: 1px solid #D9D9D9;
                 padding-top: 20px;
             }
             .typage-info-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -631,7 +653,7 @@
             .typage-info-value {
                 font-size: 1.2rem;
                 font-weight: 800;
-                color: #2563eb;
+                color: #004AAD;
                 font-family: 'Sora', sans-serif;
             }
 
@@ -642,7 +664,7 @@
             .typage-hero-card {
                 padding: 50px;
                 border-radius: 40px;
-                border: 1px solid rgba(37,99,235,0.1);
+                border: 1px solid rgba(0, 74, 173, 0.1);
                 background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(239,246,255,0.9));
                 display: flex;
                 align-items: center;
@@ -657,8 +679,8 @@
                 display: inline-block;
                 padding: 8px 18px;
                 border-radius: 999px;
-                background: rgba(37,99,235,0.08);
-                color: #2563eb;
+                background: rgba(0, 74, 173, 0.08);
+                color: #004AAD;
                 font-weight: 800;
                 font-size: 0.8rem;
                 text-transform: uppercase;
@@ -691,7 +713,7 @@
                 background: white;
                 padding: 20px 24px;
                 border-radius: 20px;
-                border: 1px solid #f1f5f9;
+                border: 1px solid #D9D9D9;
                 box-shadow: 0 10px 30px rgba(0,0,0,0.03);
                 min-width: 140px;
             }
@@ -712,9 +734,9 @@
                 width: 400px;
                 height: 350px;
                 flex-shrink: 0;
-                background: rgba(37,99,235,0.02);
+                background: rgba(0, 74, 173, 0.02);
                 border-radius: 32px;
-                border: 1px dashed rgba(37,99,235,0.15);
+                border: 1px dashed rgba(0, 74, 173, 0.15);
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -723,9 +745,9 @@
             .typage-body-map {
                 width: 140px;
                 height: 260px;
-                background: rgba(37,99,235,0.08);
+                background: rgba(0, 74, 173, 0.08);
                 border-radius: 70px 70px 60px 60px;
-                border: 2px solid rgba(37,99,235,0.2);
+                border: 2px solid rgba(0, 74, 173, 0.2);
             }
             .typage-label-pill {
                 position: absolute;
@@ -733,8 +755,8 @@
                 padding: 8px 14px;
                 border-radius: 999px;
                 box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-                border: 1px solid #f1f5f9;
-                color: #2563eb;
+                border: 1px solid #D9D9D9;
+                color: #004AAD;
                 font-weight: 800;
                 font-size: 0.75rem;
                 white-space: nowrap;
@@ -748,14 +770,14 @@
 
             .typage-subject-panel {
                 background: white;
-                border: 1px solid #f1f5f9;
+                border: 1px solid #D9D9D9;
                 border-radius: 32px;
                 box-shadow: 0 20px 50px rgba(0,0,0,0.03);
                 padding: 30px;
                 transition: all 0.3s;
             }
             .typage-subject-panel:hover {
-                border-color: rgba(37,99,235,0.2);
+                border-color: rgba(0, 74, 173, 0.2);
                 transform: translateY(-4px);
             }
 
@@ -781,7 +803,7 @@
                 width: 50px;
                 height: 50px;
                 border-radius: 16px;
-                background: rgba(37,99,235,0.06);
+                background: rgba(0, 74, 173, 0.06);
                 display: grid;
                 place-items: center;
                 font-size: 1.5rem;
@@ -793,20 +815,20 @@
             .typage-topic-chip {
                 padding: 14px 22px;
                 border-radius: 18px;
-                color: #1e40af;
-                background: rgba(37,99,235,0.07);
-                border: 1px solid rgba(37,99,235,0.1);
+                color: #004AAD;
+                background: rgba(0, 74, 173, 0.07);
+                border: 1px solid rgba(0, 74, 173, 0.1);
                 font-weight: 700;
                 text-decoration: none;
                 transition: all 0.2s;
                 font-size: 0.95rem;
             }
             .typage-topic-chip:hover {
-                background: #2563eb;
+                background: #004AAD;
                 color: white;
                 transform: scale(1.05);
-                box-shadow: 0 10px 20px rgba(37,99,235,0.2);
-                border-color: #2563eb;
+                box-shadow: 0 10px 20px rgba(0, 74, 173, 0.2);
+                border-color: #004AAD;
             }
 
             .typage-topic-group {
@@ -819,14 +841,14 @@
                 flex-wrap: wrap;
                 gap: 6px;
                 padding-left: 10px;
-                border-left: 2px solid #f1f5f9;
+                border-left: 2px solid #D9D9D9;
                 margin-bottom: 10px;
             }
             .typage-sub-chip {
                 text-decoration: none;
                 padding: 4px 10px;
-                background: #f8fafc;
-                border: 1px solid #e2e8f0;
+                background: rgba(217,217,217,0.16);
+                border: 1px solid #D9D9D9;
                 border-radius: 8px;
                 font-size: 0.7rem;
                 font-weight: 700;
@@ -835,15 +857,15 @@
             }
             .typage-sub-chip:hover {
                 background: white;
-                border-color: #2563eb;
-                color: #2563eb;
+                border-color: #004AAD;
+                color: #004AAD;
             }
 
             .typage-empty-panel {
                 text-align: center;
                 padding: 100px 40px;
                 background: white;
-                border: 1px solid #f1f5f9;
+                border: 1px solid #D9D9D9;
                 border-radius: 32px;
             }
             .typage-empty-icon { font-size: 4rem; margin-bottom: 24px; }
@@ -861,8 +883,8 @@
             }
             .typage-empty-panel a {
                 padding: 14px 32px;
-                background: rgba(37,99,235,0.08);
-                color: #2563eb;
+                background: rgba(0, 74, 173, 0.08);
+                color: #004AAD;
                 border-radius: 16px;
                 text-decoration: none;
                 font-weight: 800;
@@ -896,8 +918,8 @@
                 cursor: pointer;
                 transition: all 0.2s;
             }
-            .typage-mini-bookmark:hover, .typage-micro-bookmark:hover { color: #2563eb; transform: scale(1.2); }
-            .typage-mini-bookmark.active, .typage-micro-bookmark.active { color: #2563eb; }
+            .typage-mini-bookmark:hover, .typage-micro-bookmark:hover { color: #004AAD; transform: scale(1.2); }
+            .typage-mini-bookmark.active, .typage-micro-bookmark.active { color: #004AAD; }
             .typage-mini-bookmark i { font-size: 1.1rem; }
             .typage-micro-bookmark i { font-size: 0.9rem; }
             .typage-directory-list {
@@ -918,8 +940,8 @@
                 min-width: 0 !important;
                 width: 100% !important;
                 border: 0 !important;
-                background: #f3f6f6 !important;
-                color: #0891a6 !important;
+                background: rgba(217,217,217,0.22) !important;
+                color: #004AAD !important;
                 padding: 15px 16px !important;
                 border-radius: 4px !important;
                 font-size: 14px !important;
@@ -933,7 +955,7 @@
 
             .typage-topic-title {
                 display: inline-block !important;
-                color: #0891a6 !important;
+                color: #004AAD !important;
                 font-size: 14px !important;
                 font-weight: 800 !important;
                 line-height: 1.3 !important;
@@ -944,11 +966,11 @@
             }
 
             .typage-directory-item:hover .typage-topic-title {
-                color: #047481 !important;
+                color: #004AAD !important;
             }
 
             .typage-directory-item i {
-                color: #0891a6 !important;
+                color: #004AAD !important;
                 flex-shrink: 0 !important;
             }
 
@@ -957,7 +979,7 @@
                 min-width: 44px !important;
                 border: 0 !important;
                 border-radius: 8px !important;
-                background: #eef2f7 !important;
+                background: rgba(217,217,217,0.30) !important;
                 color: #64748b !important;
                 display: flex !important;
                 align-items: center !important;
@@ -966,8 +988,8 @@
             }
 
             .typage-list-bookmark.active {
-                background: #fff7ed !important;
-                color: #f97316 !important;
+                background: rgba(0,74,173,0.10) !important;
+                color: #004AAD !important;
             }
 
             @media (max-width: 600px) {
