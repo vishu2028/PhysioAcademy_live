@@ -41,10 +41,10 @@
                     <div class="tab-pane fade show active" id="general" role="tabpanel">
                         <h5 class="fw-bold mb-4">General Configuration</h5>
                         <div class="row g-3">
-{{--                            <div class="col-md-6">--}}
-{{--                                <label class="form-label small fw-bold text-muted">Site Name</label>--}}
-{{--                                <input type="text" name="settings[site_name]" class="form-control rounded-3" value="{{ get_setting('site_name') }}">--}}
-{{--                            </div>--}}
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Site Name</label>
+                                <input type="text" name="settings[site_name]" class="form-control rounded-3" value="{{ get_setting('site_name') }}">
+                            </div>
                             <div class="col-md-12">
                                 <label class="form-label small fw-bold text-muted">Contact Email</label>
                                 <input type="email" name="settings[contact_email]" class="form-control rounded-3" value="{{ get_setting('contact_email') }}">
