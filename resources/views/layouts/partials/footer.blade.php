@@ -56,9 +56,13 @@
 
         <div class="footer-column footer-contact">
             <h3>Contact</h3>
-            <a href="{{ get_setting('contact_url', 'https://www.physioacademy.com') }}">
+            @php
+                $contactUrl = get_setting('contact_url', 'https://www.physioacademy.com');
+            @endphp
+
+            <a href="{{ $contactUrl }}" target="_blank" rel="noopener noreferrer">
                 <span>URL</span>
-                {{ get_setting('contact_url_display', 'www.physioacademy.com') }}
+                {{ preg_replace('#^https?://#', '', rtrim($contactUrl, '/')) }}
             </a>
             <a href="mailto:{{ get_setting('contact_email', 'support@physioacademy.com') }}">
                 <span>Email</span>

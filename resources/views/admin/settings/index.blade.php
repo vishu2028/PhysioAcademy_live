@@ -59,6 +59,16 @@
                                     placeholder="+91 98765 43210"
                                 >
                             </div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold text-muted">Contact URL</label>
+                                <input
+                                    type="url"
+                                    name="settings[contact_url]"
+                                    class="form-control rounded-3"
+                                    value="{{ old('settings.contact_url', get_setting('contact_url', 'https://www.physioacademy.com')) }}"
+                                    placeholder="https://www.physioacademy.com"
+                                >
+                            </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold text-muted">Footer Description</label>
                                 <textarea name="settings[footer_text]" class="form-control rounded-3" rows="3">{{ get_setting('footer_text') }}</textarea>
