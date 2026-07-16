@@ -22,6 +22,14 @@
                 <a class="list-group-item list-group-item-action py-3 border-0" id="landing-tab" data-bs-toggle="list" href="#landing" role="tab">
                     <i class="bi bi-window-sidebar me-2"></i> Landing Page
                 </a>
+                <a class="list-group-item list-group-item-action py-3 border-0"
+                   id="doubt-session-tab"
+                   data-bs-toggle="list"
+                   href="#doubt-session"
+                   role="tab">
+                    <i class="bi bi-camera-video me-2"></i>
+                    Doubt Sessions
+                </a>
                 <a class="list-group-item list-group-item-action py-3 border-0" id="social-tab" data-bs-toggle="list" href="#social" role="tab">
                     <i class="bi bi-share me-2"></i> Social Links
                 </a>
@@ -164,6 +172,245 @@
                             </div>
                         </div>
                     </div>
+                    <!-- One-on-One Doubt Session -->
+                    <div class="tab-pane fade"
+                         id="doubt-session"
+                         role="tabpanel"
+                         aria-labelledby="doubt-session-tab">
+
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-1">
+                                    One-on-One Doubt Session
+                                </h5>
+
+                                <p class="text-secondary small mb-0">
+                                    Manage session availability, pricing and duration.
+                                </p>
+                            </div>
+
+                            <span class="badge rounded-pill px-3 py-2
+            {{ get_setting('doubt_session_enabled', '0') == '1'
+                ? 'bg-success-subtle text-success'
+                : 'bg-secondary-subtle text-secondary' }}">
+
+            {{ get_setting('doubt_session_enabled', '0') == '1'
+                ? 'Sessions Enabled'
+                : 'Sessions Disabled' }}
+        </span>
+                        </div>
+
+                        <div class="row g-4">
+                            <!-- Enable / Disable -->
+                            <div class="col-12">
+                                <div class="p-4 rounded-4 border bg-light">
+                                    <div class="form-check form-switch mb-2">
+                                        <input
+                                            type="hidden"
+                                            name="settings[doubt_session_enabled]"
+                                            value="0"
+                                        >
+
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="settings[doubt_session_enabled]"
+                                            id="doubtSessionEnabled"
+                                            value="1"
+                                            {{ old(
+                                                'settings.doubt_session_enabled',
+                                                get_setting('doubt_session_enabled', '0')
+                                            ) == '1' ? 'checked' : '' }}
+                                        >
+
+                                        <label
+                                            class="form-check-label fw-bold"
+                                            for="doubtSessionEnabled"
+                                        >
+                                            Enable One-on-One Doubt Sessions
+                                        </label>
+                                    </div>
+
+                                    <div class="small text-muted">
+                                        When disabled, students will not be able to create
+                                        new one-on-one session bookings.
+                                    </div>
+
+                                    @error('settings.doubt_session_enabled')
+                                    <div class="text-danger small mt-2">
+                                        {{ $message }}
+                                    </div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- Free Session -->
+                            <div class="col-12">
+                                <div class="p-4 rounded-4 border">
+                                    <div class="form-check form-switch mb-2">
+                                        <input
+                                            type="hidden"
+                                            name="settings[doubt_session_is_free]"
+                                            value="0"
+                                        >
+
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="settings[doubt_session_is_free]"
+                                            id="doubtSessionIsFree"
+                                            value="1"
+                                            {{ old(
+                                                'settings.doubt_session_is_free',
+                                                get_setting('doubt_session_is_free', '0')
+                                            ) == '1' ? 'checked' : '' }}
+                                        >
+
+                                        <label
+                                            class="form-check-label fw-bold"
+                                            for="doubtSessionIsFree"
+                                        >
+                                            Offer This Session for Free
+                                        </label>
+                                    </div>
+
+                                    <div class="small text-muted">
+                                        Free sessions will be booked without opening the
+                                        Razorpay payment gateway.
+                                    </div>
+
+                                    @error('settings.doubt_session_is_free')
+                                    <div class="text-danger small mt-2">
+                                        {{ $message }}
+                                    </div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- Price -->
+                            <div class="col-md-6">
+                                <div id="doubtSessionPriceWrapper">
+                                    <label
+                                        for="doubtSessionPrice"
+                                        class="form-label small fw-bold text-muted"
+                                    >
+                                        Session Price (₹)
+                                    </label>
+
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+
+                                        <input
+                                            type="number"
+                                            name="settings[doubt_session_price]"
+                                            id="doubtSessionPrice"
+                                            class="form-control rounded-end-3
+                            @error('settings.doubt_session_price')
+                                is-invalid
+                            @enderror"
+                                            value="{{ old(
+                            'settings.doubt_session_price',
+                            get_setting('doubt_session_price')
+                        ) }}"
+                                            min="1"
+                                            max="100000"
+                                            step="0.01"
+                                            placeholder="For example: 100"
+                                        >
+
+                                        @error('settings.doubt_session_price')
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="form-text">
+                                        This amount will later be charged through Razorpay
+                                        for paid sessions.
+                                    </div>
+
+                                    <div
+                                        id="freeSessionPriceMessage"
+                                        class="alert alert-info border-0 rounded-3 small mt-3 mb-0 d-none"
+                                    >
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Price is not required because this session is free.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Duration -->
+                            <div class="col-md-6">
+                                <label
+                                    for="doubtSessionDuration"
+                                    class="form-label small fw-bold text-muted"
+                                >
+                                    Session Duration
+                                </label>
+
+                                <div class="input-group">
+                                    <input
+                                        type="number"
+                                        name="settings[doubt_session_duration_minutes]"
+                                        id="doubtSessionDuration"
+                                        class="form-control
+                        @error('settings.doubt_session_duration_minutes')
+                            is-invalid
+                        @enderror"
+                                        value="{{ old(
+                        'settings.doubt_session_duration_minutes',
+                        get_setting(
+                            'doubt_session_duration_minutes',
+                            '60'
+                        )
+                    ) }}"
+                                        min="15"
+                                        max="480"
+                                        step="15"
+                                        placeholder="60"
+                                    >
+
+                                    <span class="input-group-text">
+                    Minutes
+                </span>
+
+                                    @error('settings.doubt_session_duration_minutes')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                    @enderror
+                                </div>
+
+                                <div class="form-text">
+                                    The admin will confirm the actual session date and time
+                                    after the booking is submitted.
+                                </div>
+                            </div>
+
+                            <!-- Flow Information -->
+                            <div class="col-12">
+                                <div class="alert alert-primary border-0 rounded-4 mb-0">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <i class="bi bi-diagram-3-fill fs-4"></i>
+
+                                        <div>
+                                            <div class="fw-bold mb-1">
+                                                Booking Flow
+                                            </div>
+
+                                            <div class="small">
+                                                Free sessions will be submitted directly.
+                                                Paid sessions will require Razorpay payment.
+                                                The admin will confirm the session date,
+                                                time and meeting details afterward.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Social Links -->
                     <div class="tab-pane fade" id="social" role="tabpanel">
                         <h5 class="fw-bold mb-4">Social Links</h5>
@@ -286,3 +533,53 @@
     </div>
 </div>
 @endsection
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const freeSessionCheckbox = document.getElementById(
+            'doubtSessionIsFree'
+        );
+
+        const priceInput = document.getElementById(
+            'doubtSessionPrice'
+        );
+
+        const priceWrapper = document.getElementById(
+            'doubtSessionPriceWrapper'
+        );
+
+        const freePriceMessage = document.getElementById(
+            'freeSessionPriceMessage'
+        );
+
+        if (!freeSessionCheckbox || !priceInput) {
+            return;
+        }
+
+        function updateDoubtSessionPriceField() {
+            const isFree = freeSessionCheckbox.checked;
+
+            priceInput.disabled = isFree;
+
+            if (priceWrapper) {
+                priceWrapper.classList.toggle(
+                    'opacity-50',
+                    isFree
+                );
+            }
+
+            if (freePriceMessage) {
+                freePriceMessage.classList.toggle(
+                    'd-none',
+                    !isFree
+                );
+            }
+        }
+
+        freeSessionCheckbox.addEventListener(
+            'change',
+            updateDoubtSessionPriceField
+        );
+
+        updateDoubtSessionPriceField();
+    });
+</script>
