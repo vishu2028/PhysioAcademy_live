@@ -380,6 +380,31 @@
                         <span class="badge bg-danger ms-auto rounded-pill">{{ $pendingDoubts }}</span>
                     @endif
                 </a>
+                @php
+                    $pendingDoubtSessions =
+                        \App\Models\DoubtSessionBooking::where(
+                            'booking_status',
+                            \App\Models\DoubtSessionBooking::STATUS_PENDING_SCHEDULE
+                        )->count();
+                @endphp
+
+                <a
+                    href="{{ route('admin.doubt-session-bookings.index') }}"
+                    class="nav-link-admin @if(
+        request()->routeIs(
+            'admin.doubt-session-bookings.*'
+        )
+    ) active @endif"
+                >
+                    <i class="bi bi-camera-video"></i>
+                    Doubt Sessions
+
+                    @if($pendingDoubtSessions > 0)
+                        <span class="badge bg-danger ms-auto rounded-pill">
+            {{ $pendingDoubtSessions }}
+        </span>
+                    @endif
+                </a>
                 <a href="{{ route('admin.users.index') }}" class="nav-link-admin @if(request()->routeIs('admin.users.*')) active @endif">
                     <i class="bi bi-people"></i> User Management
                 </a>
