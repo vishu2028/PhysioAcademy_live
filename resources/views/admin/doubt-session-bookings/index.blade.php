@@ -36,6 +36,37 @@
                 'class' => 'summary-success',
             ],
         ];
+
+        $revenueCards = [
+            [
+                'label' => 'Daily Revenue',
+                'period' => 'Today',
+                'value' => $revenues['daily'],
+                'icon' => 'bi-cash-stack',
+                'class' => 'revenue-daily',
+            ],
+            [
+                'label' => 'Weekly Revenue',
+                'period' => 'Current Week',
+                'value' => $revenues['weekly'],
+                'icon' => 'bi-calendar-week',
+                'class' => 'revenue-weekly',
+            ],
+            [
+                'label' => 'Monthly Revenue',
+                'period' => 'Current Month',
+                'value' => $revenues['monthly'],
+                'icon' => 'bi-calendar3',
+                'class' => 'revenue-monthly',
+            ],
+            [
+                'label' => 'Yearly Revenue',
+                'period' => 'Current Year',
+                'value' => $revenues['yearly'],
+                'icon' => 'bi-graph-up-arrow',
+                'class' => 'revenue-yearly',
+            ],
+        ];
     @endphp
 
     <div class="doubt-sessions-admin-page">
@@ -96,6 +127,65 @@
                     </div>
                 </div>
             @endforeach
+        </div>
+        {{-- Revenue summary --}}
+        <div class="revenue-overview-section">
+            <div class="revenue-section-heading">
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        Revenue Overview
+                    </h5>
+
+                    <p class="text-secondary mb-0">
+                        Revenue from successfully paid doubt sessions.
+                    </p>
+                </div>
+
+                <div class="revenue-currency-label">
+                    <i class="bi bi-currency-rupee"></i>
+                    INR
+                </div>
+            </div>
+
+            <div class="revenue-summary-grid">
+                @foreach($revenueCards as $card)
+                    <div
+                        class="revenue-summary-card {{ $card['class'] }}"
+                    >
+                        <div class="revenue-card-top">
+                            <div>
+                                <div class="revenue-card-label">
+                                    {{ $card['label'] }}
+                                </div>
+
+                                <div class="revenue-card-period">
+                                    {{ $card['period'] }}
+                                </div>
+                            </div>
+
+                            <div class="revenue-card-icon">
+                                <i class="bi {{ $card['icon'] }}"></i>
+                            </div>
+                        </div>
+
+                        <div class="revenue-card-value">
+                    <span class="revenue-currency-symbol">
+                        ₹
+                    </span>
+
+                            {{ number_format(
+                                (float) $card['value'],
+                                2
+                            ) }}
+                        </div>
+
+                        <div class="revenue-card-footer">
+                            <i class="bi bi-check-circle-fill"></i>
+                            Paid bookings only
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         </div>
 
         {{-- Filters --}}
@@ -763,6 +853,167 @@
     @push('styles')
         <style>
             /*
+ * Revenue overview
+ */
+            .revenue-overview-section {
+                margin-bottom: 24px;
+            }
+
+            .revenue-section-heading {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 20px;
+                margin-bottom: 16px;
+            }
+
+            .revenue-section-heading h5 {
+                color: #0F172A;
+            }
+
+            .revenue-section-heading p {
+                font-size: 0.86rem;
+            }
+
+            .revenue-currency-label {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                min-height: 35px;
+                padding: 0 12px;
+                border-radius: 999px;
+                background: rgba(0, 74, 173, 0.08);
+                color: #004AAD;
+                font-size: 0.78rem;
+                font-weight: 800;
+            }
+
+            .revenue-summary-grid {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 16px;
+            }
+
+            .revenue-summary-card {
+                position: relative;
+                min-width: 0;
+                overflow: hidden;
+                padding: 22px;
+                border: 1px solid rgba(15, 23, 42, 0.05);
+                border-radius: 20px;
+                background: #FFFFFF;
+                box-shadow: 0 8px 25px rgba(15, 23, 42, 0.06);
+            }
+
+            .revenue-summary-card::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 4px;
+                background: #004AAD;
+            }
+
+            .revenue-card-top {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 14px;
+                margin-bottom: 22px;
+            }
+
+            .revenue-card-label {
+                margin-bottom: 4px;
+                color: #334155;
+                font-size: 0.9rem;
+                font-weight: 750;
+            }
+
+            .revenue-card-period {
+                color: #94A3B8;
+                font-size: 0.72rem;
+                font-weight: 600;
+            }
+
+            .revenue-card-icon {
+                width: 46px;
+                height: 46px;
+                flex: 0 0 46px;
+                display: grid;
+                place-items: center;
+                border-radius: 14px;
+                background: rgba(0, 74, 173, 0.10);
+                color: #004AAD;
+                font-size: 1.15rem;
+            }
+
+            .revenue-card-value {
+                display: flex;
+                align-items: baseline;
+                margin-bottom: 13px;
+                color: #0F172A;
+                font-size: clamp(1.45rem, 2vw, 2rem);
+                font-weight: 850;
+                line-height: 1;
+                letter-spacing: -0.03em;
+                overflow-wrap: anywhere;
+            }
+
+            .revenue-currency-symbol {
+                margin-right: 3px;
+                font-size: 0.7em;
+            }
+
+            .revenue-card-footer {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                color: #64748B;
+                font-size: 0.7rem;
+                font-weight: 650;
+            }
+
+            .revenue-card-footer i {
+                color: #16A34A;
+            }
+
+            .revenue-daily::before {
+                background: #004AAD;
+            }
+
+            .revenue-daily .revenue-card-icon {
+                background: rgba(0, 74, 173, 0.10);
+                color: #004AAD;
+            }
+
+            .revenue-weekly::before {
+                background: #7C3AED;
+            }
+
+            .revenue-weekly .revenue-card-icon {
+                background: rgba(124, 58, 237, 0.10);
+                color: #7C3AED;
+            }
+
+            .revenue-monthly::before {
+                background: #0284C7;
+            }
+
+            .revenue-monthly .revenue-card-icon {
+                background: rgba(2, 132, 199, 0.10);
+                color: #0284C7;
+            }
+
+            .revenue-yearly::before {
+                background: #15803D;
+            }
+
+            .revenue-yearly .revenue-card-icon {
+                background: rgba(21, 128, 61, 0.10);
+                color: #15803D;
+            }
+            /*
              * Prevent the admin flex content area from growing
              * wider than the visible screen.
              */
@@ -1271,6 +1522,9 @@
             }
 
             @media (max-width: 1199.98px) {
+                .revenue-summary-grid {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
                 .booking-summary-grid {
                     grid-template-columns: repeat(2, minmax(0, 1fr));
                 }
@@ -1285,6 +1539,13 @@
             }
 
             @media (max-width: 767.98px) {
+                .revenue-section-heading {
+                    align-items: flex-start;
+                }
+
+                .revenue-summary-card {
+                    padding: 18px;
+                }
                 .page-heading-section h2 {
                     font-size: 1.6rem;
                 }
@@ -1324,6 +1585,13 @@
             }
 
             @media (max-width: 575.98px) {
+                .revenue-section-heading {
+                    flex-direction: column;
+                }
+
+                .revenue-summary-grid {
+                    grid-template-columns: 1fr;
+                }
                 .booking-summary-grid {
                     grid-template-columns: 1fr;
                 }

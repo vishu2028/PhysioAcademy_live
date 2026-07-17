@@ -6,9 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\DoubtSessionBooking;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
+use App\Notifications\DoubtSessionStatusUpdated;
+use Illuminate\Support\Facades\DB;
 
 class DoubtSessionBookingController extends Controller
 {
+    /**
+     * Display all one-on-one session bookings.
+     */
     /**
      * Display all one-on-one session bookings.
      */
@@ -65,6 +71,9 @@ class DoubtSessionBookingController extends Controller
         $sessionType =
             $validated['session_type'] ?? null;
 
+        /*
+         * Filtered and paginated booking records.
+         */
         $bookings = DoubtSessionBooking::query()
             ->with([
                 'user',
@@ -151,39 +160,207 @@ class DoubtSessionBookingController extends Controller
             ->paginate(20)
             ->withQueryString();
 
+        /*
+         * Calculate all booking status counts using one query.
+         */
+        $countSummary = DoubtSessionBooking::query()
+            ->selectRaw(
+                'COUNT(*) AS total_count'
+            )
+            ->selectRaw(
+                '
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN booking_status = ?
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS pending_payment_count
+            ',
+                [
+                    DoubtSessionBooking::STATUS_PENDING_PAYMENT,
+                ]
+            )
+            ->selectRaw(
+                '
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN booking_status = ?
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS pending_schedule_count
+            ',
+                [
+                    DoubtSessionBooking::STATUS_PENDING_SCHEDULE,
+                ]
+            )
+            ->selectRaw(
+                '
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN booking_status = ?
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS confirmed_count
+            ',
+                [
+                    DoubtSessionBooking::STATUS_CONFIRMED,
+                ]
+            )
+            ->selectRaw(
+                '
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN booking_status = ?
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS completed_count
+            ',
+                [
+                    DoubtSessionBooking::STATUS_COMPLETED,
+                ]
+            )
+            ->first();
+
         $counts = [
-            'all' => DoubtSessionBooking::count(),
+            'all' =>
+                (int) ($countSummary->total_count ?? 0),
 
             'pending_payment' =>
-                DoubtSessionBooking::where(
-                    'booking_status',
-                    DoubtSessionBooking::STATUS_PENDING_PAYMENT
-                )->count(),
+                (int) ($countSummary->pending_payment_count ?? 0),
 
             'pending_schedule' =>
-                DoubtSessionBooking::where(
-                    'booking_status',
-                    DoubtSessionBooking::STATUS_PENDING_SCHEDULE
-                )->count(),
+                (int) ($countSummary->pending_schedule_count ?? 0),
 
             'confirmed' =>
-                DoubtSessionBooking::where(
-                    'booking_status',
-                    DoubtSessionBooking::STATUS_CONFIRMED
-                )->count(),
+                (int) ($countSummary->confirmed_count ?? 0),
 
             'completed' =>
-                DoubtSessionBooking::where(
-                    'booking_status',
-                    DoubtSessionBooking::STATUS_COMPLETED
-                )->count(),
+                (int) ($countSummary->completed_count ?? 0),
+        ];
+
+        /*
+         * Revenue period boundaries.
+         *
+         * Week starts from Monday.
+         */
+        $now = now();
+
+        $todayStart =
+            $now->copy()->startOfDay();
+
+        $weekStart =
+            $now->copy()->startOfWeek(Carbon::MONDAY);
+
+        $monthStart =
+            $now->copy()->startOfMonth();
+
+        $yearStart =
+            $now->copy()->startOfYear();
+
+        /*
+         * Calculate all four revenue figures using one query.
+         *
+         * Only verified paid INR bookings are counted.
+         */
+        $revenueSummary = DoubtSessionBooking::query()
+            ->where(
+                'payment_status',
+                DoubtSessionBooking::PAYMENT_PAID
+            )
+            ->where('currency', 'INR')
+            ->whereNotNull('paid_at')
+            ->where('paid_at', '<=', $now)
+            ->selectRaw(
+                '
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN paid_at >= ?
+                            THEN amount
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS daily_revenue,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN paid_at >= ?
+                            THEN amount
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS weekly_revenue,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN paid_at >= ?
+                            THEN amount
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS monthly_revenue,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN paid_at >= ?
+                            THEN amount
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS yearly_revenue
+            ',
+                [
+                    $todayStart,
+                    $weekStart,
+                    $monthStart,
+                    $yearStart,
+                ]
+            )
+            ->first();
+
+        $revenues = [
+            'daily' =>
+                (float) ($revenueSummary->daily_revenue ?? 0),
+
+            'weekly' =>
+                (float) ($revenueSummary->weekly_revenue ?? 0),
+
+            'monthly' =>
+                (float) ($revenueSummary->monthly_revenue ?? 0),
+
+            'yearly' =>
+                (float) ($revenueSummary->yearly_revenue ?? 0),
         ];
 
         return view(
             'admin.doubt-session-bookings.index',
             compact(
                 'bookings',
-                'counts'
+                'counts',
+                'revenues'
             )
         );
     }
@@ -216,6 +393,11 @@ class DoubtSessionBookingController extends Controller
         Request $request,
         DoubtSessionBooking $doubtSessionBooking
     ) {
+        $previousStatus =
+            $doubtSessionBooking->booking_status;
+
+        $student =
+            $doubtSessionBooking->user;
         $validated = $request->validate([
             'booking_status' => [
                 'required',
@@ -387,7 +569,34 @@ class DoubtSessionBookingController extends Controller
             $data['confirmed_by'] = null;
         }
 
-        $doubtSessionBooking->update($data);
+        DB::transaction(function () use (
+            $doubtSessionBooking,
+            $data,
+            $student,
+            $previousStatus,
+            $newStatus
+        ) {
+            $doubtSessionBooking->update(
+                $data
+            );
+
+            /*
+             * Only create a notification when the booking status
+             * has actually changed.
+             */
+            if (
+                $student
+                && $previousStatus !== $newStatus
+            ) {
+                $student->notify(
+                    new DoubtSessionStatusUpdated(
+                        booking: $doubtSessionBooking,
+                        previousStatus: $previousStatus,
+                        newStatus: $newStatus
+                    )
+                );
+            }
+        });
 
         return redirect()
             ->route(

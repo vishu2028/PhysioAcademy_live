@@ -323,163 +323,346 @@
         <div class="nav-cta">
             @auth
                 @role('super_admin|admin')
-                <a href="{{ route('admin.dashboard') }}" class="btn-ghost">Admin</a>
+                <a
+                    href="{{ route('admin.dashboard') }}"
+                    class="btn-ghost"
+                >
+                    Admin
+                </a>
                 @endrole
-                {{--        <form action="{{ route('logout') }}" method="POST" class="d-inline">--}}
-                {{--            @csrf--}}
-                {{--            <button type="submit" class="btn-primary-nav" style="border:none; cursor:pointer;">Logout</button>--}}
-                {{--        </form>--}}
-                @auth
-                    @php
-                        $user = auth()->user();
 
-                        $name = trim($user->name ?? '');
-                        $email = trim($user->email ?? '');
-                        $emailName = explode('@', $email ?: 'user')[0];
+                @php
+                    $user = auth()->user();
 
-                        $displayName = $name ?: ucfirst($emailName);
+                    $name = trim($user->name ?? '');
+                    $email = trim($user->email ?? '');
+                    $emailName = explode(
+                        '@',
+                        $email ?: 'user'
+                    )[0];
 
-                        $parts = preg_split('/\s+/', $displayName);
+                    $displayName =
+                        $name ?: ucfirst($emailName);
 
-                        if (count($parts) >= 2) {
-                            $initials = strtoupper(
-                                mb_substr($parts[0], 0, 1) . mb_substr($parts[1], 0, 1)
-                            );
-                        } else {
-                            $initials = strtoupper(mb_substr($parts[0] ?? 'U', 0, 2));
-                        }
-                    @endphp
+                    $parts = preg_split(
+                        '/\s+/',
+                        $displayName
+                    );
 
-                    <div class="nav-user-menu">
-                        <button type="button" class="nav-user-avatar">
-                            {{ $initials }}
+                    if (count($parts) >= 2) {
+                        $initials = strtoupper(
+                            mb_substr($parts[0], 0, 1)
+                            . mb_substr($parts[1], 0, 1)
+                        );
+                    } else {
+                        $initials = strtoupper(
+                            mb_substr(
+                                $parts[0] ?? 'U',
+                                0,
+                                2
+                            )
+                        );
+                    }
+
+                    $isStudent = ! $user->hasAnyRole([
+                        'super_admin',
+                        'admin',
+                    ]);
+
+                    $recentNotifications = collect();
+                    $unreadNotificationCount = 0;
+
+                    if ($isStudent) {
+                        $recentNotifications = $user
+                            ->notifications()
+                            ->latest()
+                            ->limit(6)
+                            ->get();
+
+                        $unreadNotificationCount = $user
+                            ->unreadNotifications()
+                            ->count();
+                    }
+                @endphp
+
+                {{-- Student notification bell --}}
+                @if($isStudent)
+                    <div
+                        class="student-notification-menu"
+                        data-notification-menu
+                    >
+                        <button
+                            type="button"
+                            class="student-notification-button"
+                            data-notification-toggle
+                            aria-label="Open notifications"
+                            aria-expanded="false"
+                        >
+                            <i class="bi bi-bell"></i>
+
+                            @if($unreadNotificationCount > 0)
+                                <span class="student-notification-count">
+                            {{ $unreadNotificationCount > 99
+                                ? '99+'
+                                : $unreadNotificationCount }}
+                        </span>
+                            @endif
                         </button>
 
-                        <div class="nav-user-dropdown">
-                            <div class="nav-user-dropdown-card">
+                        <div
+                            class="student-notification-dropdown"
+                            data-notification-dropdown
+                        >
+                            <div class="student-notification-header">
+                                <div>
+                                    <strong>Notifications</strong>
 
-                                <div class="nav-user-info">
-                                    <div class="nav-user-info-avatar">
-                                        {{ $initials }}
-                                    </div>
-
-                                    <div class="nav-user-info-text">
-                                        <strong title="{{ $displayName }}">
-                                            {{ $displayName }}
-                                        </strong>
-
-                                        <span title="{{ $email }}">
-                            {{ $email ?: 'No email available' }}
-                        </span>
-                                    </div>
+                                    <span>
+                                {{ $unreadNotificationCount }}
+                                unread
+                            </span>
                                 </div>
 
-                                <div class="nav-user-divider"></div>
+                                <i class="bi bi-bell-fill"></i>
+                            </div>
 
-                                @if(! auth()->user()->hasAnyRole(['super_admin', 'admin']))
-                                    <a
-                                        href="{{ route('doubt-sessions.history') }}"
-                                        class="nav-user-menu-link
-            {{ request()->routeIs('doubt-sessions.history') ? 'active' : '' }}"
+                            <div class="student-notification-list">
+                                @forelse(
+                                    $recentNotifications
+                                    as $notification
+                                )
+                                    @php
+                                        $notificationData =
+                                            $notification->data;
+
+                                        $notificationTitle =
+                                            $notificationData['title']
+                                            ?? 'Doubt Session Updated';
+
+                                        $notificationMessage =
+                                            $notificationData['message']
+                                            ?? 'Your doubt session booking has been updated.';
+
+                                        $notificationStatus =
+                                            $notificationData['booking_status']
+                                            ?? null;
+                                    @endphp
+
+                                    <form
+                                        action="{{ route(
+                                    'notifications.open',
+                                    $notification->id
+                                ) }}"
+                                        method="POST"
+                                        class="student-notification-form"
                                     >
-                                        <svg
-                                            width="17"
-                                            height="17"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            aria-hidden="true"
+                                        @csrf
+
+                                        <button
+                                            type="submit"
+                                            class="student-notification-item
+                                        {{ $notification->unread()
+                                            ? 'is-unread'
+                                            : '' }}"
                                         >
-                                            <path
-                                                d="M3 12a9 9 0 1 0 3-6.708"
-                                                stroke="currentColor"
-                                                stroke-width="2"
-                                                stroke-linecap="round"
-                                            />
+                                    <span class="notification-item-icon">
+                                        <i class="bi bi-calendar-check"></i>
+                                    </span>
 
-                                            <path
-                                                d="M3 4v5h5"
-                                                stroke="currentColor"
-                                                stroke-width="2"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                            />
+                                            <span class="notification-item-content">
+                                        <strong>
+                                            {{ $notificationTitle }}
+                                        </strong>
 
-                                            <path
-                                                d="M12 7v5l3 2"
-                                                stroke="currentColor"
-                                                stroke-width="2"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                            />
-                                        </svg>
+                                        <span class="notification-item-message">
+                                            {{ $notificationMessage }}
+                                        </span>
 
-                                        <span>Doubt Session History</span>
-                                    </a>
+                                        <span class="notification-item-time">
+                                            {{ $notification
+                                                ->created_at
+                                                ->diffForHumans() }}
+                                        </span>
+                                    </span>
 
-                                    <div class="nav-user-divider"></div>
-                                @endif
+                                            @if($notification->unread())
+                                                <span
+                                                    class="notification-unread-dot"
+                                                    aria-label="Unread"
+                                                ></span>
+                                            @endif
+                                        </button>
+                                    </form>
+                                @empty
+                                    <div class="student-notification-empty">
+                                        <i class="bi bi-bell-slash"></i>
 
-                                <form
-                                    action="{{ route('logout') }}"
-                                    method="POST"
-                                    class="nav-user-logout-form"
-                                >
-                                    @csrf
+                                        <strong>
+                                            No notifications
+                                        </strong>
 
-                                    <button type="submit" class="nav-user-logout-btn">
-                                        <svg
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                        >
-                                            <path
-                                                d="M15 17L20 12L15 7"
-                                                stroke="currentColor"
-                                                stroke-width="2"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                            />
+                                        <span>
+                                    Booking updates will appear here.
+                                </span>
+                                    </div>
+                                @endforelse
+                            </div>
 
-                                            <path
-                                                d="M20 12H9"
-                                                stroke="currentColor"
-                                                stroke-width="2"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                            />
+                            <a
+                                href="{{ route('doubt-sessions.history') }}"
+                                class="student-notification-footer"
+                            >
+                                View Doubt Session History
 
-                                            <path
-                                                d="M12 19H6C4.89543 19 4 18.1046 4 17V7C4 5.89543 4.89543 5 6 5H12"
-                                                stroke="currentColor"
-                                                stroke-width="2"
-                                                stroke-linecap="round"
-                                            />
-                                        </svg>
-
-                                        <span>Logout</span>
-                                    </button>
-                                </form>
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
-                @endauth
+                @endif
+
+                {{-- User profile menu --}}
+                <div class="nav-user-menu">
+                    <button
+                        type="button"
+                        class="nav-user-avatar"
+                    >
+                        {{ $initials }}
+                    </button>
+
+                    <div class="nav-user-dropdown">
+                        <div class="nav-user-dropdown-card">
+                            <div class="nav-user-info">
+                                <div class="nav-user-info-avatar">
+                                    {{ $initials }}
+                                </div>
+
+                                <div class="nav-user-info-text">
+                                    <strong title="{{ $displayName }}">
+                                        {{ $displayName }}
+                                    </strong>
+
+                                    <span title="{{ $email }}">
+                                {{ $email ?: 'No email available' }}
+                            </span>
+                                </div>
+                            </div>
+
+                            <div class="nav-user-divider"></div>
+
+                            @if($isStudent)
+                                <a
+                                    href="{{ route(
+                                'doubt-sessions.history'
+                            ) }}"
+                                    class="nav-user-menu-link
+                                {{ request()->routeIs(
+                                    'doubt-sessions.history'
+                                ) ? 'active' : '' }}"
+                                >
+                                    <svg
+                                        width="17"
+                                        height="17"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            d="M3 12a9 9 0 1 0 3-6.708"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                        />
+
+                                        <path
+                                            d="M3 4v5h5"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        />
+
+                                        <path
+                                            d="M12 7v5l3 2"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        />
+                                    </svg>
+
+                                    <span>
+                                Doubt Session History
+                            </span>
+                                </a>
+
+                                <div class="nav-user-divider"></div>
+                            @endif
+
+                            <form
+                                action="{{ route('logout') }}"
+                                method="POST"
+                                class="nav-user-logout-form"
+                            >
+                                @csrf
+
+                                <button
+                                    type="submit"
+                                    class="nav-user-logout-btn"
+                                >
+                                    <svg
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                    >
+                                        <path
+                                            d="M15 17L20 12L15 7"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        />
+
+                                        <path
+                                            d="M20 12H9"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        />
+
+                                        <path
+                                            d="M12 19H6C4.89543 19 4 18.1046 4 17V7C4 5.89543 4.89543 5 6 5H12"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                        />
+                                    </svg>
+
+                                    <span>Logout</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             @else
-                <a href="{{ route('login') }}" class="btn-ghost">Login</a>
-                <a href="{{ route('register') }}" class="btn-primary-nav">Sign Up</a>
+                <a
+                    href="{{ route('login') }}"
+                    class="btn-ghost"
+                >
+                    Login
+                </a>
+
+                <a
+                    href="{{ route('register') }}"
+                    class="btn-primary-nav"
+                >
+                    Sign Up
+                </a>
             @endauth
         </div>
 
-        <button
-            type="button"
-            class="hamburger"
-            id="hamburger"
-            aria-label="Open navigation menu"
-            aria-controls="navLinks"
-            aria-expanded="false"
-        >
-            <span></span><span></span><span></span>
-        </button>
-    </div>
+
 </nav>
 
 @yield('content')
@@ -610,11 +793,395 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="{{ asset('ui-physio/script.js') }}"></script>
 <script src="{{ asset('ui-physio/protection.js') }}?v={{ time() }}"></script>
+<script>
+    document.addEventListener(
+        'DOMContentLoaded',
+        function () {
+            const notificationMenus =
+                document.querySelectorAll(
+                    '[data-notification-menu]'
+                );
+
+            notificationMenus.forEach(function (menu) {
+                const toggle = menu.querySelector(
+                    '[data-notification-toggle]'
+                );
+
+                if (! toggle) {
+                    return;
+                }
+
+                toggle.addEventListener(
+                    'click',
+                    function (event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        const isOpen =
+                            menu.classList.contains(
+                                'is-open'
+                            );
+
+                        document
+                            .querySelectorAll(
+                                '[data-notification-menu].is-open'
+                            )
+                            .forEach(function (openMenu) {
+                                openMenu.classList.remove(
+                                    'is-open'
+                                );
+
+                                const openToggle =
+                                    openMenu.querySelector(
+                                        '[data-notification-toggle]'
+                                    );
+
+                                openToggle?.setAttribute(
+                                    'aria-expanded',
+                                    'false'
+                                );
+                            });
+
+                        if (! isOpen) {
+                            menu.classList.add(
+                                'is-open'
+                            );
+
+                            toggle.setAttribute(
+                                'aria-expanded',
+                                'true'
+                            );
+                        }
+                    }
+                );
+
+                menu.addEventListener(
+                    'click',
+                    function (event) {
+                        event.stopPropagation();
+                    }
+                );
+            });
+
+            document.addEventListener(
+                'click',
+                function () {
+                    document
+                        .querySelectorAll(
+                            '[data-notification-menu].is-open'
+                        )
+                        .forEach(function (menu) {
+                            menu.classList.remove(
+                                'is-open'
+                            );
+
+                            menu
+                                .querySelector(
+                                    '[data-notification-toggle]'
+                                )
+                                ?.setAttribute(
+                                    'aria-expanded',
+                                    'false'
+                                );
+                        });
+                }
+            );
+
+            document.addEventListener(
+                'keydown',
+                function (event) {
+                    if (event.key !== 'Escape') {
+                        return;
+                    }
+
+                    document
+                        .querySelectorAll(
+                            '[data-notification-menu].is-open'
+                        )
+                        .forEach(function (menu) {
+                            menu.classList.remove(
+                                'is-open'
+                            );
+
+                            menu
+                                .querySelector(
+                                    '[data-notification-toggle]'
+                                )
+                                ?.setAttribute(
+                                    'aria-expanded',
+                                    'false'
+                                );
+                        });
+                }
+            );
+        }
+    );
+</script>
 @stack('scripts')
 
 </body>
 </html>
 <style>
+    /*
+ * Student notification bell
+ */
+    .student-notification-menu {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .student-notification-button {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 48px;
+        height: 48px;
+        padding: 0;
+        border: 1px solid rgba(0, 74, 173, 0.12);
+        border-radius: 50%;
+        background: #FFFFFF;
+        color: #334155;
+        font-size: 1.15rem;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        transition:
+            color 0.2s ease,
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .student-notification-button:hover,
+    .student-notification-menu.is-open
+    .student-notification-button {
+        color: #004AAD;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(0, 74, 173, 0.16);
+    }
+
+    .student-notification-count {
+        position: absolute;
+        top: -5px;
+        right: -6px;
+        display: grid;
+        place-items: center;
+        min-width: 21px;
+        height: 21px;
+        padding: 0 5px;
+        border: 2px solid #FFFFFF;
+        border-radius: 999px;
+        background: #DC2626;
+        color: #FFFFFF;
+        font-size: 0.65rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .student-notification-dropdown {
+        position: absolute;
+        top: calc(100% + 13px);
+        right: 0;
+        z-index: 10000;
+        width: 370px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 74, 173, 0.10);
+        border-radius: 20px;
+        background: #FFFFFF;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px) scale(0.98);
+        transform-origin: top right;
+        transition:
+            opacity 0.2s ease,
+            visibility 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .student-notification-dropdown::before {
+        content: "";
+        position: absolute;
+        top: -7px;
+        right: 18px;
+        width: 14px;
+        height: 14px;
+        border-top: 1px solid rgba(0, 74, 173, 0.10);
+        border-left: 1px solid rgba(0, 74, 173, 0.10);
+        background: #FFFFFF;
+        transform: rotate(45deg);
+    }
+
+    .student-notification-menu.is-open
+    .student-notification-dropdown {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+    }
+
+    .student-notification-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 18px 20px;
+        border-bottom: 1px solid #E8EDF5;
+    }
+
+    .student-notification-header strong {
+        display: block;
+        color: #0F172A;
+        font-size: 0.95rem;
+        font-weight: 800;
+    }
+
+    .student-notification-header span {
+        display: block;
+        margin-top: 2px;
+        color: #64748B;
+        font-size: 0.72rem;
+    }
+
+    .student-notification-header > i {
+        color: #004AAD;
+        font-size: 1.05rem;
+    }
+
+    .student-notification-list {
+        max-height: 360px;
+        overflow-y: auto;
+    }
+
+    .student-notification-form {
+        margin: 0;
+    }
+
+    .student-notification-item {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        width: 100%;
+        padding: 15px 18px;
+        border: 0;
+        border-bottom: 1px solid #EDF1F6;
+        background: #FFFFFF;
+        color: inherit;
+        text-align: left;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .student-notification-item:hover {
+        background: #F8FBFF;
+    }
+
+    .student-notification-item.is-unread {
+        background: rgba(0, 74, 173, 0.045);
+    }
+
+    .student-notification-item.is-unread:hover {
+        background: rgba(0, 74, 173, 0.08);
+    }
+
+    .notification-item-icon {
+        display: grid;
+        place-items: center;
+        flex: 0 0 40px;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: rgba(0, 74, 173, 0.10);
+        color: #004AAD;
+    }
+
+    .notification-item-content {
+        display: block;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .notification-item-content strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #1E293B;
+        font-size: 0.8rem;
+        font-weight: 800;
+    }
+
+    .notification-item-message {
+        display: block;
+        color: #64748B;
+        font-size: 0.74rem;
+        line-height: 1.5;
+    }
+
+    .notification-item-time {
+        display: block;
+        margin-top: 5px;
+        color: #94A3B8;
+        font-size: 0.66rem;
+    }
+
+    .notification-unread-dot {
+        flex: 0 0 8px;
+        width: 8px;
+        height: 8px;
+        margin-top: 7px;
+        border-radius: 50%;
+        background: #2563EB;
+    }
+
+    .student-notification-empty {
+        display: grid;
+        justify-items: center;
+        padding: 36px 20px;
+        text-align: center;
+    }
+
+    .student-notification-empty i {
+        margin-bottom: 10px;
+        color: #94A3B8;
+        font-size: 1.5rem;
+    }
+
+    .student-notification-empty strong {
+        color: #334155;
+        font-size: 0.84rem;
+    }
+
+    .student-notification-empty span {
+        margin-top: 4px;
+        color: #94A3B8;
+        font-size: 0.72rem;
+    }
+
+    .student-notification-footer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 49px;
+        border-top: 1px solid #E8EDF5;
+        color: #004AAD;
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .student-notification-footer:hover {
+        background: #F8FBFF;
+        color: #003B8A;
+    }
+
+    @media (max-width: 575.98px) {
+        .student-notification-dropdown {
+            position: fixed;
+            top: 76px;
+            right: 12px;
+            left: 12px;
+            width: auto;
+        }
+    }
     .nav-user-menu {
         position: relative;
         display: inline-flex;

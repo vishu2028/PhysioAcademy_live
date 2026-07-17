@@ -9,7 +9,7 @@ use App\Http\Controllers\DoubtSessionBookingController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\NotificationController;
 /*
 |--------------------------------------------------------------------------
 | Frontend Routes
@@ -97,6 +97,13 @@ Route::middleware('auth')->group(function () {
         '/bookmarks/{id}',
         [\App\Http\Controllers\BookmarkController::class, 'remove']
     )->name('bookmarks.remove');
+    /*
+ * Student Notifications
+ */
+    Route::post(
+        '/notifications/{notification}/open',
+        [NotificationController::class, 'open']
+    )->name('notifications.open');
 
     /*
      * Student Doubts
@@ -123,10 +130,7 @@ Route::middleware('auth')->group(function () {
         '/doubt-sessions/book',
         [DoubtSessionBookingController::class, 'create']
     )->name('doubt-sessions.create');
-    Route::get(
-        '/doubt-sessions/book',
-        [DoubtSessionBookingController::class, 'create']
-    )->name('doubt-sessions.create');
+
 
     Route::post(
         '/doubt-sessions',
