@@ -285,12 +285,36 @@
                     </div>
 
                     @role('super_admin|admin')
-                    <a href="{{ route('admin.dashboard') }}" class="nav-mobile-action nav-mobile-action-secondary">Admin Dashboard</a>
+                    <a
+                        href="{{ route('admin.dashboard') }}"
+                        class="nav-mobile-action nav-mobile-action-secondary"
+                    >
+                        Admin Dashboard
+                    </a>
                     @endrole
 
-                    <form action="{{ route('logout') }}" method="POST" class="nav-mobile-logout-form">
+                    @if(! auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                        <a
+                            href="{{ route('doubt-sessions.history') }}"
+                            class="nav-mobile-action nav-mobile-action-secondary"
+                        >
+                            Doubt Session History
+                        </a>
+                    @endif
+
+                    <form
+                        action="{{ route('logout') }}"
+                        method="POST"
+                        class="nav-mobile-logout-form"
+                    >
                         @csrf
-                        <button type="submit" class="nav-mobile-action nav-mobile-action-primary">Logout</button>
+
+                        <button
+                            type="submit"
+                            class="nav-mobile-action nav-mobile-action-primary"
+                        >
+                            Logout
+                        </button>
                     </form>
                 @endguest
             </div>
@@ -352,21 +376,90 @@
 
                                 <div class="nav-user-divider"></div>
 
-                                <form action="{{ route('logout') }}" method="POST" class="nav-user-logout-form">
+                                @if(! auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                                    <a
+                                        href="{{ route('doubt-sessions.history') }}"
+                                        class="nav-user-menu-link
+            {{ request()->routeIs('doubt-sessions.history') ? 'active' : '' }}"
+                                    >
+                                        <svg
+                                            width="17"
+                                            height="17"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            aria-hidden="true"
+                                        >
+                                            <path
+                                                d="M3 12a9 9 0 1 0 3-6.708"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                            />
+
+                                            <path
+                                                d="M3 4v5h5"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            />
+
+                                            <path
+                                                d="M12 7v5l3 2"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            />
+                                        </svg>
+
+                                        <span>Doubt Session History</span>
+                                    </a>
+
+                                    <div class="nav-user-divider"></div>
+                                @endif
+
+                                <form
+                                    action="{{ route('logout') }}"
+                                    method="POST"
+                                    class="nav-user-logout-form"
+                                >
                                     @csrf
 
                                     <button type="submit" class="nav-user-logout-btn">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                            <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M20 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M12 19H6C4.89543 19 4 18.1046 4 17V7C4 5.89543 4.89543 5 6 5H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <svg
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                        >
+                                            <path
+                                                d="M15 17L20 12L15 7"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            />
+
+                                            <path
+                                                d="M20 12H9"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            />
+
+                                            <path
+                                                d="M12 19H6C4.89543 19 4 18.1046 4 17V7C4 5.89543 4.89543 5 6 5H12"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                            />
                                         </svg>
 
                                         <span>Logout</span>
                                     </button>
                                 </form>
-
-                            </div>
                         </div>
                     </div>
                 @endauth
@@ -652,7 +745,42 @@
         background: rgba(37, 99, 235, 0.10);
         margin: 12px 0;
     }
+    .nav-user-menu-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 11px 14px;
+        border-radius: 13px;
+        color: #334155;
+        font-size: 14px;
+        font-weight: 650;
+        line-height: 1.3;
+        text-decoration: none;
+        transition:
+            background 0.2s ease,
+            color 0.2s ease,
+            transform 0.2s ease;
+    }
 
+    .nav-user-menu-link svg {
+        flex: 0 0 auto;
+    }
+
+    .nav-user-menu-link:hover,
+    .nav-user-menu-link.active {
+        background: linear-gradient(
+            135deg,
+            #EFF6FF 0%,
+            #E0F2FE 100%
+        );
+        color: #004AAD;
+        transform: translateY(-1px);
+    }
+
+    .nav-user-menu-link:active {
+        transform: translateY(0);
+    }
     /* Logout Form */
     .nav-user-logout-form {
         margin: 0;

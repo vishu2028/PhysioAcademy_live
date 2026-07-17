@@ -115,6 +115,15 @@ Route::middleware('auth')->group(function () {
      * One-on-One Doubt Session Bookings
      */
     Route::get(
+        '/doubt-sessions/history',
+        [DoubtSessionBookingController::class, 'history']
+    )->name('doubt-sessions.history');
+
+    Route::get(
+        '/doubt-sessions/book',
+        [DoubtSessionBookingController::class, 'create']
+    )->name('doubt-sessions.create');
+    Route::get(
         '/doubt-sessions/book',
         [DoubtSessionBookingController::class, 'create']
     )->name('doubt-sessions.create');

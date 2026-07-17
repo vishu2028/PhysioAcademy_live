@@ -69,6 +69,25 @@ class DoubtSessionBookingController extends Controller
     }
 
     /**
+     * Display the authenticated student's doubt session history.
+     */
+    /**
+     * Display the authenticated student's doubt session history.
+     */
+    public function history(Request $request)
+    {
+        $bookings = $request->user()
+            ->doubtSessionBookings()
+            ->latest('created_at')
+            ->paginate(10);
+
+        return view(
+            'doubt-sessions.history',
+            compact('bookings')
+        );
+    }
+
+    /**
      * Store a free booking or initialise
      * the Razorpay paid-booking process.
      */
@@ -115,10 +134,13 @@ class DoubtSessionBookingController extends Controller
         ], [
             'phone.regex' =>
                 'Please enter a valid phone number.',
+
             'academic_year_id.required' =>
                 'Please select your academic year.',
+
             'subject_id.required' =>
                 'Please select a subject.',
+
             'doubt.min' =>
                 'Please describe your doubt in at least 10 characters.',
         ]);
@@ -162,6 +184,7 @@ class DoubtSessionBookingController extends Controller
 
                     'academic_year_id' =>
                         $validated['academic_year_id'],
+
                     'subject_id' =>
                         $validated['subject_id'],
 
@@ -170,6 +193,7 @@ class DoubtSessionBookingController extends Controller
 
                     'duration_minutes' =>
                         $durationMinutes,
+
                     'amount' => 0,
                     'currency' => 'INR',
                     'is_free' => true,
@@ -238,6 +262,7 @@ class DoubtSessionBookingController extends Controller
 
                 'academic_year_id' =>
                     $validated['academic_year_id'],
+
                 'subject_id' =>
                     $validated['subject_id'],
 
@@ -246,6 +271,7 @@ class DoubtSessionBookingController extends Controller
 
                 'duration_minutes' =>
                     $durationMinutes,
+
                 'amount' => $amount,
                 'currency' => 'INR',
                 'is_free' => false,
@@ -276,6 +302,7 @@ class DoubtSessionBookingController extends Controller
             $booking->update([
                 'payment_status' =>
                     DoubtSessionBooking::PAYMENT_FAILED,
+
                 'payment_error' =>
                     'Unable to create the Razorpay payment order.',
             ]);
@@ -305,7 +332,10 @@ class DoubtSessionBookingController extends Controller
         Request $request,
         DoubtSessionBooking $booking
     ) {
-        $this->ensureBookingOwner($request, $booking);
+        $this->ensureBookingOwner(
+            $request,
+            $booking
+        );
 
         if ($booking->is_free) {
             return redirect()->route(
@@ -381,7 +411,10 @@ class DoubtSessionBookingController extends Controller
         Request $request,
         DoubtSessionBooking $booking
     ) {
-        $this->ensureBookingOwner($request, $booking);
+        $this->ensureBookingOwner(
+            $request,
+            $booking
+        );
 
         if ($booking->isPaid()) {
             return redirect()->route(
@@ -390,7 +423,10 @@ class DoubtSessionBookingController extends Controller
             );
         }
 
-        abort_if($booking->is_free, 422);
+        abort_if(
+            $booking->is_free,
+            422
+        );
 
         $validated = $request->validate([
             'razorpay_payment_id' => [
@@ -579,7 +615,10 @@ class DoubtSessionBookingController extends Controller
         Request $request,
         DoubtSessionBooking $booking
     ) {
-        $this->ensureBookingOwner($request, $booking);
+        $this->ensureBookingOwner(
+            $request,
+            $booking
+        );
 
         /*
          * Prevent pending paid bookings from manually opening
@@ -601,6 +640,9 @@ class DoubtSessionBookingController extends Controller
         );
     }
 
+    /**
+     * Ensure that the booking belongs to the logged-in user.
+     */
     private function ensureBookingOwner(
         Request $request,
         DoubtSessionBooking $booking
@@ -612,6 +654,9 @@ class DoubtSessionBookingController extends Controller
         );
     }
 
+    /**
+     * Check whether doubt sessions are enabled.
+     */
     private function sessionsEnabled(): bool
     {
         return (string) get_setting(
@@ -620,6 +665,9 @@ class DoubtSessionBookingController extends Controller
             ) === '1';
     }
 
+    /**
+     * Check whether the session is currently free.
+     */
     private function sessionIsFree(): bool
     {
         return (string) get_setting(
@@ -628,6 +676,9 @@ class DoubtSessionBookingController extends Controller
             ) === '1';
     }
 
+    /**
+     * Return the configured doubt session duration.
+     */
     private function sessionDuration(): int
     {
         return max(
@@ -639,6 +690,9 @@ class DoubtSessionBookingController extends Controller
         );
     }
 
+    /**
+     * Generate a unique public booking reference.
+     */
     private function generateBookingReference(): string
     {
         do {
@@ -657,6 +711,9 @@ class DoubtSessionBookingController extends Controller
         return $reference;
     }
 
+    /**
+     * Mark a booking as failed after payment verification failure.
+     */
     private function markVerificationFailure(
         DoubtSessionBooking $booking,
         string $message
