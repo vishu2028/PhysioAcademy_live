@@ -33,10 +33,12 @@
 
             <div class="hero-container">
                 <div class="hero-content">
-                    <div class="hero-badge reveal-up">
-                        <span class="badge-dot"></span>
-                        <span>{{ $hero->badge ?? get_setting('hero_badge', 'New Curriculum 2024 — Fully Updated') }}</span>
-                    </div>
+                    @if(filled($hero?->badge))
+                        <div class="hero-badge reveal-up">
+                            <span class="badge-dot"></span>
+                            <span>{{ $hero->badge }}</span>
+                        </div>
+                    @endif
 
                     <h1 class="hero-title reveal-up delay-1">
                         @php

@@ -12,7 +12,11 @@ class HeroController extends Controller
     public function index()
     {
         $heroes = HeroSection::latest()->get();
-        return view('admin.hero.index', compact('heroes'));
+
+        return view(
+            'admin.hero.index',
+            compact('heroes')
+        );
     }
 
     public function create()
@@ -22,64 +26,221 @@ class HeroController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'subtitle' => 'nullable|string|max:500',
-            'button_text' => 'nullable|string|max:100',
-            'button_url' => 'nullable|string|max:255',
-            'image' => 'nullable|image|max:5120',
-            'status' => 'boolean',
+        $validated = $request->validate([
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'subtitle' => [
+                'nullable',
+                'string',
+                'max:500',
+            ],
+
+            'badge' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'button_text' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'button_url' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'image' => [
+                'nullable',
+                'image',
+                'max:5120',
+            ],
+
+            'status' => [
+                'nullable',
+                'boolean',
+            ],
         ]);
 
-        $data = $request->only(['title', 'subtitle', 'button_text', 'button_url']);
-        $data['status'] = $request->has('status');
+        $data = [
+            'title' =>
+                trim($validated['title']),
+
+            'subtitle' =>
+                filled($validated['subtitle'] ?? null)
+                    ? trim($validated['subtitle'])
+                    : null,
+
+            'badge' =>
+                filled($validated['badge'] ?? null)
+                    ? trim($validated['badge'])
+                    : null,
+
+            'button_text' =>
+                filled($validated['button_text'] ?? null)
+                    ? trim($validated['button_text'])
+                    : null,
+
+            'button_url' =>
+                filled($validated['button_url'] ?? null)
+                    ? trim($validated['button_url'])
+                    : null,
+
+            'status' =>
+                $request->boolean('status'),
+        ];
 
         if ($request->hasFile('image')) {
-            $data['image_path'] = $request->file('image')->store('hero', 'public');
+            $data['image_path'] = $request
+                ->file('image')
+                ->store('hero', 'public');
         }
 
         HeroSection::create($data);
 
-        return redirect()->route('admin.hero.index')->with('success', 'Hero section created successfully.');
+        return redirect()
+            ->route('admin.hero.index')
+            ->with(
+                'success',
+                'Hero section created successfully.'
+            );
     }
 
     public function edit(HeroSection $hero)
     {
-        return view('admin.hero.edit', compact('hero'));
+        return view(
+            'admin.hero.edit',
+            compact('hero')
+        );
     }
 
-    public function update(Request $request, HeroSection $hero)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'subtitle' => 'nullable|string|max:500',
-            'button_text' => 'nullable|string|max:100',
-            'button_url' => 'nullable|string|max:255',
-            'image' => 'nullable|image|max:5120',
-            'status' => 'boolean',
+    public function update(
+        Request $request,
+        HeroSection $hero
+    ) {
+        $validated = $request->validate([
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'subtitle' => [
+                'nullable',
+                'string',
+                'max:500',
+            ],
+
+            'badge' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'button_text' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'button_url' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'image' => [
+                'nullable',
+                'image',
+                'max:5120',
+            ],
+
+            'status' => [
+                'nullable',
+                'boolean',
+            ],
         ]);
 
-        $data = $request->only(['title', 'subtitle', 'button_text', 'button_url']);
-        $data['status'] = $request->has('status');
+        $data = [
+            'title' =>
+                trim($validated['title']),
+
+            'subtitle' =>
+                filled($validated['subtitle'] ?? null)
+                    ? trim($validated['subtitle'])
+                    : null,
+
+            'badge' =>
+                filled($validated['badge'] ?? null)
+                    ? trim($validated['badge'])
+                    : null,
+
+            'button_text' =>
+                filled($validated['button_text'] ?? null)
+                    ? trim($validated['button_text'])
+                    : null,
+
+            'button_url' =>
+                filled($validated['button_url'] ?? null)
+                    ? trim($validated['button_url'])
+                    : null,
+
+            'status' =>
+                $request->boolean('status'),
+        ];
 
         if ($request->hasFile('image')) {
-            if ($hero->image_path) {
-                Storage::disk('public')->delete($hero->image_path);
+            if (
+                filled($hero->image_path)
+                && Storage::disk('public')->exists(
+                    $hero->image_path
+                )
+            ) {
+                Storage::disk('public')->delete(
+                    $hero->image_path
+                );
             }
-            $data['image_path'] = $request->file('image')->store('hero', 'public');
+
+            $data['image_path'] = $request
+                ->file('image')
+                ->store('hero', 'public');
         }
 
         $hero->update($data);
 
-        return redirect()->route('admin.hero.index')->with('success', 'Hero section updated successfully.');
+        return redirect()
+            ->route('admin.hero.index')
+            ->with(
+                'success',
+                'Hero section updated successfully.'
+            );
     }
 
     public function destroy(HeroSection $hero)
     {
-        if ($hero->image_path) {
-            Storage::disk('public')->delete($hero->image_path);
+        if (
+            filled($hero->image_path)
+            && Storage::disk('public')->exists(
+                $hero->image_path
+            )
+        ) {
+            Storage::disk('public')->delete(
+                $hero->image_path
+            );
         }
+
         $hero->delete();
-        return back()->with('success', 'Hero section deleted successfully.');
+
+        return back()->with(
+            'success',
+            'Hero section deleted successfully.'
+        );
     }
 }

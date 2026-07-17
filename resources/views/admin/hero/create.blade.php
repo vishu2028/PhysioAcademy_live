@@ -40,8 +40,33 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Badge Text</label>
-                            <input type="text" name="badge" class="form-control rounded-3" value="{{ old('badge', 'New Curriculum 2024') }}">
+                            <label
+                                for="badge"
+                                class="form-label fw-bold"
+                            >
+                                Badge Text
+                            </label>
+
+                            <input
+                                type="text"
+                                name="badge"
+                                id="badge"
+                                class="form-control rounded-3
+            @error('badge') is-invalid @enderror"
+                                value="{{ old('badge') }}"
+                                placeholder="e.g. New Curriculum 2026"
+                                maxlength="255"
+                            >
+
+                            @error('badge')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                            @enderror
+
+                            <small class="text-muted">
+                                This text appears above the main hero heading.
+                            </small>
                         </div>
                         <div class="col-md-6 mb-3">
                             <div class="form-check form-switch mt-4 pt-2">
