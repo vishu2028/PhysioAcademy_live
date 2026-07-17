@@ -143,6 +143,29 @@
                                     @endforelse
                                 </div>
                             </div>
+                            @if(filled($topic->bottom_line))
+                                <div class="content-section bottom-line-section">
+                                    <div class="bottom-line-card">
+                                        <div class="bottom-line-icon">
+                                            <i class="bi bi-lightbulb-fill"></i>
+                                        </div>
+
+                                        <div class="bottom-line-content">
+                <span class="bottom-line-label">
+                    Key Takeaway
+                </span>
+
+                                            <h2 class="bottom-line-title">
+                                                Bottom Line
+                                            </h2>
+
+                                            <div class="bottom-line-text">
+                                                {!! nl2br(e($topic->bottom_line)) !!}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
 
                             @if($topic->content_protection == '1')
                                 <div class="protected-notice">
@@ -222,6 +245,83 @@
 
     @push('styles')
         <style>
+            /* Bottom Line / Key Takeaway */
+            .topic-page .bottom-line-section {
+                margin-top: 32px;
+            }
+
+            .topic-page .bottom-line-card {
+                position: relative;
+                display: flex;
+                align-items: flex-start;
+                gap: 20px;
+                padding: 28px;
+                overflow: hidden;
+                border: 1px solid rgba(0, 74, 173, 0.18);
+                border-radius: 24px;
+                background:
+                    linear-gradient(
+                        135deg,
+                        rgba(0, 74, 173, 0.08),
+                        rgba(217, 217, 217, 0.18)
+                    ),
+                    #FFFFFF;
+                box-shadow: 0 16px 40px rgba(0, 74, 173, 0.08);
+            }
+
+            .topic-page .bottom-line-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 5px;
+                height: 100%;
+                background: #004AAD;
+            }
+
+            .topic-page .bottom-line-icon {
+                width: 54px;
+                height: 54px;
+                flex: 0 0 54px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 16px;
+                background: #004AAD;
+                color: #FFFFFF;
+                font-size: 1.4rem;
+                box-shadow: 0 10px 24px rgba(0, 74, 173, 0.20);
+            }
+
+            .topic-page .bottom-line-content {
+                min-width: 0;
+                flex: 1;
+            }
+
+            .topic-page .bottom-line-label {
+                display: inline-block;
+                margin-bottom: 5px;
+                color: #004AAD;
+                font-size: 0.75rem;
+                font-weight: 800;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+            }
+
+            .topic-page .bottom-line-title {
+                margin: 0 0 10px;
+                color: #0F172A;
+                font-size: 1.5rem;
+                font-weight: 800;
+                line-height: 1.25;
+            }
+
+            .topic-page .bottom-line-text {
+                color: #475569;
+                font-size: 1rem;
+                line-height: 1.8;
+                overflow-wrap: anywhere;
+            }
             /* ─── TOPIC DETAIL PAGE STYLES ────────────────────────── */
             :root {
                 --topic-bg: #FFFFFF;
@@ -532,6 +632,16 @@
             }
 
             @media (max-width: 768px) {
+                .topic-page .bottom-line-card {
+                    padding: 22px;
+                    gap: 16px;
+                }
+
+                .topic-page .bottom-line-icon {
+                    width: 48px;
+                    height: 48px;
+                    flex-basis: 48px;
+                }
                 .topic-page {
                     padding-top: 64px;
                     overflow-x: hidden;
@@ -703,6 +813,26 @@
             }
 
             @media (max-width: 480px) {
+                .topic-page .bottom-line-card {
+                    flex-direction: column;
+                    padding: 20px 18px;
+                    border-radius: 20px;
+                }
+
+                .topic-page .bottom-line-icon {
+                    width: 44px;
+                    height: 44px;
+                    flex-basis: 44px;
+                    border-radius: 13px;
+                }
+
+                .topic-page .bottom-line-title {
+                    font-size: 1.3rem;
+                }
+
+                .topic-page .bottom-line-text {
+                    font-size: 0.95rem;
+                }
                 .topic-page .topic-hero {
                     padding: 34px 0 62px;
                 }

@@ -28,6 +28,28 @@
                         <label class="form-label fw-bold">Description / Overview</label>
                         <textarea name="description" class="form-control" rows="4">{{ old('description', $topic->description) }}</textarea>
                     </div>
+                    <div class="mb-3">
+                        <label for="bottom_line" class="form-label fw-bold">
+                            Bottom Line / Key Takeaway
+                        </label>
+
+                        <textarea
+                            name="bottom_line"
+                            id="bottom_line"
+                            class="form-control @error('bottom_line') is-invalid @enderror"
+                            rows="5"
+                            maxlength="5000"
+                            placeholder="Write the most important takeaway students should remember from this topic..."
+                        >{{ old('bottom_line', $topic->bottom_line) }}</textarea>
+
+                        <div class="form-text">
+                            Add a short and clear summary of the most important point students should remember from this topic.
+                        </div>
+
+                        @error('bottom_line')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Unit Number</label>

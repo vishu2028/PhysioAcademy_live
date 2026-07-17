@@ -1,6 +1,25 @@
 @extends('layouts.frontend')
 
 @section('content')
+    @php
+        $doubtSessionEnabled =
+            (string) get_setting('doubt_session_enabled', '0') === '1';
+
+        $doubtSessionIsFree =
+            (string) get_setting('doubt_session_is_free', '0') === '1';
+
+        $doubtSessionPrice = $doubtSessionIsFree
+            ? 0
+            : (float) get_setting('doubt_session_price', 0);
+
+        $doubtSessionDuration = max(
+            (int) get_setting(
+                'doubt_session_duration_minutes',
+                60
+            ),
+            15
+        );
+    @endphp
     <div class="home-page">
         <!-- HERO SECTION -->
         <section class="hero" id="home">
@@ -14,10 +33,12 @@
 
             <div class="hero-container">
                 <div class="hero-content">
-                    <div class="hero-badge reveal-up">
-                        <span class="badge-dot"></span>
-                        <span>{{ $hero->badge ?? get_setting('hero_badge', 'New Curriculum 2024 — Fully Updated') }}</span>
-                    </div>
+                    @if(filled($hero?->badge))
+                        <div class="hero-badge reveal-up">
+                            <span class="badge-dot"></span>
+                            <span>{{ $hero->badge }}</span>
+                        </div>
+                    @endif
 
                     <h1 class="hero-title reveal-up delay-1">
                         @php
@@ -621,6 +642,72 @@
                                 <span>Clinical relevance always included</span>
                             </div>
                         </div>
+                        <div class="doubt-session-promo">
+                            <div class="dsp-header">
+                                <div class="dsp-icon">
+                                    <i class="bi bi-camera-video-fill"></i>
+                                </div>
+
+                                <div>
+            <span class="dsp-eyebrow">
+                Personal Academic Support
+            </span>
+
+                                    <h3>One-on-One Doubt Session</h3>
+                                </div>
+                            </div>
+
+                            <p class="dsp-description">
+                                Discuss your physiotherapy concepts directly in a focused
+                                one-on-one academic support session.
+                            </p>
+
+                            <div class="dsp-meta">
+        <span>
+            <i class="bi bi-clock"></i>
+            {{ $doubtSessionDuration }} Minutes
+        </span>
+
+                                @if($doubtSessionIsFree)
+                                    <span class="dsp-price free">
+                Free Session
+            </span>
+                                @else
+                                    <span class="dsp-price">
+                ₹{{ number_format($doubtSessionPrice, 2) }}
+            </span>
+                                @endif
+                            </div>
+
+                            @if(session('session_error'))
+                                <div class="alert alert-warning rounded-3 small mt-3">
+                                    {{ session('session_error') }}
+                                </div>
+                            @endif
+
+                            @if($doubtSessionEnabled)
+                                <a
+                                    href="{{ route('doubt-sessions.create') }}"
+                                    class="dsp-book-button"
+                                >
+                                    <span>Book a Doubt Session</span>
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            @else
+                                <button
+                                    type="button"
+                                    class="dsp-book-button disabled"
+                                    disabled
+                                >
+                                    <span>Sessions Currently Unavailable</span>
+                                    <i class="bi bi-lock"></i>
+                                </button>
+                            @endif
+
+                            <small class="dsp-note">
+                                The admin will confirm your session date and time afterward.
+                            </small>
+                        </div>
                     </div>
 
                     <div class="ask-doubt-form glass-card">
@@ -749,6 +836,7 @@
                 </div>
             </div>
         </section>
+
 
         <!-- EXAM AID / EXAM PREP -->
         <section class="section exam-section" id="exam-aid">
@@ -1247,6 +1335,159 @@
                 margin: 0 auto 20px;
                 color: #004AAD;
                 font-size: 1.5rem;
+            }
+            /* One-on-One Doubt Session Promo */
+            .home-page .doubt-session-promo {
+                margin-top: 28px;
+                padding: 24px;
+                border: 1px solid rgba(0, 74, 173, 0.16);
+                border-radius: 22px;
+                background:
+                    linear-gradient(
+                        135deg,
+                        rgba(0, 74, 173, 0.08),
+                        rgba(217, 217, 217, 0.16)
+                    ),
+                    #FFFFFF;
+                box-shadow: 0 18px 40px rgba(0, 74, 173, 0.08);
+            }
+
+            .home-page .dsp-header {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                margin-bottom: 15px;
+            }
+
+            .home-page .dsp-icon {
+                width: 48px;
+                height: 48px;
+                flex: 0 0 48px;
+                display: grid;
+                place-items: center;
+                border-radius: 15px;
+                background: #004AAD;
+                color: #FFFFFF;
+                font-size: 1.15rem;
+            }
+
+            .home-page .dsp-eyebrow {
+                display: block;
+                margin-bottom: 3px;
+                color: #004AAD;
+                font-size: 0.7rem;
+                font-weight: 800;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+            }
+
+            .home-page .dsp-header h3 {
+                margin: 0;
+                color: #0F172A;
+                font-size: 1.16rem;
+                font-weight: 800;
+            }
+
+            .home-page .dsp-description {
+                margin: 0 0 16px;
+                color: #64748B;
+                font-size: 0.9rem;
+                line-height: 1.65;
+            }
+
+            .home-page .dsp-meta {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 17px;
+            }
+
+            .home-page .dsp-meta span {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 7px 10px;
+                border-radius: 999px;
+                background: rgba(217, 217, 217, 0.34);
+                color: #475569;
+                font-size: 0.76rem;
+                font-weight: 750;
+            }
+
+            .home-page .dsp-meta .dsp-price {
+                background: rgba(0, 74, 173, 0.10);
+                color: #004AAD;
+            }
+
+            .home-page .dsp-meta .dsp-price.free {
+                background: rgba(22, 163, 74, 0.10);
+                color: #15803D;
+            }
+
+            .home-page .dsp-book-button {
+                width: 100%;
+                min-height: 47px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 9px;
+                padding: 0 18px;
+                border: 0;
+                border-radius: 12px;
+                background: #004AAD;
+                color: #FFFFFF;
+                font-size: 0.88rem;
+                font-weight: 800;
+                text-decoration: none;
+                cursor: pointer;
+                transition:
+                    transform 0.2s ease,
+                    background 0.2s ease;
+            }
+
+            .home-page .dsp-book-button:hover {
+                background: #003B8A;
+                color: #FFFFFF;
+                transform: translateY(-2px);
+            }
+
+            .home-page .dsp-book-button.disabled {
+                background: #94A3B8;
+                cursor: not-allowed;
+                transform: none;
+                opacity: 0.75;
+            }
+
+            .home-page .dsp-note {
+                display: block;
+                margin-top: 10px;
+                color: #94A3B8;
+                font-size: 0.72rem;
+                text-align: center;
+            }
+
+            @media (max-width: 480px) {
+                .home-page .doubt-session-promo {
+                    padding: 20px 17px;
+                    border-radius: 18px;
+                }
+
+                .home-page .dsp-header {
+                    align-items: flex-start;
+                }
+
+                .home-page .dsp-header h3 {
+                    font-size: 1.04rem;
+                }
+
+                .home-page .dsp-meta {
+                    align-items: stretch;
+                }
+
+                .home-page .dsp-meta span {
+                    justify-content: center;
+                }
             }
         </style>
     @endpush

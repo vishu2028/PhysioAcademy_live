@@ -3,12 +3,13 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Traits\Loggable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-use App\Traits\Loggable;
 
 class User extends Authenticatable
 {
@@ -50,8 +51,31 @@ class User extends Authenticatable
         ];
     }
 
-    public function bookmarks()
+    /**
+     * User bookmarks.
+     */
+    public function bookmarks(): HasMany
     {
         return $this->hasMany(Bookmark::class);
+    }
+
+    /**
+     * One-on-one doubt session bookings created by this user.
+     */
+    public function doubtSessionBookings(): HasMany
+    {
+        return $this->hasMany(DoubtSessionBooking::class);
+    }
+
+    /**
+     * Doubt session bookings whose schedule was confirmed
+     * by this admin user.
+     */
+    public function confirmedDoubtSessionBookings(): HasMany
+    {
+        return $this->hasMany(
+            DoubtSessionBooking::class,
+            'confirmed_by'
+        );
     }
 }

@@ -9,7 +9,7 @@ class Topic extends Model
     use \App\Traits\Loggable;
 
     protected $fillable = [
-        'title', 'slug', 'description', 'subject_id','parent_topic_id','unit_topic_id', 'academic_year_id',
+        'title', 'slug', 'description', 'bottom_line', 'subject_id','parent_topic_id','unit_topic_id', 'academic_year_id',
         'semester_id', 'parent_id', 'module_number', 'status', 'order', 'is_protected'
     ];
 

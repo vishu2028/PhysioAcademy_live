@@ -13,7 +13,12 @@ class FrontendController extends Controller
 {
     public function home()
     {
-        $hero = \App\Models\HeroSection::active()->first() ?? new \App\Models\HeroSection();
+//        $hero = \App\Models\HeroSection::active()->first() ?? new \App\Models\HeroSection();
+        $hero = \App\Models\HeroSection::query()
+            ->where('status', true)
+            ->latest('id')
+            ->first()
+            ?? new \App\Models\HeroSection();
         $sectionEnabled = \App\Models\Feature::query()->value('section_enabled');
         $sectionEnabled = is_null($sectionEnabled) ? true : (bool) $sectionEnabled;
 
