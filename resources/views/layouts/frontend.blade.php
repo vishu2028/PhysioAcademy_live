@@ -662,7 +662,19 @@
             @endauth
         </div>
 
-
+        <button
+            type="button"
+            class="hamburger"
+            id="hamburger"
+            aria-label="Open navigation menu"
+            aria-controls="navLinks"
+            aria-expanded="false"
+        >
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
 </nav>
 
 @yield('content')
