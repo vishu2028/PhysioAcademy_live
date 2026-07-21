@@ -1030,15 +1030,32 @@
 
                         <div class="about-counters">
                             <div class="ac-item">
-                                <span class="ac-num" data-count="{{ \App\Models\Topic::count() ?: 500 }}">0</span><span>+</span>
+        <span
+            class="ac-num"
+            data-count="{{ $aboutTopicsCount ?? 0 }}"
+        >0</span>
+                                <span>+</span>
+
                                 <span class="ac-label">Topics</span>
                             </div>
+
                             <div class="ac-item">
-                                <span class="ac-num" data-count="{{ \App\Models\Message::count() * 40 ?: 2400 }}">0</span><span>+</span>
+        <span
+            class="ac-num"
+            data-count="{{ $aboutQuestionsCount ?? 0 }}"
+        >0</span>
+                                <span>+</span>
+
                                 <span class="ac-label">Questions</span>
                             </div>
+
                             <div class="ac-item">
-                                <span class="ac-num" data-count="{{ \App\Models\User::count() ?: 12 }}">0</span><span>K+</span>
+        <span
+            class="ac-num"
+            data-count="{{ $aboutStudentsCount ?? 0 }}"
+        >0</span>
+                                <span>+</span>
+
                                 <span class="ac-label">Students</span>
                             </div>
                         </div>
