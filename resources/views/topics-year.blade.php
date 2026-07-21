@@ -32,7 +32,7 @@
                                     </div>
                                     <div class="typage-info-item">
                                         <span class="typage-info-label">Topics</span>
-                                        <span class="typage-info-value">{{ $y->topics_count }}+</span>
+                                        <span class="typage-info-value">{{ $y->topics_count }}</span>
                                     </div>
                                 </div>
                             </a>
@@ -61,12 +61,12 @@
 
                             <div class="typage-hero-stats">
                                 <div class="typage-stat">
-                                    <strong>{{ $topics->count() }}</strong>
+                                    <strong>{{ $subjectCount ?? 0 }}</strong>
                                     <span>Subjects</span>
                                 </div>
 
                                 <div class="typage-stat">
-                                    <strong>{{ $topics->flatten()->count() }}</strong>
+                                    <strong>{{ $topicCount ?? 0 }}</strong>
                                     <span>Topics</span>
                                 </div>
                             </div>
@@ -115,7 +115,7 @@
                                                 <span class="typage-subject-code-value">{{ $subject->code }}</span>
                                             </div>
                                         @endif
-                                        <p>{{ $unitCount }} active units • {{ $totalCount }} active units in this subject</p>
+                                        <p>{{ $unitCount }} active units • {{ $totalCount }} active topics</p>
                                     </div>
 
 
@@ -244,7 +244,7 @@
                             <h3 class="fw-bold mb-3">Academic Access Restricted</h3>
 
                             <p class="text-muted mb-4 mx-auto" style="max-width: 600px;">
-                                We have over <strong>{{ $topics->flatten()->count() }}</strong> modules for {{ $currentYear->name }} available.
+                                We have <strong>{{ $topicCount ?? 0 }}</strong> topics for {{ $currentYear->name }} available.
                                 Login now to unlock the full syllabus, download clinical notes, and access viva prep materials.
                             </p>
 

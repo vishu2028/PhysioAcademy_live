@@ -8,7 +8,9 @@ use App\Models\Subject;
 use App\Services\RazorpayService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Razorpay\Api\Errors\ServerError;
 use Razorpay\Api\Errors\SignatureVerificationError;
 use Throwable;
 use UnexpectedValueException;
@@ -296,6 +298,39 @@ class DoubtSessionBookingController extends Controller
                 'razorpay_order_id' => $order['id'],
                 'payment_error' => null,
             ]);
+        } catch (ServerError $exception) {
+            $httpStatus = (int) $exception->getHttpStatusCode();
+
+            Log::error('Razorpay order creation failed.', [
+                'booking_id' => $booking->id,
+                'booking_reference' => $booking->booking_reference,
+                'http_status' => $httpStatus,
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+
+            $booking->update([
+                'payment_status' =>
+                    DoubtSessionBooking::PAYMENT_FAILED,
+
+                'payment_error' => $httpStatus === 406
+                    ? 'Razorpay rejected the server/network request with HTTP 406.'
+                    : 'Unable to create the Razorpay payment order.',
+            ]);
+
+            $publicMessage =
+                $httpStatus === 406
+                && app()->environment('local')
+                    ? 'Razorpay rejected the request from the current network (HTTP 406). Test from an India-based network or staging server.'
+                    : 'Unable to start the online payment. Please try again.';
+
+            return redirect()
+                ->to(
+                    route('doubt-sessions.create')
+                    . '#booking-form'
+                )
+                ->withInput()
+                ->with('session_error', $publicMessage);
         } catch (Throwable $exception) {
             report($exception);
 

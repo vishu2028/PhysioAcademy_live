@@ -12,7 +12,10 @@ class AcademicYearController extends Controller
 {
     public function index()
     {
-        $years = AcademicYear::with('semesters')->orderBy('order')->get();
+        $years = AcademicYear::with('semesters')
+            ->withCurriculumCounts()
+            ->orderBy('order')
+            ->get();
         return view('admin.academic_years.index', compact('years'));
     }
 
@@ -26,14 +29,16 @@ class AcademicYearController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'units_count' => 'nullable|integer',
-            'topics_count' => 'nullable|integer',
             'order' => 'nullable|integer',
             'semesters' => 'nullable|array',
             'semesters.*' => 'string|max:255',
         ]);
 
-        $data = $request->except('semesters');
+        $data = $request->except([
+            'semesters',
+            'units_count',
+            'topics_count',
+        ]);
         $data['slug'] = Str::slug($request->name);
         $data['status'] = $request->has('status');
 
@@ -64,15 +69,17 @@ class AcademicYearController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'units_count' => 'nullable|integer',
-            'topics_count' => 'nullable|integer',
             'order' => 'nullable|integer',
             'semesters' => 'nullable|array',
             'semesters.*.id' => 'nullable|exists:semesters,id',
             'semesters.*.name' => 'required|string|max:255',
         ]);
 
-        $data = $request->except('semesters');
+        $data = $request->except([
+            'semesters',
+            'units_count',
+            'topics_count',
+        ]);
         $data['slug'] = Str::slug($request->name);
         $data['status'] = $request->has('status');
 

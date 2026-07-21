@@ -28,12 +28,7 @@ class FrontendController extends Controller
         $features = \App\Models\Feature::active()->ordered()->get();
         // Curriculum data: Active years with topics count
         $years = \App\Models\AcademicYear::active()
-            ->withCount([
-                'semesters as units_count',
-                'topics as topics_count' => function ($q) {
-                    $q->active()->whereNull('parent_id');
-                },
-            ])
+            ->withCurriculumCounts()
             ->orderBy('order')
             ->get();
         // Doubt form subjects
@@ -143,41 +138,46 @@ class FrontendController extends Controller
     public function topicsByYear($yearSlug = null)
     {
         $years = \App\Models\AcademicYear::active()
-            ->withCount([
-                'semesters as units_count',
-                'topics as topics_count' => function ($q) {
-                    $q->active()->whereNull('parent_id');
-                },
-            ])
+            ->withCurriculumCounts()
             ->orderBy('order')
             ->get();
 
         $currentYear = $yearSlug
-            ? \App\Models\AcademicYear::where('slug', $yearSlug)->active()->firstOrFail()
+            ? \App\Models\AcademicYear::where('slug', $yearSlug)
+                ->active()
+                ->firstOrFail()
             : $years->first();
 
-        // Agar admin ne saare academic years delete kar diye hon
         if (! $currentYear) {
-            $topics = collect();
-
-            $curriculumSubjects = $this->getCurriculumSubjectsForYear($currentYear);
-
-            return view('topics-year', compact(
-                'years',
-                'currentYear',
-                'topics',
-                'curriculumSubjects'
-            ));
+            return view('topics-year', [
+                'years' => $years,
+                'currentYear' => null,
+                'topics' => collect(),
+                'curriculumSubjects' => collect(),
+                'subjectCount' => 0,
+                'topicCount' => 0,
+            ]);
         }
 
-        // Topics grouped by Subject for the selected year
-        $topics = \App\Models\Topic::active()
-            ->where('academic_year_id', $currentYear->id)
-            ->whereNull('parent_id')
+        /*
+         * Use the same filtered query for both the displayed data and stats.
+         * This prevents a newly-created year from showing subjects/topics that
+         * belong to another academic year.
+         */
+        $yearTopicsQuery = \App\Models\Topic::curriculumVisible()
+            ->where('academic_year_id', $currentYear->id);
+
+        $subjectCount = (clone $yearTopicsQuery)
+            ->distinct()
+            ->count('subject_id');
+
+        $topicCount = (clone $yearTopicsQuery)->count();
+
+        $topics = $yearTopicsQuery
             ->with([
                 'subject',
-                'subtopics' => function ($q) {
-                    $q->active();
+                'subtopics' => function ($query) {
+                    $query->active();
                 },
             ])
             ->orderBy('order')
@@ -186,13 +186,17 @@ class FrontendController extends Controller
                 return $topic->subject->name ?? 'Academic Core';
             });
 
-        $curriculumSubjects = $this->getCurriculumSubjectsForYear($currentYear);
+        $curriculumSubjects = $this->getCurriculumSubjectsForYear(
+            $currentYear
+        );
 
         return view('topics-year', compact(
             'years',
             'currentYear',
             'topics',
-            'curriculumSubjects'
+            'curriculumSubjects',
+            'subjectCount',
+            'topicCount'
         ));
     }
 
@@ -544,7 +548,7 @@ class FrontendController extends Controller
             $results = \App\Models\Topic::active()
                 ->where(function($q) use ($query) {
                     $q->where('title', 'like', "%{$query}%")
-                      ->orWhere('description', 'like', "%{$query}%");
+                        ->orWhere('description', 'like', "%{$query}%");
                 })
                 ->with(['subject', 'academicYear'])
                 ->orderBy('order')
@@ -584,10 +588,10 @@ class FrontendController extends Controller
         $results = \App\Models\Topic::active()
             ->where(function($q) use ($query) {
                 $q->where('title', 'like', "%{$query}%")
-                  ->orWhere('description', 'like', "%{$query}%")
-                  ->orWhereHas('subject', function($sq) use ($query) {
-                      $sq->where('name', 'like', "%{$query}%");
-                  });
+                    ->orWhere('description', 'like', "%{$query}%")
+                    ->orWhereHas('subject', function($sq) use ($query) {
+                        $sq->where('name', 'like', "%{$query}%");
+                    });
             })
             ->with('subject:id,name')
             ->orderBy('order')
@@ -686,34 +690,54 @@ class FrontendController extends Controller
             return collect();
         }
 
+        $yearId = $currentYear->id;
+
+        $filterTopicsForYear = function ($query) use ($yearId) {
+            $query->where('status', true)
+                ->whereNull('parent_id')
+                ->where('academic_year_id', $yearId);
+        };
+
         return \App\Models\Subject::active()
-            ->whereHas('units', function ($query) {
-                $query->where('is_active', true);
-            })
+            ->whereHas(
+                'units.unitTopics.lmsTopics',
+                $filterTopicsForYear
+            )
             ->with([
-                // Subject ke andar sari active units load hongi
-                'units' => function ($query) {
+                'units' => function ($query) use (
+                    $filterTopicsForYear
+                ) {
                     $query->where('is_active', true)
+                        ->whereHas(
+                            'unitTopics.lmsTopics',
+                            $filterTopicsForYear
+                        )
                         ->orderBy('sort_order')
                         ->orderBy('name');
                 },
-
-                // Har unit ke andar active topic-module topics load hongay
-                'units.unitTopics' => function ($query) {
+                'units.unitTopics' => function ($query) use (
+                    $filterTopicsForYear
+                ) {
                     $query->where('status', true)
+                        ->whereHas(
+                            'lmsTopics',
+                            $filterTopicsForYear
+                        )
                         ->orderBy('sort_order')
                         ->orderBy('title');
                 },
-
-                // LMS topics sirf current academic year ke according load hongay
-                'units.unitTopics.lmsTopics' => function ($query) use ($currentYear) {
+                'units.unitTopics.lmsTopics' => function ($query) use (
+                    $yearId
+                ) {
                     $query->where('status', true)
                         ->whereNull('parent_id')
-                        ->where('academic_year_id', $currentYear->id)
-                        ->with(['subtopics' => function ($subQuery) {
-                            $subQuery->where('status', true)
-                                ->orderBy('order');
-                        }])
+                        ->where('academic_year_id', $yearId)
+                        ->with([
+                            'subtopics' => function ($subQuery) {
+                                $subQuery->where('status', true)
+                                    ->orderBy('order');
+                            },
+                        ])
                         ->orderBy('order');
                 },
             ])
