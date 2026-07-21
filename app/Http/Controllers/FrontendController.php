@@ -58,9 +58,41 @@ class FrontendController extends Controller
             ->first();
         $examTopicsCount = \App\Models\Topic::active()->count();
         $examSubjectsCount = \App\Models\Subject::count();
+        $aboutTopicsCount = \App\Models\Topic::curriculumVisible()->count();
+
+        $vivaQuestionsCount = \App\Models\ExamAid::query()
+            ->where('status', true)
+            ->whereRaw("TRIM(COALESCE(viva_question, '')) <> ''")
+            ->count();
+
+        $examQuestionsCount = \App\Models\ExamAid::query()
+            ->where('status', true)
+            ->whereRaw("TRIM(COALESCE(exam_question, '')) <> ''")
+            ->count();
+
+        $aboutQuestionsCount = $vivaQuestionsCount + $examQuestionsCount;
+
+        $aboutStudentsCount = \App\Models\User::role('user')->count();
 
         return view('welcome', compact(
-            'hero', 'features','examTopicsCount','examSubjectsCount','subjects','sectionEnabled','visibleFeatures','testimonialSectionEnabled', 'years', 'trendingTopics', 'testimonials', 'faqs', 'banners', 'sliders','mostRequestedTopic'
+            'hero',
+            'features',
+            'examTopicsCount',
+            'examSubjectsCount',
+            'subjects',
+            'sectionEnabled',
+            'visibleFeatures',
+            'testimonialSectionEnabled',
+            'years',
+            'trendingTopics',
+            'testimonials',
+            'faqs',
+            'banners',
+            'sliders',
+            'mostRequestedTopic',
+            'aboutTopicsCount',
+            'aboutQuestionsCount',
+            'aboutStudentsCount'
         ));
     }
 
