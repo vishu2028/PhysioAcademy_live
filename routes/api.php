@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AcademicYearController;
+use App\Http\Controllers\Api\SubjectController;
 
 Route::prefix('v1')->group(function () {
 
@@ -21,6 +22,8 @@ Route::prefix('v1')->group(function () {
     // Public Academic Years API
     Route::get('/academic-years', [AcademicYearController::class, 'index']);
     Route::get('/academic-years/{slug}/curriculum', [AcademicYearController::class, 'curriculum']);
+    Route::get('/subjects', [SubjectController::class, 'index']);
+    Route::get('/subjects/{slug}/curriculum', [SubjectController::class, 'curriculum']);
     /*
     |--------------------------------------------------------------------------
     | Protected APIs
