@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AcademicYearController;
 use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\TopicController;
-
+use App\Http\Controllers\Api\SearchController;
 Route::prefix('v1')->group(function () {
 
     /*
@@ -26,6 +26,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/subjects', [SubjectController::class, 'index']);
     Route::get('/subjects/{slug}/curriculum', [SubjectController::class, 'curriculum']);
     Route::get('/topics/{slug}', [TopicController::class, 'show']);
+    Route::get('/search', [SearchController::class, 'index']);
     /*
     |--------------------------------------------------------------------------
     | Protected APIs
