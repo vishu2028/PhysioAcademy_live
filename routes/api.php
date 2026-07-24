@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\TopicController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\MaterialController;
+use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\Api\PageController;
 Route::prefix('v1')->group(function () {
 
     /*
@@ -30,6 +32,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/search/suggestions', [SearchController::class, 'suggestions']);
     Route::get('/search', [SearchController::class, 'index']);
     Route::get('/materials/{id}/download', [MaterialController::class, 'download'])->whereNumber('id');
+    Route::get('/home', [HomeController::class, 'index']);
+    Route::get('/pages/{slug}', [PageController::class, 'show']);
     /*
     |--------------------------------------------------------------------------
     | Protected APIs
