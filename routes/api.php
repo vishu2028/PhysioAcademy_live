@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\PageController;
 use App\Http\Controllers\Api\FAQController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\ExamAidController;
 Route::prefix('v1')->group(function () {
 
     /*
@@ -38,6 +39,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/pages/{slug}', [PageController::class, 'show']);
     Route::get('/faqs', [FAQController::class, 'index']);
     Route::post('/contact', [ContactController::class, 'store']);
+    Route::get('/exam-aids', [ExamAidController::class, 'index']);
+    Route::get('/exam-aids/{id}', [ExamAidController::class, 'show'])->whereNumber('id');
     /*
     |--------------------------------------------------------------------------
     | Protected APIs
