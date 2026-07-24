@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\MaterialController;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\PageController;
+use App\Http\Controllers\Api\FAQController;
+use App\Http\Controllers\Api\ContactController;
 Route::prefix('v1')->group(function () {
 
     /*
@@ -34,6 +36,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/materials/{id}/download', [MaterialController::class, 'download'])->whereNumber('id');
     Route::get('/home', [HomeController::class, 'index']);
     Route::get('/pages/{slug}', [PageController::class, 'show']);
+    Route::get('/faqs', [FAQController::class, 'index']);
+    Route::post('/contact', [ContactController::class, 'store']);
     /*
     |--------------------------------------------------------------------------
     | Protected APIs
