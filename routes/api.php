@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AcademicYearController;
 use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\TopicController;
 use App\Http\Controllers\Api\SearchController;
+use App\Http\Controllers\Api\MaterialController;
 Route::prefix('v1')->group(function () {
 
     /*
@@ -26,7 +27,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/subjects', [SubjectController::class, 'index']);
     Route::get('/subjects/{slug}/curriculum', [SubjectController::class, 'curriculum']);
     Route::get('/topics/{slug}', [TopicController::class, 'show']);
+    Route::get('/search/suggestions', [SearchController::class, 'suggestions']);
     Route::get('/search', [SearchController::class, 'index']);
+    Route::get('/materials/{id}/download', [MaterialController::class, 'download'])->whereNumber('id');
     /*
     |--------------------------------------------------------------------------
     | Protected APIs

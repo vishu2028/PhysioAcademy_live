@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\SearchTopicResource;
 use App\Models\Topic;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class SearchController extends Controller
@@ -105,5 +106,110 @@ class SearchController extends Controller
             ->withQueryString();
 
         return SearchTopicResource::collection($topics);
+    }
+    public function suggestions(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'q' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+            'query' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+            'limit' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:10',
+            ],
+        ]);
+
+        $search = trim(
+            $validated['q']
+            ?? $validated['query']
+            ?? ''
+        );
+
+        $limit = (int) ($validated['limit'] ?? 8);
+
+        $topics = Topic::query()
+            ->active()
+            ->whereNull('parent_id')
+            ->whereHas('subject', function ($subjectQuery) {
+                $subjectQuery->where('status', true);
+            })
+            ->whereHas('academicYear', function ($yearQuery) {
+                $yearQuery->where('status', true);
+            })
+            ->with([
+                'subject:id,name,slug',
+                'academicYear:id,name,slug',
+            ])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($searchQuery) use ($search) {
+                    $searchQuery
+                        ->where('title', 'like', "%{$search}%")
+                        ->orWhere(
+                            'description',
+                            'like',
+                            "%{$search}%"
+                        )
+                        ->orWhereHas(
+                            'subject',
+                            function ($subjectQuery) use ($search) {
+                                $subjectQuery->where(
+                                    'name',
+                                    'like',
+                                    "%{$search}%"
+                                );
+                            }
+                        );
+                });
+            })
+            ->orderBy('order')
+            ->orderBy('title')
+            ->limit($limit)
+            ->get();
+
+        return response()->json([
+            'type' => $search !== ''
+                ? 'search'
+                : 'default',
+
+            'query' => $search,
+
+            'count' => $topics->count(),
+
+            'data' => $topics
+                ->map(function ($topic) {
+                    return [
+                        'id' => $topic->id,
+                        'title' => $topic->title,
+                        'slug' => $topic->slug,
+                        'is_protected' => (bool) $topic->is_protected,
+
+                        'subject' => $topic->subject
+                            ? [
+                                'id' => $topic->subject->id,
+                                'name' => $topic->subject->name,
+                                'slug' => $topic->subject->slug,
+                            ]
+                            : null,
+
+                        'academic_year' => $topic->academicYear
+                            ? [
+                                'id' => $topic->academicYear->id,
+                                'name' => $topic->academicYear->name,
+                                'slug' => $topic->academicYear->slug,
+                            ]
+                            : null,
+                    ];
+                })
+                ->values(),
+        ]);
     }
 }
