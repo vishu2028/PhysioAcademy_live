@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\PageController;
 use App\Http\Controllers\Api\FAQController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ExamAidController;
+use App\Http\Controllers\Api\BookmarkController;
 Route::prefix('v1')->group(function () {
 
     /*
@@ -62,5 +63,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar']);
         Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
         Route::delete('/profile', [ProfileController::class, 'destroy']);
+        Route::get('/bookmarks', [BookmarkController::class, 'index']);
+        Route::post('/bookmarks/toggle', [BookmarkController::class, 'toggle']);
+        Route::delete('/bookmarks/{id}', [BookmarkController::class, 'destroy',])->whereNumber('id');
     });
 });
