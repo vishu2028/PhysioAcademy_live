@@ -55,7 +55,8 @@
 
             {{-- WHY SECTION --}}
             @php
-                $whySubtext = 'One Place for Better Learning';
+//                $whySubtext = 'One Place for Better Learning';
+                $whySubtext = 'Learning was never impossible — physiotherapy students just needed better guidance, clearer explanations, and a more organized place to learn everything together.';
                 $defaultWhyItems = [
                     [
                         'icon' => 'bi-search',
@@ -93,12 +94,19 @@
             @endphp
             <section class="about-section">
                 <div class="about-container section-block reveal-up delay-1" id="why-section">
+{{--                    <p class="section-kicker">--}}
+{{--                        <span class="dot"></span> Why We Built This--}}
+{{--                    </p>--}}
+
+{{--                    <h2 class="section-heading">--}}
+{{--                        Why We Built <span class="accent">This</span>--}}
+{{--                    </h2>--}}
                     <p class="section-kicker">
-                        <span class="dot"></span> Why We Built This
+                        <span class="dot"></span> One Place for Better Learning
                     </p>
 
                     <h2 class="section-heading">
-                        Why We Built <span class="accent">This</span>
+                        One Place for <span class="accent">Better Learning</span>
                     </h2>
 
                     <div class="section-divider"></div>
@@ -235,8 +243,10 @@
                         </div>
 
                         <div class="split-copy glass-card reveal-right">
-                            <p class="section-kicker"><span class="dot"></span> Built Around Student Needs</p>
-                            <h2 class="section-heading">Built Around <span class="accent">Student Needs</span></h2>
+                            <p class="section-kicker"><span class="dot"></span> Student-Driven Learning</p>
+                            <h2 class="section-heading">Student-Driven <span class="accent">Learning</span></h2>
+{{--                            <p class="section-kicker"><span class="dot"></span> Built Around Student Needs</p>--}}
+{{--                            <h2 class="section-heading">Built Around <span class="accent">Student Needs</span></h2>--}}
                             <div class="divider-line"></div>
                             <p>{!! $studentBody !!}</p>
                             <a href="{{ route('topics.index') }}" class="cta-button">Request a Topic</a>
@@ -278,7 +288,7 @@
                         </div>
                         <div class="closing-actions">
                             <a href="{{ route('topics.index') }}" class="cta-button text-decoration-none">Explore Topics</a>
-                            <a href="{{ route('register') }}" class="cta-button-secondary text-decoration-none">Join the Academy</a>
+                            <a href="{{ route('register') }}" class="cta-button-secondary text-decoration-none">Create Free Account</a>
                         </div>
                     </div>
                 </div>
@@ -487,6 +497,18 @@
 
             /* CLOSING MINIMAL */
             .closing-minimal { padding: 48px; border-radius: 30px; background: #FFFFFF; display: flex; justify-content: space-between; align-items: center; gap: 40px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 30px 80px rgba(0,0,0,0.04); }
+            .closing-actions {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 12px;
+                flex-shrink: 0;
+            }
+
+            .closing-actions .cta-button,
+            .closing-actions .cta-button-secondary {
+                white-space: nowrap;
+            }
             .closing-supporting-copy { max-width: 720px; margin: 14px 0 0; color: #64748b; line-height: 1.7; }
             .cta-button { padding: 14px 32px; border-radius: 12px; background: #004AAD; color: #FFFFFF; font-weight: 700; text-decoration: none; transition: var(--transition); display: inline-block; }
             .cta-button-secondary { padding: 14px 32px; border-radius: 12px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.1); color: #0f172a; font-weight: 700; transition: var(--transition); display: inline-block; }
