@@ -7,6 +7,7 @@ use App\Http\Resources\Api\NotificationResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Validation\Rule;
+use Illuminate\Http\JsonResponse;
 
 class NotificationController extends Controller
 {
@@ -79,6 +80,76 @@ class NotificationController extends Controller
             'summary' => [
                 'total' => $totalCount,
                 'read' => $totalCount - $unreadCount,
+                'unread' => $unreadCount,
+            ],
+        ]);
+    }
+    /**
+     * Mark all unread notifications of the
+     * authenticated user as read.
+     */
+    public function markAllAsRead(
+        Request $request
+    ): JsonResponse {
+        /*
+         * Sirf logged-in user ki unread notifications
+         * update hongi.
+         */
+        $updatedCount = $request->user()
+            ->unreadNotifications()
+            ->update([
+                'read_at' => now(),
+            ]);
+
+        $unreadCount = $request->user()
+            ->unreadNotifications()
+            ->count();
+
+        return response()->json([
+            'message' => $updatedCount > 0
+                ? 'All notifications marked as read successfully.'
+                : 'There are no unread notifications.',
+
+            'data' => [
+                'updated_count' => $updatedCount,
+            ],
+
+            'summary' => [
+                'unread' => $unreadCount,
+            ],
+        ]);
+    }
+    public function markAsRead(
+        Request $request,
+        string $id
+    ): JsonResponse {
+
+        $notification = $request->user()
+            ->notifications()
+            ->whereKey($id)
+            ->firstOrFail();
+
+        $wasUnread = $notification->unread();
+
+        if ($wasUnread) {
+            $notification->markAsRead();
+            $notification->refresh();
+        }
+
+        $unreadCount = $request->user()
+            ->unreadNotifications()
+            ->count();
+
+        return response()->json([
+            'message' => $wasUnread
+                ? 'Notification marked as read successfully.'
+                : 'Notification is already marked as read.',
+
+            'data' => (
+            new NotificationResource($notification)
+            )->resolve($request),
+
+            'summary' => [
                 'unread' => $unreadCount,
             ],
         ]);

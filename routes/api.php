@@ -76,5 +76,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/doubt-sessions/config', [DoubtSessionController::class, 'config']);
         Route::get('/doubt-sessions/{id}', [DoubtSessionController::class, 'show'])->whereNumber('id');
         Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->whereUuid('id');
+
     });
 });
