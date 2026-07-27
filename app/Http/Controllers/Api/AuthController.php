@@ -35,18 +35,34 @@ class AuthController extends Controller
             'user' => new UserResource($user),
         ]);
     }
-
     public function login(Request $request)
     {
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+            'device_name' => 'nullable|string|max:255',
+        ]);
+
+        if (! Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
-                'message' => 'Invalid login details'
+                'message' => 'Invalid login details',
             ], 401);
         }
 
-        $user = User::where('email', $request['email'])->firstOrFail();
+        $user = User::where('email', $request->email)->firstOrFail();
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Sirf "user" role wale account ko mobile app login dena hai
+        if (! $user->hasRole('user')) {
+            Auth::logout();
+
+            return response()->json([
+                'message' => 'Only users can access the mobile application.',
+            ], 403);
+        }
+
+        $tokenName = $request->input('device_name', 'auth_token');
+
+        $token = $user->createToken($tokenName)->plainTextToken;
 
         return response()->json([
             'access_token' => $token,
@@ -54,6 +70,25 @@ class AuthController extends Controller
             'user' => new UserResource($user),
         ]);
     }
+
+//    public function login(Request $request)
+//    {
+//        if (!Auth::attempt($request->only('email', 'password'))) {
+//            return response()->json([
+//                'message' => 'Invalid login details'
+//            ], 401);
+//        }
+//
+//        $user = User::where('email', $request['email'])->firstOrFail();
+//
+//        $token = $user->createToken('auth_token')->plainTextToken;
+//
+//        return response()->json([
+//            'access_token' => $token,
+//            'token_type' => 'Bearer',
+//            'user' => new UserResource($user),
+//        ]);
+//    }
 
     public function logout(Request $request)
     {

@@ -13,11 +13,24 @@ class PageSectionItem extends Model
     protected $casts = [
         'meta' => 'array',
         'enabled' => 'boolean',
+        'is_protected' => 'boolean',
     ];
 
+//    public function getMetaAttribute($value)
+//    {
+//        return brand_text($value);
+//    }
     public function getMetaAttribute($value)
     {
-        return brand_text($value);
+        if (is_null($value)) {
+            return null;
+        }
+
+        $decoded = is_array($value)
+            ? $value
+            : json_decode($value, true);
+
+        return brand_text($decoded ?? $value);
     }
 
     public function section()
