@@ -153,6 +153,25 @@ class DoubtSessionController extends Controller
     /**
      * Create a new one-on-one doubt-session booking.
      */
+    /**
+     * Return one doubt-session booking belonging
+     * to the authenticated user.
+     */
+    public function show(
+        Request $request,
+        int $id
+    ): DoubtSessionBookingResource {
+        $booking = $request->user()
+            ->doubtSessionBookings()
+            ->with([
+                'academicYear:id,name,slug',
+                'subject:id,name,slug',
+            ])
+            ->whereKey($id)
+            ->firstOrFail();
+
+        return new DoubtSessionBookingResource($booking);
+    }
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([

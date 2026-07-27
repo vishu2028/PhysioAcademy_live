@@ -73,5 +73,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/doubt-sessions', [DoubtSessionController::class, 'index']);
         Route::post('/doubt-sessions', [DoubtSessionController::class, 'store']);
         Route::get('/doubt-sessions/config', [DoubtSessionController::class, 'config']);
+        Route::get('/doubt-sessions/{id}', [DoubtSessionController::class, 'show'])->whereNumber('id');
     });
 });
