@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\FAQController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ExamAidController;
 use App\Http\Controllers\Api\BookmarkController;
+use App\Http\Controllers\Api\DoubtController;
 Route::prefix('v1')->group(function () {
 
     /*
@@ -66,5 +67,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/bookmarks', [BookmarkController::class, 'index']);
         Route::post('/bookmarks/toggle', [BookmarkController::class, 'toggle']);
         Route::delete('/bookmarks/{id}', [BookmarkController::class, 'destroy',])->whereNumber('id');
+        Route::get('/doubts', [DoubtController::class, 'index']);
+        Route::post('/doubts', [DoubtController::class, 'store']);
     });
 });
