@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\ExamAidController;
 use App\Http\Controllers\Api\BookmarkController;
 use App\Http\Controllers\Api\DoubtController;
 use App\Http\Controllers\Api\DoubtSessionController;
+use App\Http\Controllers\Api\NotificationController;
 Route::prefix('v1')->group(function () {
 
     /*
@@ -74,5 +75,6 @@ Route::prefix('v1')->group(function () {
         Route::post('/doubt-sessions', [DoubtSessionController::class, 'store']);
         Route::get('/doubt-sessions/config', [DoubtSessionController::class, 'config']);
         Route::get('/doubt-sessions/{id}', [DoubtSessionController::class, 'show'])->whereNumber('id');
+        Route::get('/notifications', [NotificationController::class, 'index']);
     });
 });
