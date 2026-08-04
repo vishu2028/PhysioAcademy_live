@@ -7,7 +7,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 
-class DashboardController extends Controller
+class
+        $academicYear->update($data);
+
+        // Simple sync for semesters
+        $existingIds = [];
+        if ($request->has('semesters')) {
+            foreach ($request
+                     $academicYear->update($data);
+
+            // Simple sync for semesters
+            $existingIds = [];
+            if ($request->has('semesters')) {
+                foreach ($request
+                         $academicYear->update($data);
+
+                // Simple sync for semesters
+                $existingIds = [];
+                if ($request->has('semesters')) {
+                    foreach ($requestDashboardController extends Controller
 {
     public function index()
     {
@@ -42,7 +60,7 @@ class DashboardController extends Controller
         ];
 
         $recentActivity = collect();
-        
+
         \App\Models\User::latest()->take(3)->get()->each(function($u) use ($recentActivity) {
             $recentActivity->push([
                 'user' => $u->name,

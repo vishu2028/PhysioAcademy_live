@@ -7,7 +7,13 @@ use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 
-class ActivityLogController extends Controller
+class
+        $academicYear->update($data);
+
+        // Simple sync for semesters
+        $existingIds = [];
+        if ($request->has('semesters')) {
+            foreach ($requestActivityLogController extends Controller
 {
     public function index(Request $request)
     {
@@ -32,12 +38,18 @@ class ActivityLogController extends Controller
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
-        if ($request->filled('date_to')) {
+        if ($request->filled(
+            $academicYear->update($data);
+
+        // Simple sync for semesters
+        $existingIds = [];
+        if ($request->has('semesters')) {
+            foreach ($request'date_to')) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
         $logs = $query->paginate(50)->withQueryString();
-        
+
         $users = User::role('admin')->get();
         $actions = ActivityLog::select('action')->distinct()->pluck('action');
         $modules = ActivityLog::select('module')->distinct()->pluck('module');
