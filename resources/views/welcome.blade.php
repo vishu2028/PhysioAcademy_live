@@ -1,25 +1,7 @@
 @extends('layouts.frontend')
 
 @section('content')
-    @php
-        $doubtSessionEnabled =
-            (string) get_setting('doubt_session_enabled', '0') === '1';
 
-        $doubtSessionIsFree =
-            (string) get_setting('doubt_session_is_free', '0') === '1';
-
-        $doubtSessionPrice = $doubtSessionIsFree
-            ? 0
-            : (float) get_setting('doubt_session_price', 0);
-
-        $doubtSessionDuration = max(
-            (int) get_setting(
-                'doubt_session_duration_minutes',
-                60
-            ),
-            15
-        );
-    @endphp
     <div class="home-page">
         <!-- HERO SECTION -->
         <section class="hero" id="home">
@@ -45,8 +27,8 @@
                             $heroTitle = $hero->title ?? get_setting('hero_title', 'Your Academic Guide for Physiotherapy');
                             $titleParts = explode('for', $heroTitle);
                         @endphp
-                        @if(count($titleParts) > 1)
-                            {!! $titleParts[0] !!} <br/> for
+
+
                             <span class="title-highlight">
               <span class="title-highlight-text">{!! trim($titleParts[1]) !!}</span>
               <svg class="title-underline" viewBox="0 0 300 12" preserveAspectRatio="none"><path d="M0,8 Q75,0 150,8 Q225,16 300,8" stroke="url(#underlineGrad)" stroke-width="3" fill="none"/><defs><linearGradient id="underlineGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#004AAD"/><stop offset="100%" stop-color="#004AAD"/></linearGradient></defs></svg>
@@ -75,16 +57,16 @@
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
                             </a>
                             <a href="{{ route('login') }}" class="btn-hero-secondary">
-                                <span>Login to Account</span>
+                                <span>Login to source </span>
                             </a>
                         @endauth
                     </div>
 
                     <div class="hero-stats reveal-up delay-4">
                         <div class="stat-item">
-                            <span class="stat-num" data-count="{{ \App\Models\Topic::count() }}">0</span>
+                            <span class="stat-num" data-count="{{ \App\Models\Topic::count() }}">50</span>
                             <span class="stat-suffix">+</span>
-                            <span class="stat-label">Topics Covered</span>
+                            <span class="stat-label">Topics Complete</span>
                         </div>
 
                         <div class="stat-divider"></div>
@@ -100,7 +82,7 @@
                         <div class="stat-item">
                             <span class="stat-num" data-count="{{ \App\Models\User::count() }}">0</span>
                             <span class="stat-suffix">+</span>
-                            <span class="stat-label">Students Helped</span>
+                            <span class="stat-label">Students Helped yes no</span>
                         </div>
                     </div>
                 </div>
