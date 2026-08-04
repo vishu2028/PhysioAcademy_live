@@ -29,7 +29,10 @@ class AcademicYearController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'order' => 'nullable|integer',
+            'order' => 'nullabl $years = AcademicYear::with('semesters')
+            ->withCurriculumCounts()
+            ->orderBy('order')
+            ->get();e|integer',
             'semesters' => 'nullable|array',
             'semesters.*' => 'string|max:255',
         ]);
@@ -38,7 +41,10 @@ class AcademicYearController extends Controller
             'semesters',
             'units_count',
             'topics_count',
-        ]);
+        ]); $years = AcademicYear::with('semesters')
+        ->withCurriculumCounts()
+        ->orderBy('order')
+        ->get();
         $data['slug'] = Str::slug($request->name);
         $data['status'] = $request->has('status');
 
@@ -63,7 +69,10 @@ class AcademicYearController extends Controller
         $academicYear->load('semesters');
         return view('admin.academic_years.edit', compact('academicYear'));
     }
-
+$years = AcademicYear::with('semesters')
+->withCurriculumCounts()
+->orderBy('order')
+->get();
     public function update(Request $request, AcademicYear $academicYear)
     {
         $request->validate([
@@ -76,7 +85,10 @@ class AcademicYearController extends Controller
         ]);
 
         $data = $request->except([
-            'semesters',
+            'semesters', $years = AcademicYear::with('semesters')
+                ->withCurriculumCounts()
+                ->orderBy('order')
+                ->get();
             'units_count',
             'topics_count',
         ]);
