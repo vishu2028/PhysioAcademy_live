@@ -13,6 +13,8 @@ class FrontendController extends Controller
 {
     public function home()
     {
+
+        
 //        $hero = \App\Models\HeroSection::active()->first() ?? new \App\Models\HeroSection();
         $hero = \App\Models\HeroSection::query()
             ->where('status', true)
@@ -36,6 +38,7 @@ class FrontendController extends Controller
             ->orderBy('name')
             ->get();
 
+            
 
         // Trending Topics
         $trendingTopics = \App\Models\Topic::active()->with('subject')->orderBy('order')->limit(4)->get();
@@ -73,6 +76,8 @@ class FrontendController extends Controller
         $aboutQuestionsCount = $vivaQuestionsCount + $examQuestionsCount;
 
         $aboutStudentsCount = \App\Models\User::role('user')->count();
+
+ 
 
         return view('welcome', compact(
             'hero',

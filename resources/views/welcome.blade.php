@@ -33,7 +33,7 @@
               <span class="title-highlight-text">{!! trim($titleParts[1]) !!}</span>
               <svg class="title-underline" viewBox="0 0 300 12" preserveAspectRatio="none"><path d="M0,8 Q75,0 150,8 Q225,16 300,8" stroke="url(#underlineGrad)" stroke-width="3" fill="none"/><defs><linearGradient id="underlineGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#004AAD"/><stop offset="100%" stop-color="#004AAD"/></linearGradient></defs></svg>
             </span>
-                        @else
+                        @if($heroTitle)
                             {!! $heroTitle !!}
                         @endif
                     </h1>
@@ -237,7 +237,7 @@
                 <div class="restriction-container">
                     <div class="curriculum-grid reveal-stagger">
                         {{-- Visible Years --}}
-                        @foreach($visibleYears as $index => $y)
+                        {{-- @foreach($visibleYears as $index => $y)
                             @php
                                 $colors = ['#004AAD', '#004AAD', '#004AAD', '#004AAD', '#004AAD'];
                                 $color = $colors[$index % count($colors)];
@@ -281,8 +281,47 @@
 
                                 <div class="cc-count">{{ $y->topics_count }} Topics</div>
                             </div>
-                        @endforeach
+                        @endforeach --}}
+                        
+                        @foreach($visibleYears as $index => $y)
+                            @php
+                                $topics_list = \App\Models\Topic::where('academic_year_id', $y->id)
+                                    ->with('subject')
+                                    ->take(3)
+                                    ->get();
+                                $unique_subjects = $topics_list->pluck('subject.name')->unique()->filter();
+                            @endphp
 
+                            <div class="curriculum-card" data-tilt>
+                                <div class="cc-glow"></div>
+
+                                <h3>{{ $y->name }}</h3>
+
+                                <p>
+                                    @if($unique_subjects->count() > 0)
+                                        {{ $unique_subjects->implode(', ') }}
+                                    @else
+                                        Core units and clinical focus areas.
+                                    @endif
+                                </p>
+
+                                <div class="cc-subjects">
+                                    @foreach($unique_subjects as $sub)
+                                        <span>{{ $sub }}</span>
+                                    @endforeach
+                                </div>
+
+                                <a href="{{ route('topics.year', ['year' => $y->slug]) }}" class="cc-btn">
+                                    Explore
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                        <polyline points="12 5 19 12 12 19"/>
+                                    </svg>
+                                </a>
+
+                                <div class="cc-count">{{ $y->topics_count ?? 0 }} Topics</div>
+                            </div>
+                        @endforeach
                         {{-- Restricted Years --}}
                         @foreach($restrictedYears as $index => $y)
                             <div class="curriculum-card">
@@ -647,18 +686,18 @@
                             <div class="dsp-meta">
         <span>
             <i class="bi bi-clock"></i>
-            {{ $doubtSessionDuration }} Minutes
+            {{ $doubtSessionDuration ?? '0' }} Minutes
         </span>
 
-                                @if($doubtSessionIsFree)
+                                {{-- @if($doubtSessionIsFree)
                                     <span class="dsp-price free">
-                Free Session
-            </span>
+                                        Free Session
+                                    </span>
                                 @else
                                     <span class="dsp-price">
-                ₹{{ number_format($doubtSessionPrice, 2) }}
-            </span>
-                                @endif
+                                        ₹{{ number_format($doubtSessionPrice, 2) }}
+                                    </span>
+                                @endif --}}
                             </div>
 
                             @if(session('session_error'))
@@ -667,7 +706,7 @@
                                 </div>
                             @endif
 
-                            @if($doubtSessionEnabled)
+                            {{-- @if($doubtSessionEnabled)
                                 <a
                                     href="{{ route('doubt-sessions.create') }}"
                                     class="dsp-book-button"
@@ -684,7 +723,7 @@
                                     <span>Sessions Currently Unavailable</span>
                                     <i class="bi bi-lock"></i>
                                 </button>
-                            @endif
+                            @endif --}}
 
                             <small class="dsp-note">
                                 The admin will confirm your session date and time afterward.

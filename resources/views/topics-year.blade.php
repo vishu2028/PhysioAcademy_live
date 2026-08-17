@@ -19,10 +19,13 @@
             <section class="typage-cards-section">
                 <div class="typage-cards-inner">
                     <div class="typage-section-label">Academic Foundations</div>
-                    <div class="typage-cards-grid">
-                        @foreach($years as $y)
-                            <a href="{{ route('topics.year', ['year' => $y->slug]) }}" class="typage-card {{ ($currentYear && $currentYear->id == $y->id) ? 'active' : '' }}">
-                                {{--          <div class="typage-year-number text-uppercase">{{ Str::limit($y->name, 2, '') }}</div>--}}
+                    <div class="typage-cards-grid">                       
+                        @foreach($years as $y)                         
+                            @if($currentYear && $y->id !== $currentYear->id)
+                                @continue
+                            @endif
+
+                            <a href="{{ route('topics.year', ['year' => $y->slug]) }}" class="typage-card active">
                                 <div class="typage-year-label">{{ $y->name }}</div>
                                 <p class="typage-year-desc">{{ $y->description }}</p>
                                 <div class="typage-year-info">
