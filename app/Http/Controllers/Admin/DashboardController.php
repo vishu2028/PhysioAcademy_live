@@ -3,96 +3,168 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\User;
+use App\Models\Page;
+use App\Models\Subject;
+use App\Models\Topic;
+use App\Models\Feature;
+use App\Models\Message;
+use App\Models\Testimonial;
+use App\Models\Media;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
-
-class
-        $academicYear->update($data);
-
-        // Simple sync for semesters
-        $existingIds = [];
-        if ($request->has('semesters')) {
-            foreach ($request
-                     $academicYear->update($data);
-
-            // Simple sync for semesters
-            $existingIds = [];
-            if ($request->has('semesters')) {
-                foreach ($request
-                         $academicYear->update($data);
-
-                // Simple sync for semesters
-                $existingIds = [];
-                if ($request->has('semesters')) {
-                    foreach ($requestDashboardController extends Controller
+class DashboardController extends Controller
 {
     public function index()
     {
+        /*
+        |--------------------------------------------------------------------------
+        | Dashboard Statistics
+        |--------------------------------------------------------------------------
+        */
+
         $stats = [
-            'users' => \App\Models\User::count(),
-            'pages' => \App\Models\Page::count(),
-            'subjects' => \App\Models\Subject::count(),
-            'topics' => \App\Models\Topic::count(),
-            'services' => \App\Models\Topic::count(), // Legacy mapping
-            'features' => \App\Models\Feature::count(),
-            'messages' => \App\Models\Message::count(),
+            'users'      => User::count(),
+            'pages'      => Page::count(),
+            'subjects'   => Subject::count(),
+            'topics'     => Topic::count(),
+            'services'   => Topic::count(), // Change to Service::count() if Service model exists
+            'features'   => Feature::count(),
+            'messages'   => Message::count(),
         ];
 
-        // User growth chart data (Last 7 days)
+        /*
+        |--------------------------------------------------------------------------
+        | User Growth - Last 7 Days
+        |--------------------------------------------------------------------------
+        */
+
         $labels = [];
         $userData = [];
+
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
+
             $labels[] = $date->format('D');
-            $userData[] = \App\Models\User::whereDate('created_at', $date->toDateString())->count();
+
+            $userData[] = User::whereDate(
+                'created_at',
+                $date->toDateString()
+            )->count();
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Chart Data
+        |--------------------------------------------------------------------------
+        */
 
         $chartData = [
             'labels' => $labels,
+
             'users' => $userData,
+
             'distribution' => [
-                'Pages' => $stats['pages'],
-                'Topics' => $stats['topics'],
-                'Subjects' => $stats['subjects'],
-                'Testimonials' => \App\Models\Testimonial::count(),
-            ]
+                'Pages'        => $stats['pages'],
+                'Topics'       => $stats['topics'],
+                'Subjects'     => $stats['subjects'],
+                'Testimonials' => Testimonial::count(),
+            ],
         ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Recent Activity
+        |--------------------------------------------------------------------------
+        */
 
         $recentActivity = collect();
 
-        \App\Models\User::latest()->take(3)->get()->each(function($u) use ($recentActivity) {
+        /*
+        |--------------------------------------------------------------------------
+        | Recent Users
+        |--------------------------------------------------------------------------
+        */
+
+        $recentUsers = User::latest('created_at')
+            ->take(3)
+            ->get();
+
+        foreach ($recentUsers as $user) {
             $recentActivity->push([
-                'user' => $u->name,
-                'subtitle' => $u->email,
-                'action' => 'User Joined',
-                'timestamp' => $u->created_at->diffForHumans(),
-                'status' => 'Success'
+                'user'      => $user->name,
+                'subtitle'  => $user->email,
+                'action'    => 'User Joined',
+                'timestamp' => $user->created_at,
+                'time'      => $user->created_at->diffForHumans(),
+                'status'    => 'Success',
             ]);
-        });
+        }
 
-        \App\Models\Message::latest()->take(2)->get()->each(function($m) use ($recentActivity) {
+        /*
+        |--------------------------------------------------------------------------
+        | Recent Messages
+        |--------------------------------------------------------------------------
+        */
+
+        $recentMessages = Message::latest('created_at')
+            ->take(2)
+            ->get();
+
+        foreach ($recentMessages as $message) {
             $recentActivity->push([
-                'user' => $m->name,
-                'subtitle' => $m->email,
-                'action' => 'Sent Inquiry',
-                'timestamp' => $m->created_at->diffForHumans(),
-                'status' => 'New'
+                'user'      => $message->name,
+                'subtitle'  => $message->email,
+                'action'    => 'Sent Inquiry',
+                'timestamp' => $message->created_at,
+                'time'      => $message->created_at->diffForHumans(),
+                'status'    => 'New',
             ]);
-        });
+        }
 
-        \App\Models\Media::latest()->take(2)->get()->each(function($me) use ($recentActivity) {
+        /*
+        |--------------------------------------------------------------------------
+        | Recent Media
+        |--------------------------------------------------------------------------
+        */
+
+        $recentMedia = Media::latest('created_at')
+            ->take(2)
+            ->get();
+
+        foreach ($recentMedia as $media) {
             $recentActivity->push([
-                'user' => 'Super Admin',
-                'subtitle' => $me->file_type,
-                'action' => 'Uploaded ' . Str::limit($me->file_name, 20),
-                'timestamp' => $me->created_at->diffForHumans(),
-                'status' => 'File'
+                'user'      => 'Super Admin',
+                'subtitle'  => $media->file_type,
+                'action'    => 'Uploaded ' . Str::limit($media->file_name, 20),
+                'timestamp' => $media->created_at,
+                'time'      => $media->created_at->diffForHumans(),
+                'status'    => 'File',
             ]);
-        });
+        }
 
-        $recentActivity = $recentActivity->sortByDesc('timestamp')->take(8);
+        /*
+        |--------------------------------------------------------------------------
+        | Sort Recent Activity
+        |--------------------------------------------------------------------------
+        */
 
-        return view('admin.dashboard', compact('stats', 'chartData', 'recentActivity'));
+        $recentActivity = $recentActivity
+            ->sortByDesc('timestamp')
+            ->take(8)
+            ->values();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Dashboard View
+        |--------------------------------------------------------------------------
+        */
+
+        return view('admin.dashboard', [
+            'stats'          => $stats,
+            'chartData'      => $chartData,
+            'recentActivity' => $recentActivity,
+        ]);
     }
 }

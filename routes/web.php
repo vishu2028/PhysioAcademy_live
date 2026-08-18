@@ -10,6 +10,10 @@ use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Admin\CommunityActivityController;
+use App\Http\Controllers\Admin\AnnouncementController;
+use App\Http\Controllers\Admin\TrendingTopicController;
+use App\Http\Controllers\Admin\CommunityAndAnnouncementsController;
 /*
 |--------------------------------------------------------------------------
 | Frontend Routes
@@ -445,6 +449,30 @@ Route::middleware([
                 'index',
             ]
         )->name('activity-logs.index');
+
+         /*
+         * Community & Announcements
+         */
+        Route::get(
+            'community-and-announcements',
+            [CommunityAndAnnouncementsController::class, 'index']
+        )->name('community_and_announcements.index');
+        Route::resource(
+            'community-activities',
+            CommunityActivityController::class
+        )->names('community');
+
+
+        Route::resource(
+            'announcements',
+            AnnouncementController::class
+        )->names('announcements');
+
+
+        Route::resource(
+            'trending-topics',
+            TrendingTopicController::class
+        )->names('trending');
     });
 
 /*
