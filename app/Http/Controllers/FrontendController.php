@@ -8,11 +8,16 @@ use Illuminate\Http\Request;
 use App\Models\ExamAid;
 use App\Models\AcademicYear;
 use App\Models\Message;
+use App\Models\CommunityActivity;
+use App\Models\Announcement;
+use App\Models\TrendingTopic;
 use Illuminate\Support\Facades\DB;
 class FrontendController extends Controller
 {
     public function home()
     {
+
+        
 //        $hero = \App\Models\HeroSection::active()->first() ?? new \App\Models\HeroSection();
         $hero = \App\Models\HeroSection::query()
             ->where('status', true)
@@ -36,6 +41,7 @@ class FrontendController extends Controller
             ->orderBy('name')
             ->get();
 
+            
 
         // Trending Topics
         $trendingTopics = \App\Models\Topic::active()->with('subject')->orderBy('order')->limit(4)->get();
@@ -74,6 +80,13 @@ class FrontendController extends Controller
 
         $aboutStudentsCount = \App\Models\User::role('user')->count();
 
+        $activities = CommunityActivity::latest()->get();
+
+        $announcements = Announcement::latest()->get();
+
+        $trendings = TrendingTopic::latest()->get();
+ 
+
         return view('welcome', compact(
             'hero',
             'features',
@@ -92,7 +105,11 @@ class FrontendController extends Controller
             'mostRequestedTopic',
             'aboutTopicsCount',
             'aboutQuestionsCount',
-            'aboutStudentsCount'
+            'aboutStudentsCount',
+            'activities',
+            'announcements',
+            'trendings'
+
         ));
     }
 

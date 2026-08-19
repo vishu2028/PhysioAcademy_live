@@ -33,7 +33,7 @@
               <span class="title-highlight-text">{!! trim($titleParts[1]) !!}</span>
               <svg class="title-underline" viewBox="0 0 300 12" preserveAspectRatio="none"><path d="M0,8 Q75,0 150,8 Q225,16 300,8" stroke="url(#underlineGrad)" stroke-width="3" fill="none"/><defs><linearGradient id="underlineGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#004AAD"/><stop offset="100%" stop-color="#004AAD"/></linearGradient></defs></svg>
             </span>
-                        @else
+                        @if($heroTitle)
                             {!! $heroTitle !!}
                         @endif
                     </h1>
@@ -237,7 +237,7 @@
                 <div class="restriction-container">
                     <div class="curriculum-grid reveal-stagger">
                         {{-- Visible Years --}}
-                        @foreach($visibleYears as $index => $y)
+                        {{-- @foreach($visibleYears as $index => $y)
                             @php
                                 $colors = ['#004AAD', '#004AAD', '#004AAD', '#004AAD', '#004AAD'];
                                 $color = $colors[$index % count($colors)];
@@ -281,8 +281,47 @@
 
                                 <div class="cc-count">{{ $y->topics_count }} Topics</div>
                             </div>
-                        @endforeach
+                        @endforeach --}}
+                        
+                        @foreach($visibleYears as $index => $y)
+                            @php
+                                $topics_list = \App\Models\Topic::where('academic_year_id', $y->id)
+                                    ->with('subject')
+                                    ->take(3)
+                                    ->get();
+                                $unique_subjects = $topics_list->pluck('subject.name')->unique()->filter();
+                            @endphp
 
+                            <div class="curriculum-card" data-tilt>
+                                <div class="cc-glow"></div>
+
+                                <h3>{{ $y->name }}</h3>
+
+                                <p>
+                                    @if($unique_subjects->count() > 0)
+                                        {{ $unique_subjects->implode(', ') }}
+                                    @else
+                                        Core units and clinical focus areas.
+                                    @endif
+                                </p>
+
+                                <div class="cc-subjects">
+                                    @foreach($unique_subjects as $sub)
+                                        <span>{{ $sub }}</span>
+                                    @endforeach
+                                </div>
+
+                                <a href="{{ route('topics.year', ['year' => $y->slug]) }}" class="cc-btn">
+                                    Explore
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                        <polyline points="12 5 19 12 12 19"/>
+                                    </svg>
+                                </a>
+
+                                <div class="cc-count">{{ $y->topics_count ?? 0 }} Topics</div>
+                            </div>
+                        @endforeach
                         {{-- Restricted Years --}}
                         @foreach($restrictedYears as $index => $y)
                             <div class="curriculum-card">
@@ -647,18 +686,18 @@
                             <div class="dsp-meta">
         <span>
             <i class="bi bi-clock"></i>
-            {{ $doubtSessionDuration }} Minutes
+            {{ $doubtSessionDuration ?? '0' }} Minutes
         </span>
 
-                                @if($doubtSessionIsFree)
+                                {{-- @if($doubtSessionIsFree)
                                     <span class="dsp-price free">
-                Free Session
-            </span>
+                                        Free Session
+                                    </span>
                                 @else
                                     <span class="dsp-price">
-                ₹{{ number_format($doubtSessionPrice, 2) }}
-            </span>
-                                @endif
+                                        ₹{{ number_format($doubtSessionPrice, 2) }}
+                                    </span>
+                                @endif --}}
                             </div>
 
                             @if(session('session_error'))
@@ -667,7 +706,7 @@
                                 </div>
                             @endif
 
-                            @if($doubtSessionEnabled)
+                            {{-- @if($doubtSessionEnabled)
                                 <a
                                     href="{{ route('doubt-sessions.create') }}"
                                     class="dsp-book-button"
@@ -684,7 +723,7 @@
                                     <span>Sessions Currently Unavailable</span>
                                     <i class="bi bi-lock"></i>
                                 </button>
-                            @endif
+                            @endif --}}
 
                             <small class="dsp-note">
                                 The admin will confirm your session date and time afterward.
@@ -895,7 +934,7 @@
         </section>
 
         <!-- COMMUNITY ACTIVITY / LIVE ACTIVITY -->
-        <section class="section community-section" id="community">
+        {{-- <section class="section community-section" id="community">
             <div class="section-container">
                 <div class="section-header reveal-up">
                     <span class="section-tag">Live Activity</span>
@@ -994,8 +1033,218 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </section> --}}
+        <section class="section community-section" id="community">
 
+            <div class="section-container">
+
+                <div class="section-header reveal-up">
+
+                    <span class="section-tag">
+                        Live Activity
+                    </span>
+
+                    <h2 class="section-title">
+                        Community & <span class="text-gradient">Announcements</span>
+                    </h2>
+
+                </div>
+
+
+                <div class="community-layout reveal-up">
+
+
+                    {{-- ================================================= --}}
+                    {{-- RECENT ACTIVITY --}}
+                    {{-- ================================================= --}}
+
+                    <div class="community-feed">
+
+                        <div class="feed-header">
+
+                            <span class="feed-title">
+                                Recent Activity
+                            </span>
+
+                            <span class="live-indicator">
+                                <span class="live-dot"></span>
+                                Live
+                            </span>
+
+                        </div>
+
+
+                        <div class="feed-items">
+
+                            @forelse($activities as $activity)
+
+                                <div class="feed-item">
+
+                                    <div class="feed-item-icon new-upload">
+
+                                        {{-- Currently activities don't have an icon column --}}
+                                        <span class="ui-icon ui-icon-folder"></span>
+
+                                    </div>
+
+
+                                    <div class="feed-item-content">
+
+                                        <span class="feed-item-title">
+                                            {{ $activity->title }}
+                                        </span>
+
+                                        <span class="feed-item-meta">
+                                            {{ $activity->time }} • {{ $activity->subject }}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            @empty
+
+                                <div class="feed-item">
+
+                                    <div class="feed-item-content">
+
+                                        <span class="feed-item-title">
+                                            No recent activity available.
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            @endforelse
+
+                        </div>
+
+                    </div>
+
+
+
+                    {{-- ================================================= --}}
+                    {{-- RIGHT SIDE --}}
+                    {{-- ================================================= --}}
+
+                    <div class="community-right">
+
+
+                        {{-- ============================================= --}}
+                        {{-- ANNOUNCEMENTS --}}
+                        {{-- ============================================= --}}
+
+                        <div class="announcements-card glass-card">
+
+                            <div class="ann-header">
+
+                                <span>
+                                    <span class="ui-icon ui-icon-megaphone"></span>
+                                    Announcements
+                                </span>
+
+
+                                <span class="ann-count">
+                                    {{ $announcements->count() }} new
+                                </span>
+
+                            </div>
+
+
+                            <div class="ann-items">
+
+                                @forelse($announcements as $announcement)
+
+                                    <div class="ann-item">
+
+                                        <div class="ann-dot"
+                                            style="--dot:#004AAD">
+                                        </div>
+
+
+                                        <div>
+
+                                            <span class="ann-title">
+                                                {{ $announcement->title }}
+                                            </span>
+
+
+                                            <span class="ann-date">
+
+                                                {{ \Carbon\Carbon::parse($announcement->date)->format('M d, Y') }}
+
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                @empty
+
+                                    <div class="ann-item">
+
+                                        <div>
+
+                                            <span class="ann-title">
+                                                No announcements available.
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                @endforelse
+
+                            </div>
+
+                        </div>
+
+
+
+                        {{-- ============================================= --}}
+                        {{-- TRENDING --}}
+                        {{-- ============================================= --}}
+
+                        <div class="trending-ticker glass-card">
+
+                            <div class="ticker-header">
+
+                                <span class="ui-icon ui-icon-flame"></span>
+
+                                Trending
+
+                            </div>
+
+
+                            <div class="ticker-track" id="ticker">
+
+                                @forelse($trendings as $trending)
+
+                                    <span>
+                                        {{ $trending->title }}
+                                    </span>
+
+                                @empty
+
+                                    <span>
+                                        No trending topics available.
+                                    </span>
+
+                                @endforelse
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
         <!-- ABOUT SECTION -->
         <section class="section about-section" id="about">
             <div class="section-container">
