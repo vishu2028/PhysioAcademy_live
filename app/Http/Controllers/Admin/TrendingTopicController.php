@@ -41,6 +41,7 @@ class TrendingTopicController extends Controller
     return redirect()
         ->route('admin.community_and_announcements.index')
         ->with('success', 'Trending topic created successfully.');
+        //
     }
 
     /**
@@ -59,6 +60,7 @@ class TrendingTopicController extends Controller
         $trendingTopic = TrendingTopic::findOrFail($id);
 
         return view('admin.community_and_announcements.trending_topic.edit', compact('trendingTopic'));
+        //
     }
 
     /**
@@ -79,6 +81,7 @@ class TrendingTopicController extends Controller
     return redirect()
         ->route('admin.community_and_announcements.index')
         ->with('success', 'Trending topic updated successfully.');
+        //
     }
 
     /**
@@ -93,5 +96,6 @@ class TrendingTopicController extends Controller
         return redirect()
             ->route('admin.community_and_announcements.index')
             ->with('success', 'Trending topic deleted successfully.');
+        //
     }
 }

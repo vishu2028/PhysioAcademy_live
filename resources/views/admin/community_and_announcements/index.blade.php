@@ -5,7 +5,6 @@
 @section('content')
 
 <div class="mb-4">
-
     <div class="d-flex justify-content-between align-items-center">
 
         <div>
@@ -27,7 +26,6 @@
         </a>
 
     </div>
-
 </div>
 
 
@@ -63,7 +61,6 @@
         <ul class="nav nav-tabs px-4 pt-3 border-bottom"
             id="communityTabs"
             role="tablist">
-
 
             {{-- Recent Activities --}}
             <li class="nav-item" role="presentation">
@@ -152,7 +149,6 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
 
                         <div>
-
                             <h5 class="fw-bold mb-1">
                                 Recent Activities
                             </h5>
@@ -160,7 +156,6 @@
                             <p class="text-secondary small mb-0">
                                 Manage the live activity feed shown on the website.
                             </p>
-
                         </div>
 
                         <a href="{{ route('admin.community.create') }}"
@@ -308,7 +303,6 @@
             </div>
 
 
-
             {{-- ====================================================== --}}
             {{-- ANNOUNCEMENTS --}}
             {{-- ====================================================== --}}
@@ -332,7 +326,6 @@
                             </p>
 
                         </div>
-
 
                         <a href="{{ route('admin.announcements.create') }}"
                            class="btn btn-primary btn-sm rounded-3">
@@ -469,7 +462,6 @@
             </div>
 
 
-
             {{-- ====================================================== --}}
             {{-- TRENDING --}}
             {{-- ====================================================== --}}
@@ -493,7 +485,6 @@
                             </p>
 
                         </div>
-
 
                         <a href="{{ route('admin.trending.create') }}"
                            class="btn btn-primary btn-sm rounded-3">
@@ -618,7 +609,6 @@
                 </div>
 
             </div>
-
 
         </div>
 

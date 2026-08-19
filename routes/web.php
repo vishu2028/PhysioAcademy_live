@@ -14,6 +14,9 @@ use App\Http\Controllers\Admin\CommunityActivityController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\TrendingTopicController;
 use App\Http\Controllers\Admin\CommunityAndAnnouncementsController;
+use App\Http\Controllers\Admin\AboutTimelineController;
+use App\Http\Controllers\Admin\AboutContentController;
+use App\Http\Controllers\Admin\AboutController;
 /*
 |--------------------------------------------------------------------------
 | Frontend Routes
@@ -473,6 +476,24 @@ Route::middleware([
             'trending-topics',
             TrendingTopicController::class
         )->names('trending');
+         /*
+         * About Timelines
+         */
+        Route::resource(
+            'about',
+            AboutController::class
+        )->only(['index'])->names('about');
+
+        Route::resource(
+            'about-content',
+            AboutContentController::class
+        )->except(['show'])->names('about_content');
+
+
+        Route::resource(
+            'about-timelines',
+            AboutTimelineController::class
+        )->except(['show'])->names('about_timelines');
     });
 
 /*

@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+<<<<<<< HEAD
 use App\Models\Announcement;
+=======
+>>>>>>> 278c271ed5712adc2f252bf549ffb28180cb23af
 
 class AnnouncementController extends Controller
 {
@@ -29,6 +32,7 @@ class AnnouncementController extends Controller
      */
     public function store(Request $request)
     {
+<<<<<<< HEAD
         $request->validate([
         'title' => 'required|string|max:255',
         // 'icon'  => 'required|string|max:100',
@@ -44,6 +48,9 @@ class AnnouncementController extends Controller
     return redirect()
         ->route('admin.community_and_announcements.index')
         ->with('success', 'Announcement created successfully.');
+=======
+        //
+>>>>>>> 278c271ed5712adc2f252bf549ffb28180cb23af
     }
 
     /**
