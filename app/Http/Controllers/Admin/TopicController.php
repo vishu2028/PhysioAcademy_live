@@ -111,6 +111,7 @@ class TopicController extends Controller
             'module_number' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'bottom_line' => 'nullable|string|max:5000',
+            'study_time' => 'nullable|string|max:100',
             'order' => 'nullable|integer',
             'status' => 'sometimes|boolean',
             'is_protected' => 'sometimes|boolean',
@@ -131,7 +132,7 @@ class TopicController extends Controller
         $data['slug'] = Str::slug($unitTopic->title . '-' . time());
         $data['status'] = $request->has('status');
         $data['is_protected'] = $request->has('is_protected');
-
+        $data['study_time'] = $request->study_time;
         $topic = Topic::create($data);
 
         if ($request->has('materials')) {
@@ -252,6 +253,7 @@ class TopicController extends Controller
             'module_number' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'bottom_line' => 'nullable|string|max:5000',
+            'study_time' => 'nullable|string|max:100',
             'order' => 'nullable|integer',
             'status' => 'sometimes|boolean',
             'is_protected' => 'sometimes|boolean',

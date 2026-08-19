@@ -58,7 +58,7 @@
                         <div class="meta-icon"><i class="bi bi-clock-history"></i></div>
                         <div class="meta-info">
                             <span class="meta-label">Est. Study Time</span>
-                            <span class="meta-value">45 – 60 Mins</span>
+                            <span class="meta-value"> {{ $topic->study_time ?? 'Not specified' }}</span>
                         </div>
                     </div>
                 </div>

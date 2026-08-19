@@ -93,6 +93,65 @@
                                 @enderror
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Unit Number</label>
+
+                                <input
+                                    type="text"
+                                    name="module_number"
+                                    class="form-control @error('module_number') is-invalid @enderror"
+                                    placeholder="e.g. Unit 1 or Module A"
+                                    value="{{ old('module_number') }}"
+                                >
+
+                                @error('module_number')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Display Order</label>
+
+                                <input
+                                    type="number"
+                                    name="order"
+                                    class="form-control @error('order') is-invalid @enderror"
+                                    value="{{ old('order', 0) }}"
+                                    min="0"
+                                >
+
+                                @error('order')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- Estimated Study Time --}}
+                        <div class="mb-3">
+                            <label for="study_time" class="form-label fw-bold">
+                                Estimated Study Time
+                            </label>
+
+                            <input
+                                type="text"
+                                name="study_time"
+                                id="study_time"
+                                class="form-control @error('study_time') is-invalid @enderror"
+                                value="{{ old('study_time') }}"
+                                placeholder="e.g. 45 – 60 Mins"
+                                maxlength="100"
+                            >
+
+                            <div class="form-text">
+                                Enter the approximate time students need to study this topic.
+                                Example: <strong>45 – 60 Mins</strong>
+                            </div>
+
+                            @error('study_time')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
                 </div>
 

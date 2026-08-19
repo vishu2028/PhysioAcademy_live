@@ -23,6 +23,7 @@ class Topic extends Model
         'module_number',
         'status',
         'order',
+        'study_time',
         'is_protected',
     ];
 

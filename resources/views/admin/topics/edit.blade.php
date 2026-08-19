@@ -60,6 +60,30 @@
                             <input type="number" name="order" class="form-control" value="{{ old('order', $topic->order) }}">
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <label for="study_time" class="form-label fw-bold">
+                            Estimated Study Time
+                        </label>
+
+                        <input
+                            type="text"
+                            name="study_time"
+                            id="study_time"
+                            class="form-control @error('study_time') is-invalid @enderror"
+                            value="{{ old('study_time', $topic->study_time) }}"
+                            placeholder="e.g. 45 – 60 Mins"
+                            maxlength="100"
+                        >
+
+                        <div class="form-text">
+                            Enter the approximate time students need to study this topic.
+                            Example: <strong>45 – 60 Mins</strong>
+                        </div>
+
+                        @error('study_time')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
             </div>
 
