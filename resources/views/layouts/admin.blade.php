@@ -318,10 +318,10 @@
                     <i class="bi bi-chat-quote"></i> Testimonials
                 </a>
                 <a href="{{ route('admin.community_and_announcements.index') }}" class="nav-link-admin @if(request()->routeIs('admin.testimonials.*')) active @endif">
-                    <i class="bi bi-chat-quote"></i> Community & Announcments
+                    <i class="bi bi-megaphone"></i> Community & Announcments
                 </a>
                 <a href="{{ route('admin.about.index') }}" class="nav-link-admin @if(request()->routeIs('admin.testimonials.*')) active @endif">
-                    <i class="bi bi-chat-quote"></i> About
+                    <i class="bi bi-info-circle"></i> About
                 </a>
 
                 <div class="sidebar-section-label">Academic Management</div>

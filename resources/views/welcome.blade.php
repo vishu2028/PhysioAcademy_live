@@ -1246,7 +1246,7 @@
 
         </section>
         <!-- ABOUT SECTION -->
-        <section class="section about-section" id="about">
+        {{-- <section class="section about-section" id="about">
             <div class="section-container">
                 <div class="about-layout">
                     <div class="about-left reveal-left">
@@ -1332,8 +1332,278 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </section> --}}
+        <section class="section about-section" id="about">
 
+            <div class="section-container">
+
+                <div class="about-layout">
+
+
+                    {{-- ===================================================== --}}
+                    {{-- LEFT SIDE --}}
+                    {{-- ===================================================== --}}
+
+                    <div class="about-left reveal-left">
+
+                        <span class="section-tag">
+                            About {{ get_setting('site_name', 'Physio Academy') }}
+                        </span>
+
+
+                        {{-- Main Title --}}
+                        <h2 class="section-title">
+
+                            @if($aboutContent)
+
+                                {!! $aboutContent->main_title !!}
+
+                            @else
+
+                                Built for
+                                <span class="text-gradient">
+                                    Physio Students
+                                </span>
+                                <br>
+                                By Physio Students
+
+                            @endif
+
+                        </h2>
+
+
+                        {{-- Main Description --}}
+                        <p class="about-para">
+
+                            @if($aboutContent)
+
+                                @auth
+                                    {{ $aboutContent->main_description }}
+                                @else
+                                    {{ Str::limit($aboutContent->main_description, 80) }}
+                                @endauth
+
+                            @else
+
+                                @auth
+                                    Physio Academy was created to bridge the gap
+                                    between textbook knowledge and real examination
+                                    performance.
+
+                                @else
+                                    {{ Str::limit(
+                                        'Physio Academy was created to bridge the gap between textbook knowledge and real examination performance.',
+                                        80
+                                    ) }}
+                                @endauth
+
+                            @endif
+
+                        </p>
+
+
+                        @guest
+
+                            <a href="javascript:void(0)"
+                            onclick="document.getElementById('authOverlay').classList.add('active')"
+                            class="text-primary small fw-bold d-block mb-4">
+
+                                Login to read full mission details →
+
+                            </a>
+
+                        @endguest
+
+
+
+                        {{-- ================================================= --}}
+                        {{-- COUNTERS --}}
+                        {{-- ================================================= --}}
+
+                        <div class="about-counters">
+
+
+                            {{-- Topics --}}
+                            <div class="ac-item">
+
+                                <span
+                                    class="ac-num"
+                                    data-count="{{ $aboutContent->topic_count ?? 0 }}"
+                                >
+                                    0
+                                </span>
+
+                                <span>+</span>
+
+                                <span class="ac-label">
+                                    Topics
+                                </span>
+
+                            </div>
+
+
+                            {{-- Questions --}}
+                            <div class="ac-item">
+
+                                <span
+                                    class="ac-num"
+                                    data-count="{{ $aboutContent->question_count ?? 0 }}"
+                                >
+                                    0
+                                </span>
+
+                                <span>+</span>
+
+                                <span class="ac-label">
+                                    Questions
+                                </span>
+
+                            </div>
+
+
+                            {{-- Students --}}
+                            <div class="ac-item">
+
+                                <span
+                                    class="ac-num"
+                                    data-count="{{ $aboutContent->student_count ?? 0 }}"
+                                >
+                                    0
+                                </span>
+
+                                <span>+</span>
+
+                                <span class="ac-label">
+                                    Students
+                                </span>
+
+                            </div>
+
+
+                        </div>
+
+
+
+                        {{-- CTA --}}
+                        <a href="{{ route('about') }}"
+                        class="btn-about-cta"
+                        style="text-decoration: none; display: inline-flex; align-items: center; gap: 10px;">
+
+                            {{ get_setting('about_cta_text', 'Learn Our Mission') }}
+
+                            <svg width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.5">
+
+                                <line x1="5"
+                                    y1="12"
+                                    x2="19"
+                                    y2="12"/>
+
+                                <polyline points="12 5 19 12 12 19"/>
+
+                            </svg>
+
+                        </a>
+
+
+                    </div>
+
+
+
+                    {{-- ===================================================== --}}
+                    {{-- RIGHT SIDE - TIMELINE --}}
+                    {{-- ===================================================== --}}
+
+                    <div class="about-right reveal-right">
+
+                        <div class="timeline">
+
+
+                            @forelse($aboutTimelines as $timeline)
+
+                                <div class="tl-item">
+
+
+                                    <div class="tl-dot"></div>
+
+
+                                    <div class="tl-content glass-card">
+
+
+                                        {{-- Year --}}
+                                        <span class="tl-year">
+
+                                            {{ $timeline->year }}
+
+                                        </span>
+
+
+                                        {{-- Title --}}
+                                        <h4>
+
+                                            {{ $timeline->title }}
+
+                                        </h4>
+
+
+                                        {{-- Description --}}
+                                        <p>
+
+                                            {{ $timeline->description }}
+
+                                        </p>
+
+
+                                    </div>
+
+
+                                </div>
+
+
+                            @empty
+
+                                {{-- Optional fallback if no timeline exists --}}
+
+                                <div class="tl-item">
+
+                                    <div class="tl-dot"></div>
+
+                                    <div class="tl-content glass-card">
+
+                                        <span class="tl-year">
+                                            2024
+                                        </span>
+
+                                        <h4>
+                                            New Curriculum Coverage
+                                        </h4>
+
+                                        <p>
+                                            Complete mapping of revised BPT curriculum
+                                            with subject-wise topic organization.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            @endforelse
+
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+        </section>
         @guest
             <section class="section guest-cta-final py-5 mt-5">
                 <div class="section-container text-center">

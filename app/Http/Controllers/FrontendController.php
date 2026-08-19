@@ -11,6 +11,8 @@ use App\Models\Message;
 use App\Models\CommunityActivity;
 use App\Models\Announcement;
 use App\Models\TrendingTopic;
+use App\Models\AboutContent;
+use App\Models\AboutTimeline;
 use Illuminate\Support\Facades\DB;
 class FrontendController extends Controller
 {
@@ -85,7 +87,10 @@ class FrontendController extends Controller
         $announcements = Announcement::latest()->get();
 
         $trendings = TrendingTopic::latest()->get();
- 
+
+        $aboutContent = AboutContent::first();
+
+        $aboutTimelines = AboutTimeline::orderBy('id', 'asc')->get();
 
         return view('welcome', compact(
             'hero',
@@ -108,7 +113,9 @@ class FrontendController extends Controller
             'aboutStudentsCount',
             'activities',
             'announcements',
-            'trendings'
+            'trendings',
+            'aboutContent',
+            'aboutTimelines'
 
         ));
     }
@@ -195,7 +202,8 @@ class FrontendController extends Controller
             ? \App\Models\AcademicYear::where('slug', $yearSlug)
                 ->active()
                 ->firstOrFail()
-            : $years->first();
+            : null;
+        
 
         if (! $currentYear) {
             return view('topics-year', [
