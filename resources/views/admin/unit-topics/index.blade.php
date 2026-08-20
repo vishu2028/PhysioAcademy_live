@@ -3,15 +3,14 @@
 @section('title', 'Topics')
 
 @section('content')
+
     <div class="mb-4 d-flex justify-content-between align-items-center">
         <div>
             <h2 class="fw-bold text-dark">Topic Management</h2>
-            <p class="text-secondary">Create and manage topics under subjects and units.</p>
+            <p class="text-secondary">
+                Create and manage topics under subjects and units.
+            </p>
         </div>
-
-        <a href="{{ route('admin.unit-topics.create') }}" class="btn btn-primary rounded-3">
-            <i class="bi bi-plus-lg"></i> Add Topic
-        </a>
     </div>
 
     @if(session('success'))
@@ -26,99 +25,95 @@
         </div>
     @endif
 
-    <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-header bg-white p-4 border-0">
-            <h5 class="fw-bold mb-0">Topic List</h5>
-        </div>
+    <x-admin.data-table
+        title="Topic List"
+        :headers="[
+            '#',
+            'Topic',
+            'Subject',
+            'Unit',
+            'Sort Order',
+            'Status',
+            'Actions'
+        ]"
+        :createRoute="route('admin.unit-topics.create')"
+    >
 
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead class="table-light">
-                    <tr>
-                        <th class="ps-4">#</th>
-                        <th>Topic</th>
-                        <th>Subject</th>
-                        <th>Unit</th>
-                        <th>Sort Order</th>
-                        <th>Status</th>
-                        <th class="text-end pe-4">Actions</th>
-                    </tr>
-                    </thead>
+        @foreach($unitTopics as $unitTopic)
 
-                    <tbody>
-                    @forelse($unitTopics as $unitTopic)
-                        <tr>
-                            <td class="ps-4">
-                                {{ $unitTopics->firstItem() + $loop->index }}
-                            </td>
+            <tr>
 
-                            <td>
-                                <div class="fw-bold">{{ $unitTopic->title }}</div>
-                                <div class="small text-muted">{{ $unitTopic->slug }}</div>
-                            </td>
+                <td>
+                    {{ $loop->iteration }}
+                </td>
 
-                            <td>
-                                <span class="badge bg-primary-subtle text-primary">
-                                    {{ $unitTopic->subject->name ?? 'N/A' }}
-                                </span>
-                            </td>
+                <td>
+                    <div class="fw-bold">
+                        {{ $unitTopic->title }}
+                    </div>
 
-                            <td>
-                                <span class="badge bg-secondary-subtle text-secondary">
-                                    {{ $unitTopic->unit->name ?? 'N/A' }}
-                                </span>
-                            </td>
+                    <div class="small text-muted">
+                        {{ $unitTopic->slug }}
+                    </div>
+                </td>
 
-                            <td>
-                                {{ $unitTopic->sort_order }}
-                            </td>
+                <td>
+                    <span class="badge bg-primary-subtle text-primary">
+                        {{ $unitTopic->subject->name ?? 'N/A' }}
+                    </span>
+                </td>
 
-                            <td>
-                                @if($unitTopic->status)
-                                    <span class="badge bg-success-subtle text-success px-3">
-                                        Active
-                                    </span>
-                                @else
-                                    <span class="badge bg-danger-subtle text-danger px-3">
-                                        Inactive
-                                    </span>
-                                @endif
-                            </td>
+                <td>
+                    <span class="badge bg-secondary-subtle text-secondary">
+                        {{ $unitTopic->unit->name ?? 'N/A' }}
+                    </span>
+                </td>
 
-                            <td class="text-end pe-4">
-                                <div class="d-inline-flex gap-2">
-                                    <a href="{{ route('admin.unit-topics.edit', $unitTopic) }}" class="btn btn-primary btn-sm rounded-3">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
+                <td>
+                    {{ $unitTopic->sort_order }}
+                </td>
 
-                                    <form action="{{ route('admin.unit-topics.destroy', $unitTopic) }}" method="POST" onsubmit="return confirm('Delete this topic?')">
-                                        @csrf
-                                        @method('DELETE')
+                <td>
+                    @if($unitTopic->status)
+                        <span class="badge bg-success-subtle text-success px-3">
+                            Active
+                        </span>
+                    @else
+                        <span class="badge bg-danger-subtle text-danger px-3">
+                            Inactive
+                        </span>
+                    @endif
+                </td>
 
-                                        <button type="submit" class="btn btn-danger btn-sm rounded-3">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
-                                No topics found.
-                            </td>
-                        </tr>
-                    @endforelse
-                    </tbody>
-                </table>
-            </div>
+                <td>
+                    <div class="d-inline-flex gap-2">
 
-            @if($unitTopics->hasPages())
-                <div class="p-4">
-                    {{ $unitTopics->links() }}
-                </div>
-            @endif
-        </div>
-    </div>
+                        <a href="{{ route('admin.unit-topics.edit', $unitTopic) }}"
+                           class="btn btn-primary btn-sm rounded-3">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+
+                        <form action="{{ route('admin.unit-topics.destroy', $unitTopic) }}"
+                              method="POST"
+                              onsubmit="return confirm('Delete this topic?')">
+
+                            @csrf
+                            @method('DELETE')
+
+                            <button type="submit"
+                                    class="btn btn-danger btn-sm rounded-3">
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </form>
+
+                    </div>
+                </td>
+
+            </tr>
+
+        @endforeach
+
+    </x-admin.data-table>
+
 @endsection
