@@ -177,7 +177,7 @@
                     </div>
 
                     <!-- SIDEBAR -->
-                    <aside class="topic-sidebar">
+                    {{-- <aside class="topic-sidebar">
                         <div class="sidebar-sticky">
                             <!-- TOPIC INSIGHTS -->
                             <div class="sidebar-glass-card reveal-right">
@@ -237,7 +237,7 @@
                                 </div>
                             @endif
                         </div>
-                    </aside>
+                    </aside> --}}
                 </div>
             </div>
         </section>
