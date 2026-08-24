@@ -7,13 +7,7 @@ use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 
-class
-        $academicYear->update($data);
-
-        // Simple sync for semesters
-        $existingIds = [];
-        if ($request->has('semesters')) {
-            foreach ($requestActivityLogController extends Controller
+class ActivityLogController extends Controller
 {
     public function index(Request $request)
     {
@@ -38,13 +32,7 @@ class
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
-        if ($request->filled(
-            $academicYear->update($data);
-
-        // Simple sync for semesters
-        $existingIds = [];
-        if ($request->has('semesters')) {
-            foreach ($request'date_to')) {
+        if ($request->filled('date_to')) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 

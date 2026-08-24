@@ -13,6 +13,7 @@ use App\Models\Announcement;
 use App\Models\TrendingTopic;
 use App\Models\AboutContent;
 use App\Models\AboutTimeline;
+use App\Models\ExamAidBanner;
 use Illuminate\Support\Facades\DB;
 class FrontendController extends Controller
 {
@@ -356,7 +357,7 @@ class FrontendController extends Controller
         $faqs = FAQ::active()->ordered()->get();
 
         $years = AcademicYear::orderBy('name')->get();
-
+        $examAidBanner = ExamAidBanner::latest()->first();
         $examAids = ExamAid::with([
             'subject',
             'unit',
@@ -415,7 +416,8 @@ class FrontendController extends Controller
             'pageProtected',
             'faqs',
             'years',
-            'examAids'
+            'examAids',
+            'examAidBanner'
         ));
     }
     private function examAidHeroStats(): array

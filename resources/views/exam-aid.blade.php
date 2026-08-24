@@ -27,11 +27,11 @@
                         </div>
 
                         <h1 class="exam-hero-title reveal-up delay-1">
-                            {{ $content['title'] ?? 'Exam Aid' }}
+                           {{ $examAidBanner->main_title }}
                         </h1>
 
                         <p class="exam-hero-text reveal-up delay-2">
-                            {{ $content['description'] ?? 'Prepare smarter with learning materials, viva questions and exam questions.' }}
+                           {{ $examAidBanner->description }}
                         </p>
 
                         <div class="exam-hero-actions reveal-up delay-3">
@@ -52,7 +52,7 @@
                             @endif
                         </div>
 
-                        <div class="exam-quick-select reveal-stagger">
+                        {{-- <div class="exam-quick-select reveal-stagger">
                             @foreach($content['quick_links'] ?? [] as $link)
                                 <button type="button" onclick="window.location.href='{{ $link['url'] ?? '#' }}'">
                                     <span>{{ $link['icon_num'] ?? '01' }}</span>
@@ -64,7 +64,7 @@
                                     @endif
                                 </button>
                             @endforeach
-                        </div>
+                        </div> --}}
                     </div>
 
                     <div class="exam-hero-visual reveal-right delay-2">
@@ -75,8 +75,8 @@
                         <div class="exam-dashboard-card">
                             <div class="exam-dashboard-top">
                                 <div>
-                                    <span>Readiness Score</span>
-                                    <strong>{{ $content['readiness_score'] ?? 90 }}%</strong>
+                                    <span>{{ $examAidBanner->heading_1 }}</span>
+                                    <strong>{{ $examAidBanner->percentage_value }}%</strong>
                                 </div>
                                 <div class="exam-pulse"></div>
                             </div>
@@ -99,20 +99,20 @@
 
                         @if(isset($content['floating_cards'][0]))
                             <div class="exam-float-card exam-float-one shadow-sm">
-                                {{ $content['floating_cards'][0] }}
+                                {{ $examAidBanner->title_1 }}
                             </div>
                         @endif
 
                         @if(isset($content['floating_cards'][1]))
                             <div class="exam-float-card exam-float-two shadow-sm">
-                                {{ $content['floating_cards'][1] }}
+                                {{ $examAidBanner->title_2 }}
                             </div>
                         @endif
                     </div>
                 </section>
             @endif
 
-            @if($section->type === 'exam_filters')
+            {{-- @if($section->type === 'exam_filters')
                 <section class="exam-section exam-selector-section" id="college-selector">
                     <div class="exam-section-head reveal-up">
                     <span class="exam-section-eyebrow">
@@ -206,7 +206,7 @@
                         </div>
                     </form>
                 </section>
-            @endif
+            @endif --}}
 
             @if($section->type === 'exam_resources')
                 <section class="exam-section" id="exam-resources">

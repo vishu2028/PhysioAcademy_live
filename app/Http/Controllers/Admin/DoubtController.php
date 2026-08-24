@@ -6,13 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Doubt;
 use Illuminate\Http\Request;
 
-class
-        $academicYear->update($data);
-
-        // Simple sync for semesters
-        $existingIds = [];
-        if ($request->has('semesters')) {
-            foreach ($requestvvXZvzvDoubtController extends Controller
+class DoubtController extends Controller
 {
     public function index()
     {

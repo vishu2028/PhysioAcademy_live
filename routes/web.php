@@ -17,6 +17,8 @@ use App\Http\Controllers\Admin\CommunityAndAnnouncementsController;
 use App\Http\Controllers\Admin\AboutTimelineController;
 use App\Http\Controllers\Admin\AboutContentController;
 use App\Http\Controllers\Admin\AboutController;
+use App\Http\Controllers\Admin\ExamAidBannerController;
+
 /*
 |--------------------------------------------------------------------------
 | Frontend Routes
@@ -494,6 +496,11 @@ Route::middleware([
             'about-timelines',
             AboutTimelineController::class
         )->except(['show'])->names('about_timelines');
+        // Exam aid main banner section
+        Route::resource(
+            'exam-aid-banner',
+            ExamAidBannerController::class
+        )->names('exam-aid-banner');
     });
 
 /*

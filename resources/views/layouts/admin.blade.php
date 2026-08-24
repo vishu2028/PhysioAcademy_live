@@ -349,6 +349,9 @@
                 <a href="{{ route('admin.exam-aids.index') }}" class="nav-link-admin @if(request()->routeIs('admin.exam-aids.*')) active @endif">
                     <i class="bi bi-journal-text"></i> Exam Aid
                 </a>
+                <a href="{{ route('admin.exam-aid-banner.index') }}" class="nav-link-admin @if(request()->routeIs('admin.exam-aids.*')) active @endif">
+                    <i class="bi bi-journal-text"></i> Exam Aid Banner Section
+                </a>
 
                 <a href="{{ route('admin.parent-topics.index') }}"
                    class="nav-link-admin @if(request()->routeIs('admin.parent-topics.*')) active @endif">
