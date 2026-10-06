@@ -426,14 +426,14 @@
                                             <i class="bi bi-star-fill {{ $i < $testimonial->rating ? 'text-warning' : 'text-secondary opacity-25' }}"></i>
                                         @endfor
                                     </div>
-                                    <p class="tc-content mb-4 text-white-50">"{{ auth()->check() ? $testimonial->content : Str::limit($testimonial->content, strlen($testimonial->content)/2) }}"</p>
+                                    <p class="tc-content mb-4">"{{ auth()->check() ? $testimonial->content : Str::limit($testimonial->content, strlen($testimonial->content)/2) }}"</p>
                                     <div class="tc-user d-flex align-items-center gap-3">
                                         <div class="tcu-avatar">
                                             <img src="{{ $testimonial->client_image ? asset('storage/'.$testimonial->client_image) : 'https://ui-avatars.com/api/?name='.urlencode($testimonial->client_name).'&background=3b82f6&color=fff' }}" alt="{{ $testimonial->client_name }}" class="rounded-circle" width="48" height="48">
                                         </div>
                                         <div class="tcu-info">
-                                            <h5 class="mb-0 fw-bold text-white">{{ $testimonial->client_name }}</h5>
-                                            <small class="text-white-50">{{ $testimonial->client_designation }}</small>
+                                            <h5 class="mb-0 fw-bold">{{ $testimonial->client_name }}</h5>
+                                            <small>{{ $testimonial->client_designation }}</small>
                                         </div>
                                     </div>
                                 </div>
@@ -574,6 +574,7 @@
         </section>
 
         <!-- LEARNING RESOURCES / MATERIALS -->
+        @if($resourcesSectionEnabled ?? true)
         <section class="section resources-section">
             <div class="section-container">
                 <div class="section-header reveal-up">
@@ -639,6 +640,7 @@
                 </div>
             </div>
         </section>
+        @endif
 
         <!-- ASK DOUBT / ACADEMIC SUPPORT -->
         <section class="section ask-doubt-section" id="ask-doubt">

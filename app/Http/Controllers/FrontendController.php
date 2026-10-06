@@ -49,6 +49,8 @@ class FrontendController extends Controller
         // Trending Topics
         $trendingTopics = \App\Models\Topic::active()->with('subject')->orderBy('order')->limit(4)->get();
 
+        $resourcesSectionEnabled = \App\Http\Controllers\Admin\ResourcesSectionController::isEnabled();
+
         $testimonialSectionEnabled = \App\Models\Testimonial::query()->value('section_enabled');
         $testimonialSectionEnabled = is_null($testimonialSectionEnabled) ? true : (bool) $testimonialSectionEnabled;
 
@@ -102,6 +104,7 @@ class FrontendController extends Controller
             'sectionEnabled',
             'visibleFeatures',
             'testimonialSectionEnabled',
+            'resourcesSectionEnabled',
             'years',
             'trendingTopics',
             'testimonials',

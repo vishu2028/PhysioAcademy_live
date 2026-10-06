@@ -12,6 +12,7 @@
 
 <x-admin.data-table 
     title="Incoming Messages" 
+    :serverPaginated="true"
     :headers="['Sender', 'Subject', 'Received', 'Status', 'Actions']"
 >
     @foreach($messages as $message)
