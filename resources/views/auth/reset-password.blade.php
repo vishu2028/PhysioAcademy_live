@@ -65,8 +65,17 @@
             @enderror
           </div>
 
+          <div class="pauth-strength" data-strength-for="resetPassword">
+            <div class="pauth-strength-track"><div class="pauth-strength-bar"></div></div>
+            <span class="pauth-strength-label">Password strength: Waiting for input</span>
+          </div>
+
           <div class="pauth-rules" data-rules-for="resetPassword">
             <span class="pauth-rule" data-rule="length">8 characters</span>
+            <span class="pauth-rule" data-rule="upper">Uppercase</span>
+            <span class="pauth-rule" data-rule="lower">Lowercase</span>
+            <span class="pauth-rule" data-rule="number">Number</span>
+            <span class="pauth-rule" data-rule="special">Special character</span>
           </div>
 
           <div class="pauth-field">

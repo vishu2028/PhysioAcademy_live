@@ -275,7 +275,6 @@
 
             {{-- Mobile-only account actions. Desktop account controls remain in .nav-cta. --}}
             <div class="nav-mobile-actions">
-                <a href="{{ route('home') }}#ask-doubt" class="nav-mobile-action nav-mobile-action-primary">Ask Doubt</a>
                 @guest
                     <a href="{{ route('login') }}" class="nav-mobile-action nav-mobile-action-secondary">Login</a>
                     <a href="{{ route('register') }}" class="nav-mobile-action nav-mobile-action-primary">Sign Up</a>
@@ -322,10 +321,6 @@
         </div>
 
         <div class="nav-cta">
-            <a href="{{ route('home') }}#ask-doubt" class="btn-ask-doubt">
-                Ask Doubt
-            </a>
-
             @auth
                 @role('super_admin|admin')
                 <a

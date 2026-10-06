@@ -3,7 +3,6 @@
     'title' => null,
     'createRoute' => null,
     'createText' => 'Add New',
-    'serverPaginated' => false,
 ])
 
 <div class="card border-0 shadow-sm rounded-4">
@@ -17,7 +16,7 @@
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-hover align-middle datatable w-100" @if($serverPaginated) data-server-paginated="true" @endif>
+            <table class="table table-hover align-middle datatable w-100">
                 <thead class="bg-light">
                     <tr>
                         @foreach($headers as $header)

@@ -323,9 +323,6 @@
                 <a href="{{ route('admin.testimonials.index') }}" class="nav-link-admin @if(request()->routeIs('admin.testimonials.*')) active @endif">
                     <i class="bi bi-chat-quote"></i> Testimonials
                 </a>
-                <a href="{{ route('admin.resources-section.index') }}" class="nav-link-admin @if(request()->routeIs('admin.resources-section.*')) active @endif">
-                    <i class="bi bi-collection"></i> Resources Section
-                </a>
                 <a href="{{ route('admin.community_and_announcements.index') }}" class="nav-link-admin @if(request()->routeIs('admin.testimonials.*')) active @endif">
                     <i class="bi bi-megaphone"></i> Community & Announcments
                 </a>
@@ -519,22 +516,12 @@
         $(document).ready(function() {
             // DataTables
             if($('.datatable').length > 0) {
-                $('.datatable').each(function() {
-                    // Tables paginated by Laravel: keep DataTables out of paging/search/sorting
-                    var serverPaginated = $(this).data('server-paginated') === true;
-
-                    $(this).DataTable({
+                $('.datatable').DataTable({
                     "pageLength": 10,
-                    "order": [],
-                    "paging": !serverPaginated,
-                    "searching": !serverPaginated,
-                    "info": !serverPaginated,
-                    "ordering": !serverPaginated,
                     "language": {
                         "search": "_INPUT_",
                         "searchPlaceholder": "Search records..."
                     }
-                    });
                 });
             }
 

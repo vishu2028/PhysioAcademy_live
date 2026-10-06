@@ -145,7 +145,6 @@
         </div>
     </div>
     <div class="footer-bottom">
-        <a href="{{ route('home') }}#ask-doubt" class="footer-ask-doubt">Ask Doubt</a>
         <span>{!! get_setting('copyright_text', '© 2026 Physio Academy || All rights reserved') !!}</span>
         <span>{{ get_setting('footer_bottom_tag', 'Built for focused physiotherapy learning.') }}</span>
         <span>Developed By <a href="{{ e(config('app.developer.url', '#')) }}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;text-underline-offset:3px;font-weight:600;">{{ e(config('app.developer.name', 'Developer')) }}</a></span>

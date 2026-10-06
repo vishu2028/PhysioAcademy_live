@@ -61,7 +61,6 @@
 
 <x-admin.data-table
     title="System Activity Stream"
-    :serverPaginated="true"
     :headers="['Timestamp', 'Admin', 'Action', 'Module', 'Description', 'IP Address']"
 >
     @foreach($logs as $log)

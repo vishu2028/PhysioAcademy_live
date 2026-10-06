@@ -13,11 +13,10 @@ class UnitController extends Controller
 {
     public function index()
     {
-        $units = Unit::select(['id', 'subject_id', 'name', 'description', 'sort_order', 'is_active'])
-            ->with('subject:id,name')
+        $units = Unit::with('subject')
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->get();
+            ->paginate(15);
 
         return view('admin.units.index', compact('units'));
     }

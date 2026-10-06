@@ -333,16 +333,6 @@ Route::middleware([
             \App\Http\Controllers\Admin\ExamAidController::class
         );
 
-        Route::get(
-            'resources-section',
-            [\App\Http\Controllers\Admin\ResourcesSectionController::class, 'index']
-        )->name('resources-section.index');
-
-        Route::patch(
-            'resources-section/section-toggle',
-            [\App\Http\Controllers\Admin\ResourcesSectionController::class, 'sectionToggle']
-        )->name('resources-section.section-toggle');
-
         Route::patch(
             'testimonials/section-toggle',
             [

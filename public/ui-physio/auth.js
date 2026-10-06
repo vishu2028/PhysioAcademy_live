@@ -19,8 +19,14 @@
   }
 
   function passwordScore(value) {
-    const rules = { length: value.length >= 8 };
-    return { rules, score: rules.length ? 1 : 0 };
+    const rules = {
+      length: value.length >= 8,
+      upper: /[A-Z]/.test(value),
+      lower: /[a-z]/.test(value),
+      number: /\d/.test(value),
+      special: /[^A-Za-z0-9]/.test(value)
+    };
+    return { rules, score: Object.values(rules).filter(Boolean).length };
   }
 
   function updateStrength(input) {
@@ -70,7 +76,7 @@
     const value = input.value;
     if (!value) return 'Password is required.';
     const { score } = updateStrength(input);
-    if (strict && score < 1) return 'Password must be at least 8 characters.';
+    if (strict && score < 5) return 'Password must satisfy all security requirements.';
     if (!strict && value.length < 6) return 'Enter at least 6 characters.';
     return '';
   }
