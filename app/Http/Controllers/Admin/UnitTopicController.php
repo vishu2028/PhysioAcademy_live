@@ -14,10 +14,11 @@ class UnitTopicController extends Controller
 {
     public function index()
     {
-        $unitTopics = UnitTopic::with(['subject', 'unit'])
+        $unitTopics = UnitTopic::select(['id', 'subject_id', 'unit_id', 'title', 'slug', 'sort_order', 'status'])
+            ->with(['subject:id,name', 'unit:id,name'])
             ->orderBy('sort_order')
             ->orderBy('title')
-            ->paginate(15);
+            ->get();
 
         return view('admin.unit-topics.index', compact('unitTopics'));
     }
