@@ -33,6 +33,12 @@ class HeroController extends Controller
                 'max:255',
             ],
 
+            'title_highlight' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
             'subtitle' => [
                 'nullable',
                 'string',
@@ -72,6 +78,11 @@ class HeroController extends Controller
         $data = [
             'title' =>
                 trim($validated['title']),
+
+            'title_highlight' =>
+                filled($validated['title_highlight'] ?? null)
+                    ? trim($validated['title_highlight'])
+                    : null,
 
             'subtitle' =>
                 filled($validated['subtitle'] ?? null)
@@ -132,6 +143,12 @@ class HeroController extends Controller
                 'max:255',
             ],
 
+            'title_highlight' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
             'subtitle' => [
                 'nullable',
                 'string',
@@ -171,6 +188,11 @@ class HeroController extends Controller
         $data = [
             'title' =>
                 trim($validated['title']),
+
+            'title_highlight' =>
+                filled($validated['title_highlight'] ?? null)
+                    ? trim($validated['title_highlight'])
+                    : null,
 
             'subtitle' =>
                 filled($validated['subtitle'] ?? null)

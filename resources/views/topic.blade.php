@@ -900,7 +900,7 @@
                             entry.target.classList.add('visible');
                         }
                     });
-                }, { threshold: 0.1 });
+                }, { threshold: 0 }); // 0: very tall blocks (long descriptions) never reach a fixed ratio
 
                 document.querySelectorAll('.reveal-up, .reveal-right').forEach(el => observer.observe(el));
             });

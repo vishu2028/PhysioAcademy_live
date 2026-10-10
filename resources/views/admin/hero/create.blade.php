@@ -23,6 +23,12 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label fw-bold">Highlighted Text</label>
+                        <input type="text" name="title_highlight" class="form-control rounded-3" value="{{ old('title_highlight') }}" placeholder="e.g. Physiotherapy" maxlength="255">
+                        <div class="form-text">Shown in blue with an underline above the title on the homepage. Leave empty to show no highlight.</div>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label fw-bold">Subtitle</label>
                         <textarea name="subtitle" class="form-control rounded-3" rows="3" placeholder="e.g. Navigate your syllabus, understand important topics...">{{ old('subtitle') }}</textarea>
                     </div>
