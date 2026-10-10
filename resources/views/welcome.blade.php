@@ -25,14 +25,15 @@
                     <h1 class="hero-title reveal-up delay-1">
                         @php
                             $heroTitle = $hero->title ?? get_setting('hero_title', 'Your Academic Guide for Physiotherapy');
-                            $titleParts = explode('for', $heroTitle);
+                            $heroHighlight = $hero ? $hero->title_highlight : null;
                         @endphp
 
-
+                        @if(filled($heroHighlight))
                             <span class="title-highlight">
-              <span class="title-highlight-text">{!! trim($titleParts[1]) !!}</span>
+              <span class="title-highlight-text">{{ $heroHighlight }}</span>
               <svg class="title-underline" viewBox="0 0 300 12" preserveAspectRatio="none"><path d="M0,8 Q75,0 150,8 Q225,16 300,8" stroke="url(#underlineGrad)" stroke-width="3" fill="none"/><defs><linearGradient id="underlineGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#004AAD"/><stop offset="100%" stop-color="#004AAD"/></linearGradient></defs></svg>
             </span>
+                        @endif
                         @if($heroTitle)
                             {!! $heroTitle !!}
                         @endif

@@ -356,6 +356,18 @@
     </div>
 </template>
 
+@push('styles')
+    <style>
+        /* Keep the description editor a fixed size: long text scrolls inside the box,
+           and the toolbar stays visible above it. */
+        .ck-editor__editable_inline {
+            min-height: 300px;
+            max-height: 65vh;
+            overflow-y: auto;
+        }
+    </style>
+@endpush
+
 @push('scripts')
     {{-- Agar jQuery aur Select2 layout me already added hain to ye 2 lines duplicate na karein --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

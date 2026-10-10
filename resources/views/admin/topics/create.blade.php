@@ -443,6 +443,18 @@
     </template>
 @endsection
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+@push('styles')
+    <style>
+        /* Keep the description editor a fixed size: long text scrolls inside the box,
+           and the toolbar stays visible above it. */
+        .ck-editor__editable_inline {
+            min-height: 300px;
+            max-height: 65vh;
+            overflow-y: auto;
+        }
+    </style>
+@endpush
+
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
