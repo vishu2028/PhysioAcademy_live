@@ -315,9 +315,9 @@
                                                         </div>
 
                                                         <div class="exam-material-action">
-                                                            @if($material->type === 'pdf' && $material->file_path)
+                                                            @if(in_array($material->type, ['pdf', 'document']) && $material->file_path)
                                                                 <a href="{{ asset('storage/' . $material->file_path) }}" target="_blank">
-                                                                    Open PDF
+                                                                    {{ $material->type === 'pdf' ? 'Open PDF' : 'Download Document' }}
                                                                 </a>
                                                             @elseif($material->type === 'link' && $material->url)
                                                                 <a href="{{ $material->url }}" target="_blank">

@@ -8,6 +8,7 @@ class ExamAidMaterial extends Model
 {
     protected $fillable = [
         'exam_aid_id',
+        'exam_aid_category_id',
         'title',
         'type',
         'file_path',
@@ -19,6 +20,11 @@ class ExamAidMaterial extends Model
     public function examAid()
     {
         return $this->belongsTo(ExamAid::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(ExamAidCategory::class, 'exam_aid_category_id');
     }
 
     public function getFileUrlAttribute()

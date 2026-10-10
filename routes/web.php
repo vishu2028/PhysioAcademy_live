@@ -66,6 +66,11 @@ Route::get(
 )->name('exam-aid');
 
 Route::get(
+    '/exam-aid/category/{slug}',
+    [FrontendController::class, 'examAidCategory']
+)->name('exam-aid.category');
+
+Route::get(
     '/search',
     [FrontendController::class, 'search']
 )->name('search');
@@ -328,10 +333,30 @@ Route::middleware([
             \App\Http\Controllers\Admin\TopicController::class
         );
 
+        Route::post(
+            'exam-aid-categories',
+            [\App\Http\Controllers\Admin\ExamAidCategoryController::class, 'store']
+        )->name('exam-aid-categories.store');
+
         Route::resource(
             'exam-aids',
             \App\Http\Controllers\Admin\ExamAidController::class
         );
+
+        Route::get(
+            'exam-prep',
+            [\App\Http\Controllers\Admin\ExamPrepController::class, 'index']
+        )->name('exam-prep.index');
+
+        Route::put(
+            'exam-prep/settings',
+            [\App\Http\Controllers\Admin\ExamPrepController::class, 'updateSettings']
+        )->name('exam-prep.settings');
+
+        Route::resource(
+            'exam-prep-cards',
+            \App\Http\Controllers\Admin\ExamPrepController::class
+        )->parameters(['exam-prep-cards' => 'examPrepCard'])->except(['index', 'show']);
 
         Route::get(
             'resources-section',

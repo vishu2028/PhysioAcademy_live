@@ -49,6 +49,11 @@ class FrontendController extends Controller
         // Trending Topics
         $trendingTopics = \App\Models\Topic::active()->with('subject')->orderBy('order')->limit(4)->get();
 
+        $examPrepSettings = \App\Http\Controllers\Admin\ExamPrepController::settings();
+        $examPrepCards = $examPrepSettings['exam_prep_enabled']
+            ? \App\Models\ExamPrepCard::with('category')->active()->ordered()->get()
+            : collect();
+
         $resourcesSectionEnabled = \App\Http\Controllers\Admin\ResourcesSectionController::isEnabled();
 
         $testimonialSectionEnabled = \App\Models\Testimonial::query()->value('section_enabled');
@@ -105,6 +110,8 @@ class FrontendController extends Controller
             'visibleFeatures',
             'testimonialSectionEnabled',
             'resourcesSectionEnabled',
+            'examPrepSettings',
+            'examPrepCards',
             'years',
             'trendingTopics',
             'testimonials',
@@ -423,6 +430,24 @@ class FrontendController extends Controller
             'examAidBanner'
         ));
     }
+    public function examAidCategory(string $slug)
+    {
+        $category = \App\Models\ExamAidCategory::active()
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        $materials = $category->materials()
+            ->whereHas('examAid', fn ($query) => $query->where('status', 1))
+            ->with('examAid:id,title,subject_id')
+            ->orderBy('order')
+            ->orderBy('id')
+            ->paginate(20);
+
+        $categories = \App\Models\ExamAidCategory::active()->ordered()->get(['id', 'name', 'slug']);
+
+        return view('exam-aid-category', compact('category', 'materials', 'categories'));
+    }
+
     private function examAidHeroStats(): array
     {
         $totalActiveAids = ExamAid::where('status', 1)->count();

@@ -323,6 +323,9 @@
                 <a href="{{ route('admin.testimonials.index') }}" class="nav-link-admin @if(request()->routeIs('admin.testimonials.*')) active @endif">
                     <i class="bi bi-chat-quote"></i> Testimonials
                 </a>
+                <a href="{{ route('admin.exam-prep.index') }}" class="nav-link-admin @if(request()->routeIs('admin.exam-prep.*', 'admin.exam-prep-cards.*')) active @endif">
+                    <i class="bi bi-journal-check"></i> Exam Prep Section
+                </a>
                 <a href="{{ route('admin.resources-section.index') }}" class="nav-link-admin @if(request()->routeIs('admin.resources-section.*')) active @endif">
                     <i class="bi bi-collection"></i> Resources Section
                 </a>
