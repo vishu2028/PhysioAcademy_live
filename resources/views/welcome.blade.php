@@ -861,79 +861,56 @@
         </section>
 
 
-        <!-- EXAM AID / EXAM PREP -->
-        <section class="section exam-section" id="exam-aid">
-            <div class="section-container">
-                <div class="section-header reveal-up">
-                    <span class="section-tag">Exam Prep</span>
-                    <h2 class="section-title">Exam <span class="text-gradient">Aid Center</span></h2>
-                    <p class="section-subtitle">Comprehensive exam preparation toolkit for all physio exams</p>
-                </div>
+        <!-- EXAM AID / EXAM PREP (managed from Admin > Homepage Management > Exam Prep Section) -->
+        @if(($examPrepSettings['exam_prep_enabled'] ?? true) && ($examPrepCards ?? collect())->isNotEmpty())
+            <section class="section exam-section" id="exam-aid">
+                <div class="section-container">
+                    <div class="section-header reveal-up">
+                        @if($examPrepSettings['exam_prep_tag'])
+                            <span class="section-tag">{{ $examPrepSettings['exam_prep_tag'] }}</span>
+                        @endif
+                        <h2 class="section-title">
+                            {{ $examPrepSettings['exam_prep_title'] }}
+                            <span class="text-gradient">{{ $examPrepSettings['exam_prep_title_highlight'] }}</span>
+                        </h2>
+                        @if($examPrepSettings['exam_prep_subtitle'])
+                            <p class="section-subtitle">{{ $examPrepSettings['exam_prep_subtitle'] }}</p>
+                        @endif
+                    </div>
 
-                <div class="exam-grid reveal-stagger">
-                    <div class="exam-card exam-card-large">
-                        <div class="exam-card-bg"></div>
-                        <div class="exam-icon"><span class="ui-icon ui-icon-edit"></span></div>
-                        <h3>Question Bank</h3>
-                        <p>Year-wise, subject-wise organized questions with pattern analysis and frequency mapping.</p>
-                        <div class="exam-stats">
-                            <div class="exam-stats">
-                                <div>
-                                    <span class="es-num">{{ number_format($examTopicsCount ?? 0) }}+</span>
-                                    <span class="es-label">Topics</span>
-                                </div>
+                    <div class="exam-grid reveal-stagger">
+                        @foreach($examPrepCards as $card)
+                            <div class="exam-card {{ $card->is_large ? 'exam-card-large' : '' }}">
+                                <div class="exam-card-bg" @unless($card->is_large) style="--ec-color:#004AAD" @endunless></div>
+                                <div class="exam-icon"><span class="ui-icon ui-icon-{{ $card->icon }}"></span></div>
+                                <h3>{{ $card->title }}</h3>
+                                @if($card->description)
+                                    <p>{{ $card->description }}</p>
+                                @endif
 
-                                <div>
-                                    <span class="es-num">{{ number_format($examSubjectsCount ?? 0) }}+</span>
-                                    <span class="es-label">Subjects</span>
-                                </div>
+                                @if($card->is_large)
+                                    <div class="exam-stats">
+                                        <div class="exam-stats">
+                                            <div>
+                                                <span class="es-num">{{ number_format($examTopicsCount ?? 0) }}+</span>
+                                                <span class="es-label">Topics</span>
+                                            </div>
+
+                                            <div>
+                                                <span class="es-num">{{ number_format($examSubjectsCount ?? 0) }}+</span>
+                                                <span class="es-label">Subjects</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <a href="{{ $card->link_url }}" class="exam-btn" style="text-decoration: none; display: inline-block; text-align: center;">{{ $card->button_text }}</a>
                             </div>
-                        </div>
-                        <a href="{{ route('exam-aid') }}" class="exam-btn" style="text-decoration: none; display: inline-block; text-align: center;">Open Question Bank</a>
-                    </div>
-
-                    <div class="exam-card">
-                        <div class="exam-card-bg" style="--ec-color:#004AAD"></div>
-                        <div class="exam-icon"><span class="ui-icon ui-icon-mic"></span></div>
-                        <h3>Viva Mastery</h3>
-                        <p>Most asked viva questions by examiners across universities with model answers.</p>
-                        <button class="exam-btn">Practice Viva</button>
-                    </div>
-
-                    <div class="exam-card">
-                        <div class="exam-card-bg" style="--ec-color:#004AAD"></div>
-                        <div class="exam-icon"><span class="ui-icon ui-icon-trending"></span></div>
-                        <h3>Expected Questions</h3>
-                        <p>AI-assisted prediction of most likely exam questions based on trend analysis.</p>
-                        <button class="exam-btn">View Expected</button>
-                    </div>
-
-                    <div class="exam-card">
-                        <div class="exam-card-bg" style="--ec-color:#004AAD"></div>
-                        <div class="exam-icon"><span class="ui-icon ui-icon-check"></span></div>
-                        <h3>Important Topics</h3>
-                        <p>Curated list of must-prepare topics that consistently appear in university exams.</p>
-                        <button class="exam-btn">See Topics</button>
-                    </div>
-
-                    <div class="exam-card">
-                        <div class="exam-card-bg" style="--ec-color:#004AAD"></div>
-                        <div class="exam-icon"><span class="ui-icon ui-icon-lightbulb"></span></div>
-                        <h3>Exam Tips</h3>
-                        <p>Proven exam strategies, time management, answer presentation, and scoring techniques.</p>
-                        <button class="exam-btn">Get Tips</button>
-                    </div>
-
-                    <div class="exam-card">
-                        <div class="exam-card-bg" style="--ec-color:#004AAD"></div>
-                        <div class="exam-icon"><span class="ui-icon ui-icon-calendar"></span></div>
-                        <h3>Study Strategies</h3>
-                        <p>Subject-wise study plans, spaced repetition schedules, and revision timetables.</p>
-                        <button class="exam-btn">Plan Study</button>
+                        @endforeach
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        @endif
 
         <!-- COMMUNITY ACTIVITY / LIVE ACTIVITY -->
         {{-- <section class="section community-section" id="community">

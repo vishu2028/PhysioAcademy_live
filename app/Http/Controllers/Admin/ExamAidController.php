@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AcademicYear;
 use App\Models\ExamAid;
+use App\Models\ExamAidCategory;
 use App\Models\Semester;
 use App\Models\Subject;
 use App\Models\Unit;
@@ -108,6 +109,7 @@ class ExamAidController extends Controller
             'units' => Unit::orderBy('name')->get(),
             'years' => AcademicYear::orderBy('name')->get(),
             'semesters' => Semester::orderBy('name')->get(),
+            'categories' => ExamAidCategory::ordered()->get(),
         ];
     }
 
@@ -128,8 +130,10 @@ class ExamAidController extends Controller
 
             'materials' => ['nullable', 'array'],
             'materials.*.title' => ['nullable', 'string', 'max:255'],
-            'materials.*.type' => ['nullable', 'in:pdf,video,link,note'],
+            'materials.*.type' => ['nullable', 'in:pdf,document,video,link,note'],
+            'materials.*.category_id' => ['nullable', 'exists:exam_aid_categories,id'],
             'materials.*.file' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
+            'materials.*.document_file' => ['nullable', 'file', 'mimes:doc,docx,ppt,pptx,xls,xlsx', 'max:10240'],
             'materials.*.url' => ['nullable', 'url'],
             'materials.*.content' => ['nullable', 'string'],
             'materials.*.existing_file_path' => ['nullable', 'string'],
@@ -169,12 +173,14 @@ class ExamAidController extends Controller
             $url = null;
             $content = null;
 
-            if ($type === 'pdf') {
+            if ($type === 'pdf' || $type === 'document') {
+                $fileKey = $type === 'pdf' ? 'file' : 'document_file';
+
                 $filePath = $material['existing_file_path'] ?? null;
 
-                if ($request->hasFile("materials.$index.file")) {
+                if ($request->hasFile("materials.$index.$fileKey")) {
                     $filePath = $request
-                        ->file("materials.$index.file")
+                        ->file("materials.$index.$fileKey")
                         ->store('exam-aids/materials', 'public');
                 }
 
@@ -195,6 +201,7 @@ class ExamAidController extends Controller
 
             $examAid->materials()->create([
                 'title' => $material['title'],
+                'exam_aid_category_id' => $material['category_id'] ?? null,
                 'type' => $type,
                 'file_path' => $filePath,
                 'url' => $url,

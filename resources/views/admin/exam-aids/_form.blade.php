@@ -8,6 +8,7 @@
             $formMaterials[] = [
                 'title' => $material->title,
                 'type' => $material->type,
+                'category_id' => $material->exam_aid_category_id,
                 'content' => $material->content,
                 'url' => $material->url,
                 'existing_file_path' => $material->file_path,
@@ -138,9 +139,23 @@
 
                                     <select name="materials[{{ $index }}][type]" class="form-select form-select-sm material-type-select">
                                         <option value="pdf" {{ $materialType === 'pdf' ? 'selected' : '' }}>PDF File</option>
+                                        <option value="document" {{ $materialType === 'document' ? 'selected' : '' }}>Document (Word / PPT / Excel)</option>
                                         <option value="video" {{ $materialType === 'video' ? 'selected' : '' }}>Video Embed</option>
                                         <option value="link" {{ $materialType === 'link' ? 'selected' : '' }}>External Link</option>
                                         <option value="note" {{ $materialType === 'note' ? 'selected' : '' }}>Text Note</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold">Category</label>
+
+                                    <select name="materials[{{ $index }}][category_id]" class="form-select form-select-sm">
+                                        <option value="">Uncategorized</option>
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}" {{ (string) ($material['category_id'] ?? '') === (string) $category->id ? 'selected' : '' }}>
+                                                {{ $category->name }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                 </div>
 
@@ -159,6 +174,26 @@
                                             Current PDF:
                                             <a href="{{ asset('storage/' . $material['existing_file_path']) }}" target="_blank">
                                                 View File
+                                            </a>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="col-12 mt-2 type-fields {{ $materialType === 'document' ? '' : 'd-none' }}" data-type="document">
+                                    <label class="form-label small fw-bold">Upload Document</label>
+
+                                    <input
+                                        type="file"
+                                        name="materials[{{ $index }}][document_file]"
+                                        class="form-control form-control-sm"
+                                        accept=".doc,.docx,.ppt,.pptx,.xls,.xlsx"
+                                    >
+
+                                    @if(!empty($material['existing_file_path']) && $materialType === 'document')
+                                        <div class="small mt-2">
+                                            Current document:
+                                            <a href="{{ asset('storage/' . $material['existing_file_path']) }}" target="_blank">
+                                                Download File
                                             </a>
                                         </div>
                                     @endif
@@ -303,6 +338,33 @@
             </div>
         </div>
 
+        <div class="card border-0 shadow-sm rounded-4 mb-4" id="categoriesCard">
+            <div class="card-header bg-white p-4 border-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Material Categories</h5>
+
+                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#categoryModal">
+                    <i class="bi bi-plus-lg"></i> Add Category
+                </button>
+            </div>
+
+            <div class="card-body p-4 pt-0">
+                <ul class="list-unstyled mb-0" id="categoryList">
+                    @foreach($categories as $category)
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="fw-semibold">{{ $category->name }}</span>
+                            <a href="{{ $category->public_url }}" target="_blank" rel="noopener" class="small text-decoration-none">
+                                /{{ $category->slug }} <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+
+                <div class="text-muted small py-2 {{ $categories->count() ? 'd-none' : '' }}" id="noCategoriesMsg">
+                    No categories yet. Click "Add Category" to create one.
+                </div>
+            </div>
+        </div>
+
         <div class="card border-0 shadow-sm rounded-4 mb-4">
             <div class="card-body p-4">
                 <div class="form-check form-switch mb-3">
@@ -353,9 +415,21 @@
 
                 <select name="materials[INDEX][type]" class="form-select form-select-sm material-type-select">
                     <option value="pdf">PDF File</option>
+                    <option value="document">Document (Word / PPT / Excel)</option>
                     <option value="video">Video Embed</option>
                     <option value="link">External Link</option>
                     <option value="note">Text Note</option>
+                </select>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label small fw-bold">Category</label>
+
+                <select name="materials[INDEX][category_id]" class="form-select form-select-sm">
+                    <option value="">Uncategorized</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                    @endforeach
                 </select>
             </div>
 
@@ -367,6 +441,17 @@
                     name="materials[INDEX][file]"
                     class="form-control form-control-sm"
                     accept=".pdf"
+                >
+            </div>
+
+            <div class="col-12 mt-2 type-fields d-none" data-type="document">
+                <label class="form-label small fw-bold">Upload Document</label>
+
+                <input
+                    type="file"
+                    name="materials[INDEX][document_file]"
+                    class="form-control form-control-sm"
+                    accept=".doc,.docx,.ppt,.pptx,.xls,.xlsx"
                 >
             </div>
 
@@ -462,5 +547,144 @@
         });
 
         toggleNoMaterialsMessage();
+    });
+</script>
+
+{{-- Inputs here intentionally have no name attribute so they are never submitted with the Exam Aid form. --}}
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Add Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="alert alert-danger d-none" id="categoryError"></div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold" for="categoryName">Category Name</label>
+                    <input type="text" id="categoryName" class="form-control" placeholder="e.g. Past Papers" maxlength="255">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold" for="categorySlug">Slug</label>
+                    <input type="text" id="categorySlug" class="form-control" placeholder="Leave empty to generate from the name" maxlength="255">
+                    <div class="form-text">The category page opens at <code>{{ url('/exam-aid/category') }}/slug</code></div>
+                </div>
+
+                <div class="mb-0">
+                    <label class="form-label fw-bold" for="categoryDescription">Description</label>
+                    <textarea id="categoryDescription" rows="3" class="form-control" placeholder="Shown at the top of the category page"></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveCategory">Create Category</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalEl = document.getElementById('categoryModal');
+        const saveButton = document.getElementById('saveCategory');
+        const errorBox = document.getElementById('categoryError');
+        const list = document.getElementById('categoryList');
+        const noCategoriesMsg = document.getElementById('noCategoriesMsg');
+        const fields = {
+            name: document.getElementById('categoryName'),
+            slug: document.getElementById('categorySlug'),
+            description: document.getElementById('categoryDescription'),
+        };
+
+        function showError(message) {
+            errorBox.textContent = message;
+            errorBox.classList.remove('d-none');
+        }
+
+        function addCategoryToPage(category) {
+            // Sidebar list
+            const item = document.createElement('li');
+            item.className = 'd-flex justify-content-between align-items-center py-2 border-bottom';
+
+            const name = document.createElement('span');
+            name.className = 'fw-semibold';
+            name.textContent = category.name;
+
+            const link = document.createElement('a');
+            link.href = category.url;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.className = 'small text-decoration-none';
+            link.textContent = '/' + category.slug + ' ';
+            link.insertAdjacentHTML('beforeend', '<i class="bi bi-box-arrow-up-right"></i>');
+
+            item.append(name, link);
+            list.appendChild(item);
+            noCategoriesMsg.classList.add('d-none');
+
+            // Category dropdowns: existing materials and the "Add Material" template
+            const selects = Array.from(document.querySelectorAll('select[name$="[category_id]"]'));
+            const templateSelect = document.getElementById('materialTemplate')
+                .content.querySelector('select[name$="[category_id]"]');
+
+            if (templateSelect) {
+                selects.push(templateSelect);
+            }
+
+            selects.forEach(function (select) {
+                select.add(new Option(category.name, category.id));
+            });
+        }
+
+        saveButton.addEventListener('click', async function () {
+            errorBox.classList.add('d-none');
+
+            if (!fields.name.value.trim()) {
+                showError('Category name is required.');
+                return;
+            }
+
+            saveButton.disabled = true;
+
+            try {
+                const response = await fetch(@json(route('admin.exam-aid-categories.store')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': @json(csrf_token()),
+                    },
+                    body: JSON.stringify({
+                        name: fields.name.value.trim(),
+                        slug: fields.slug.value.trim(),
+                        description: fields.description.value.trim(),
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const firstError = data.errors ? Object.values(data.errors)[0][0] : null;
+                    showError(firstError || data.message || 'Could not create the category.');
+                    return;
+                }
+
+                addCategoryToPage(data);
+                bootstrap.Modal.getInstance(modalEl).hide();
+            } catch (error) {
+                showError('Something went wrong. Please try again.');
+            } finally {
+                saveButton.disabled = false;
+            }
+        });
+
+        modalEl.addEventListener('hidden.bs.modal', function () {
+            Object.values(fields).forEach(function (field) { field.value = ''; });
+            errorBox.classList.add('d-none');
+        });
     });
 </script>
