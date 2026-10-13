@@ -862,7 +862,7 @@
         </section>
 
 
-        <!-- EXAM AID / EXAM PREP (managed from Admin > Homepage Management > Exam Prep Section) -->
+        <!-- EXAM AID / EXAM PREP -->
         @if(($examPrepSettings['exam_prep_enabled'] ?? true) && ($examPrepCards ?? collect())->isNotEmpty())
             <section class="section exam-section" id="exam-aid">
                 <div class="section-container">

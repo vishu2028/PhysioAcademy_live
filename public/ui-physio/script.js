@@ -207,7 +207,6 @@ function initRevealAnimations() {
                 observer.unobserve(entry.target);
             }
         });
-    // threshold 0: a tall element can never reach a fixed visible ratio (e.g. 12%) and would stay hidden
     }, { threshold: 0, rootMargin: '0px 0px -60px 0px' });
 
     revealEls.forEach(el => observer.observe(el));

@@ -11,9 +11,6 @@ use Illuminate\Validation\Rule;
 
 class ExamPrepController extends Controller
 {
-    /**
-     * Section heading settings, stored in the `settings` table.
-     */
     public const SETTING_DEFAULTS = [
         'exam_prep_enabled' => '1',
         'exam_prep_tag' => 'Exam Prep',

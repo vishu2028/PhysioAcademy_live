@@ -5595,9 +5595,6 @@ body {
     background: rgba(var(--brand-blue-rgb), 0.14);
 }
 
-/* ─── NAVBAR SPACING (desktop) ─────────────────────────────────────────
-   Scoped under .navbar so Bootstrap's .nav-link / a rules (loaded after
-   this file) cannot override the spacing or add underlines. */
 @media (min-width: 992px) {
     .navbar .nav-container { gap: 32px; }
 

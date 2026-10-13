@@ -332,6 +332,9 @@
                 <a href="{{ route('admin.community_and_announcements.index') }}" class="nav-link-admin @if(request()->routeIs('admin.testimonials.*')) active @endif">
                     <i class="bi bi-megaphone"></i> Community & Announcments
                 </a>
+                <a href="{{ route('admin.team-members.index') }}" class="nav-link-admin @if(request()->routeIs('admin.team-members.*')) active @endif">
+                    <i class="bi bi-people"></i> Team Members
+                </a>
                 <a href="{{ route('admin.about.index') }}" class="nav-link-admin @if(request()->routeIs('admin.testimonials.*')) active @endif">
                     <i class="bi bi-info-circle"></i> About
                 </a>
@@ -354,6 +357,9 @@
                 </a>
                 <a href="{{ route('admin.exam-aids.index') }}" class="nav-link-admin @if(request()->routeIs('admin.exam-aids.*')) active @endif">
                     <i class="bi bi-journal-text"></i> Exam Aid
+                </a>
+                <a href="{{ route('admin.exam-aid-categories.index') }}" class="nav-link-admin @if(request()->routeIs('admin.exam-aid-categories.*')) active @endif">
+                    <i class="bi bi-tags"></i> Material Categories
                 </a>
                 <a href="{{ route('admin.exam-aid-banner.index') }}" class="nav-link-admin @if(request()->routeIs('admin.exam-aids.*')) active @endif">
                     <i class="bi bi-journal-text"></i> Exam Aid Banner Section
@@ -523,7 +529,6 @@
             // DataTables
             if($('.datatable').length > 0) {
                 $('.datatable').each(function() {
-                    // Tables paginated by Laravel: keep DataTables out of paging/search/sorting
                     var serverPaginated = $(this).data('server-paginated') === true;
 
                     $(this).DataTable({

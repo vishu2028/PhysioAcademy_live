@@ -13,7 +13,6 @@ return new class extends Migration
             $table->string('title_highlight')->nullable()->after('title');
         });
 
-        // Keep the homepage unchanged: the highlighted text used to be whatever followed "for" in the title.
         foreach (DB::table('hero_sections')->get(['id', 'title']) as $hero) {
             $parts = explode('for', (string) $hero->title, 2);
 

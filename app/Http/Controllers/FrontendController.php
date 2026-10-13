@@ -144,7 +144,9 @@ class FrontendController extends Controller
             ->get()
             ->keyBy('slug');
 
-        return view('about', compact('page', 'pageProtected', 'sections'));
+        $teamMembers = \App\Models\TeamMember::active()->ordered()->get();
+
+        return view('about', compact('page', 'pageProtected', 'sections', 'teamMembers'));
     }
 
 //    public function topics()
@@ -286,6 +288,67 @@ class FrontendController extends Controller
         return view('topic', compact('topic', 'pageProtected', 'relatedTopics'));
     }
 
+    public function examAidSearch(Request $request)
+    {
+        $search = trim((string) $request->query('q', ''));
+
+        if ($search === '') {
+            return response()->json([]);
+        }
+
+        $results = ExamAid::with(['subject', 'unit', 'academicYear', 'materials'])
+            ->where('status', 1)
+            ->where(function ($query) use ($search) {
+                $query->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhereHas('subject', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('unit', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhere('viva_question', 'like', "%{$search}%")
+                    ->orWhere('exam_question', 'like', "%{$search}%")
+                    ->orWhereHas('materials', function ($q) use ($search) {
+                        $q->where('title', 'like', "%{$search}%")
+                            ->orWhere('content', 'like', "%{$search}%");
+                    });
+            })
+            ->latest()
+            ->limit(8)
+            ->get()
+            ->map(function ($aid) use ($search) {
+                $needle = mb_strtolower($search);
+                $has = fn ($text) => $text !== null && str_contains(mb_strtolower(strip_tags($text)), $needle);
+
+                $topic = null;
+
+                if (!$has($aid->title) && !$has($aid->description)
+                    && !$has($aid->subject->name ?? null) && !$has($aid->unit->name ?? null)) {
+                    $material = $aid->materials->first(fn ($m) => $has($m->title) || $has($m->content));
+
+                    if ($material) {
+                        $topic = $material->title;
+                    } elseif ($has($aid->viva_question)) {
+                        $topic = 'Viva question';
+                    } elseif ($has($aid->exam_question)) {
+                        $topic = 'Exam question';
+                    }
+                }
+
+                return [
+                    'id' => $aid->id,
+                    'title' => $aid->title,
+                    'subject' => $aid->subject->name ?? null,
+                    'unit' => $aid->unit->name ?? null,
+                    'year' => $aid->academicYear->name ?? null,
+                    'topic' => $topic,
+                ];
+            });
+
+        return response()->json($results);
+    }
+
     public function examAid(Request $request)
     {
         $page = \App\Models\Page::where('slug', 'exam-aid')
@@ -413,6 +476,12 @@ class FrontendController extends Controller
                         })
                         ->orWhereHas('unit', function ($unitQuery) use ($search) {
                             $unitQuery->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhere('viva_question', 'like', "%{$search}%")
+                        ->orWhere('exam_question', 'like', "%{$search}%")
+                        ->orWhereHas('materials', function ($materialQuery) use ($search) {
+                            $materialQuery->where('title', 'like', "%{$search}%")
+                                ->orWhere('content', 'like', "%{$search}%");
                         });
                 });
             })
@@ -436,12 +505,38 @@ class FrontendController extends Controller
             ->where('slug', $slug)
             ->firstOrFail();
 
-        $materials = $category->materials()
+        $examAidMaterials = $category->materials()
             ->whereHas('examAid', fn ($query) => $query->where('status', 1))
-            ->with('examAid:id,title,subject_id')
-            ->orderBy('order')
-            ->orderBy('id')
-            ->paginate(20);
+            ->with('examAid:id,title')
+            ->get()
+            ->each(function ($material) {
+                $material->source_title = $material->examAid->title;
+                $material->download_url = $material->file_path ? asset('storage/' . $material->file_path) : null;
+            });
+
+        $topicMaterials = $category->learningMaterials()
+            ->whereHas('topic', fn ($query) => $query->active())
+            ->with('topic:id,title')
+            ->get()
+            ->each(function ($material) {
+                $material->source_title = $material->topic->title;
+                $material->download_url = $material->file_path ? route('materials.download', $material->id) : null;
+            });
+
+        $all = $examAidMaterials->concat($topicMaterials)
+            ->sortBy([['order', 'asc'], ['created_at', 'asc']])
+            ->values();
+
+        $perPage = 20;
+        $page = \Illuminate\Pagination\Paginator::resolveCurrentPage();
+
+        $materials = new \Illuminate\Pagination\LengthAwarePaginator(
+            $all->forPage($page, $perPage)->values(),
+            $all->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
 
         $categories = \App\Models\ExamAidCategory::active()->ordered()->get(['id', 'name', 'slug']);
 
@@ -759,7 +854,7 @@ class FrontendController extends Controller
     {
         $material = \App\Models\LearningMaterial::findOrFail($id);
 
-        if ($material->type !== 'pdf' || !$material->file_path) {
+        if (! in_array($material->type, ['pdf', 'document']) || !$material->file_path) {
             return back()->with('error', 'This material is not a downloadable file.');
         }
 

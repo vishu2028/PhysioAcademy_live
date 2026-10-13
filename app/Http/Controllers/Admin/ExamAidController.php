@@ -117,7 +117,7 @@ class ExamAidController extends Controller
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'description' => ['nullable', 'string', 'max:' . ExamAid::DESCRIPTION_LIMIT],
 
             'subject_id' => ['required', 'exists:subjects,id'],
             'unit_id' => ['nullable', 'exists:units,id'],

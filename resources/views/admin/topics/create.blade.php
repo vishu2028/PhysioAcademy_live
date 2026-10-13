@@ -174,7 +174,8 @@
                        </div>
                    </div>
                </div>
-            </div>
+            
+        </div>
 
             <div class="col-lg-4">
                 <!-- Categorization -->
@@ -398,9 +399,20 @@
 
                     <select name="materials[INDEX][type]" class="form-select form-select-sm material-type-select">
                         <option value="pdf">PDF File</option>
+                        <option value="document">Document (Word / PPT / Excel)</option>
                         <option value="video">Video Embed</option>
                         <option value="link">External Link</option>
                         <option value="note">Text Note</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label small fw-bold">Category</label>
+                    <select name="materials[INDEX][category_id]" class="form-select form-select-sm">
+                        <option value="">Uncategorized</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -409,6 +421,10 @@
                     <input type="file" name="materials[INDEX][file]" class="form-control form-control-sm" accept=".pdf">
                 </div>
 
+                <div class="col-12 mt-2 type-fields d-none" data-type="document">
+                    <label class="form-label small fw-bold">Upload Document</label>
+                    <input type="file" name="materials[INDEX][document_file]" class="form-control form-control-sm" accept=".doc,.docx,.ppt,.pptx,.xls,.xlsx">
+                </div>
                 <div class="col-12 mt-2 type-fields d-none" data-type="video">
                     <label class="form-label small fw-bold">Video URL / Embed Code</label>
                     <textarea
@@ -445,8 +461,6 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 @push('styles')
     <style>
-        /* Keep the description editor a fixed size: long text scrolls inside the box,
-           and the toolbar stays visible above it. */
         .ck-editor__editable_inline {
             min-height: 300px;
             max-height: 65vh;

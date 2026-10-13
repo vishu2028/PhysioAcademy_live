@@ -97,6 +97,7 @@
                                         <div class="material-card type-{{ $material->type }}">
                                             <div class="mc-icon">
                                                 @if($material->type == 'pdf') <i class="bi bi-file-earmark-pdf"></i>
+                                                @elseif($material->type == 'document') <i class="bi bi-file-earmark-text"></i>
                                                 @elseif($material->type == 'video') <i class="bi bi-play-btn"></i>
                                                 @elseif($material->type == 'link') <i class="bi bi-link-45deg"></i>
                                                 @else <i class="bi bi-journal-text"></i> @endif
@@ -120,7 +121,7 @@
                                             </div>
                                             <div class="mc-action">
                                                 @auth
-                                                    @if($material->type == 'pdf')
+                                                    @if(in_array($material->type, ['pdf', 'document']))
                                                         <a href="{{ route('materials.download', $material->id) }}" target="_blank" class="btn-mc-primary">Download</a>
                                                     @elseif($material->type == 'video')
                                                         <a href="{{ $material->url }}" target="_blank" class="btn-mc-primary">Watch Now</a>
@@ -900,7 +901,7 @@
                             entry.target.classList.add('visible');
                         }
                     });
-                }, { threshold: 0 }); // 0: very tall blocks (long descriptions) never reach a fixed ratio
+                }, { threshold: 0 });
 
                 document.querySelectorAll('.reveal-up, .reveal-right').forEach(el => observer.observe(el));
             });

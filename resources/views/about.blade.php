@@ -28,9 +28,11 @@
                 </h1>
 
                 <p class="lead text-secondary mb-4 lh-lg">
-                    We are building a smarter learning experience that brings
-                    quality educational resources, expert guidance, and
-                    practical knowledge together in one place.
+                    We help physiotherapy students spend less time searching
+                    for resources and figuring out what to study—and more time
+                    learning and revising. With structured study resources,
+                    personalized doubt-solving, and focused webinars,
+                    PhysioSource helps you make better use of your study time.
                 </p>
 
                 <div class="d-flex flex-wrap gap-2">
@@ -68,47 +70,14 @@
                             Your Learning Journey Starts Here
                         </h3>
 
-                        <p class="text-secondary lh-lg">
-                            Access organized resources, useful study materials,
-                            exam preparation tools, and learning support
-                            designed to help you move forward with confidence.
+                        <p class="text-secondary lh-lg mb-0">
+                            A clear plan makes studying more effective.
+                            PhysioSource helps you organize your preparation,
+                            find relevant resources, and decide what to focus
+                            on next—so you have more time for understanding
+                            concepts and revising what you've learned.
                         </p>
 
-                        <hr class="my-4">
-
-                        <div class="d-flex align-items-center">
-
-                            <div class="d-flex">
-
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center border border-3 border-white"
-                                     style="width:42px;height:42px;">
-                                    <i class="bi bi-person"></i>
-                                </div>
-
-                                <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center border border-3 border-white"
-                                     style="width:42px;height:42px;margin-left:-12px;">
-                                    <i class="bi bi-person"></i>
-                                </div>
-
-                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center border border-3 border-white"
-                                     style="width:42px;height:42px;margin-left:-12px;">
-                                    <i class="bi bi-person"></i>
-                                </div>
-
-                            </div>
-
-                            <div class="ms-3">
-                                <div class="fw-bold">
-                                    10,000+ Learners
-                                </div>
-
-                                <small class="text-secondary">
-                                    Growing every day
-                                </small>
-                            </div>
-
-                        </div>
-
                     </div>
 
                 </div>
@@ -118,95 +87,6 @@
         </div>
 
     </div>
-</section>
-
-
-{{-- =========================================================
-     STATISTICS
-========================================================= --}}
-
-<section class="py-5">
-
-    <div class="container">
-
-        <div class="row g-4">
-
-            <div class="col-6 col-lg-3">
-
-                <div class="card border-0 shadow-sm rounded-4 h-100 text-center">
-                    <div class="card-body py-4">
-
-                        <div class="display-6 fw-bold text-primary">
-                            10K+
-                        </div>
-
-                        <div class="text-secondary">
-                            Active Learners
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="col-6 col-lg-3">
-
-                <div class="card border-0 shadow-sm rounded-4 h-100 text-center">
-                    <div class="card-body py-4">
-
-                        <div class="display-6 fw-bold text-primary">
-                            500+
-                        </div>
-
-                        <div class="text-secondary">
-                            Learning Resources
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="col-6 col-lg-3">
-
-                <div class="card border-0 shadow-sm rounded-4 h-100 text-center">
-                    <div class="card-body py-4">
-
-                        <div class="display-6 fw-bold text-primary">
-                            50+
-                        </div>
-
-                        <div class="text-secondary">
-                            Subjects Covered
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="col-6 col-lg-3">
-
-                <div class="card border-0 shadow-sm rounded-4 h-100 text-center">
-                    <div class="card-body py-4">
-
-                        <div class="display-6 fw-bold text-primary">
-                            95%
-                        </div>
-
-                        <div class="text-secondary">
-                            Learner Satisfaction
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
 </section>
 
 
@@ -260,23 +140,27 @@
                 </div>
 
                 <h2 class="display-5 fw-bold text-dark mb-4">
-                    Education should be
-                    <span class="text-primary">accessible</span>,
-                    organized, and inspiring.
+                    The Challenge Isn't Always Finding More to Study.
+                    <span class="text-primary">It's Knowing How to Study.</span>
                 </h2>
 
                 <p class="text-secondary lead lh-lg">
-                    We started with a simple idea: students should not have
-                    to spend hours searching for the right learning material.
-                    Everything they need should be organized, easy to discover,
-                    and available when they need it.
+                    Physiotherapy students often spend valuable hours searching
+                    for resources, organizing material, and figuring out how to
+                    prepare for exams. That leaves less time for what matters
+                    most: understanding concepts, practising, and revising.
                 </p>
 
                 <p class="text-secondary lh-lg">
-                    Our platform brings together study resources, exam
-                    preparation materials, practical guides, and useful
-                    academic content to create a learning environment that
-                    helps students focus on what matters most.
+                    PhysioSource was created to bring structure to this
+                    process. We help students navigate their learning with
+                    relevant resources and practical study guidance, so they
+                    can spend less time figuring things out and more time
+                    making progress.
+                </p>
+
+                <p class="text-primary fst-italic fw-semibold lh-lg">
+                    Find Direction. Learn with Purpose. Revise with Confidence.
                 </p>
 
                 <div class="d-flex align-items-center mt-4">
@@ -295,7 +179,9 @@
                         </div>
 
                         <div class="text-secondary">
-                            Make learning simpler and more effective.
+                            To help physiotherapy students use their study time
+                            effectively through structured learning, focused
+                            academic support, and better revision.
                         </div>
 
                     </div>
@@ -326,197 +212,59 @@
             </div>
 
             <h2 class="display-5 fw-bold text-dark mb-3">
-                Everything you need to
-                <span class="text-primary">learn better</span>
+                Less Time Searching.
+                <span class="text-primary">More Time Studying.</span>
             </h2>
 
             <p class="text-secondary lead">
-                We focus on creating a simple, useful, and reliable learning
-                experience for students at every stage of their journey.
+                You don't always need more study material. You need a clearer
+                way to use your time, find what matters, and make consistent
+                progress.
             </p>
 
         </div>
 
         <div class="row g-4">
 
-            {{-- Feature 1 --}}
-            <div class="col-md-6 col-lg-4">
+            @php
+                $features = [
+                    ['icon' => 'bi-collection', 'title' => 'Structured Study & Exam Preparation', 'text' => 'Organized resources and practical study guidance to help you prepare systematically and make time for revision.'],
+                    ['icon' => 'bi-chat-dots', 'title' => 'One-to-One Doubt Classes', 'text' => 'Get individual academic support focused on your specific questions and difficult concepts.'],
+                    ['icon' => 'bi-camera-video', 'title' => 'Webinars & Group Doubt Sessions', 'text' => 'Explore relevant topics, resolve common doubts, and learn through focused group discussions.'],
+                    ['icon' => 'bi-clock-history', 'title' => 'Save Valuable Study Time', 'text' => 'Spend less time searching for resources and organizing your preparation from scratch.'],
+                    ['icon' => 'bi-bullseye', 'title' => 'Focus on What Matters', 'text' => 'Bring greater direction to your syllabus, study priorities, and exam preparation.'],
+                    ['icon' => 'bi-arrow-repeat', 'title' => 'More Time for Revision', 'text' => 'Use the time you save to revisit concepts, strengthen understanding, and prepare for exams.'],
+                ];
+            @endphp
 
-                <div class="card border-0 shadow-sm rounded-4 h-100">
+            @foreach($features as $feature)
+                <div class="col-md-6 col-lg-4">
 
-                    <div class="card-body p-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
 
-                        <div class="bg-primary-subtle text-primary rounded-3 d-inline-flex align-items-center justify-content-center mb-4"
-                             style="width:58px;height:58px;">
+                        <div class="card-body p-4">
 
-                            <i class="bi bi-collection fs-4"></i>
+                            <div class="bg-primary-subtle text-primary rounded-3 d-inline-flex align-items-center justify-content-center mb-4"
+                                 style="width:58px;height:58px;">
+
+                                <i class="bi {{ $feature['icon'] }} fs-4"></i>
+
+                            </div>
+
+                            <h4 class="fw-bold">
+                                {{ $feature['title'] }}
+                            </h4>
+
+                            <p class="text-secondary lh-lg mb-0">
+                                {{ $feature['text'] }}
+                            </p>
 
                         </div>
-
-                        <h4 class="fw-bold">
-                            Organized Resources
-                        </h4>
-
-                        <p class="text-secondary lh-lg mb-0">
-                            Find study materials, guides, questions, and
-                            learning resources organized in one convenient
-                            place.
-                        </p>
 
                     </div>
 
                 </div>
-
-            </div>
-
-            {{-- Feature 2 --}}
-            <div class="col-md-6 col-lg-4">
-
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                    <div class="card-body p-4">
-
-                        <div class="bg-primary-subtle text-primary rounded-3 d-inline-flex align-items-center justify-content-center mb-4"
-                             style="width:58px;height:58px;">
-
-                            <i class="bi bi-lightning-charge fs-4"></i>
-
-                        </div>
-
-                        <h4 class="fw-bold">
-                            Learn Efficiently
-                        </h4>
-
-                        <p class="text-secondary lh-lg mb-0">
-                            Spend less time searching and more time learning
-                            with resources designed around your academic
-                            needs.
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            {{-- Feature 3 --}}
-            <div class="col-md-6 col-lg-4">
-
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                    <div class="card-body p-4">
-
-                        <div class="bg-primary-subtle text-primary rounded-3 d-inline-flex align-items-center justify-content-center mb-4"
-                             style="width:58px;height:58px;">
-
-                            <i class="bi bi-shield-check fs-4"></i>
-
-                        </div>
-
-                        <h4 class="fw-bold">
-                            Reliable Content
-                        </h4>
-
-                        <p class="text-secondary lh-lg mb-0">
-                            We aim to provide useful, relevant, and dependable
-                            learning resources that students can confidently
-                            use.
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            {{-- Feature 4 --}}
-            <div class="col-md-6 col-lg-4">
-
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                    <div class="card-body p-4">
-
-                        <div class="bg-primary-subtle text-primary rounded-3 d-inline-flex align-items-center justify-content-center mb-4"
-                             style="width:58px;height:58px;">
-
-                            <i class="bi bi-phone fs-4"></i>
-
-                        </div>
-
-                        <h4 class="fw-bold">
-                            Learn Anywhere
-                        </h4>
-
-                        <p class="text-secondary lh-lg mb-0">
-                            Access your learning resources whenever you need
-                            them, whether you're studying at home or on the
-                            move.
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            {{-- Feature 5 --}}
-            <div class="col-md-6 col-lg-4">
-
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                    <div class="card-body p-4">
-
-                        <div class="bg-primary-subtle text-primary rounded-3 d-inline-flex align-items-center justify-content-center mb-4"
-                             style="width:58px;height:58px;">
-
-                            <i class="bi bi-bar-chart fs-4"></i>
-
-                        </div>
-
-                        <h4 class="fw-bold">
-                            Track Your Progress
-                        </h4>
-
-                        <p class="text-secondary lh-lg mb-0">
-                            Keep improving with tools and resources that help
-                            you prepare, practice, and build confidence.
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            {{-- Feature 6 --}}
-            <div class="col-md-6 col-lg-4">
-
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                    <div class="card-body p-4">
-
-                        <div class="bg-primary-subtle text-primary rounded-3 d-inline-flex align-items-center justify-content-center mb-4"
-                             style="width:58px;height:58px;">
-
-                            <i class="bi bi-people fs-4"></i>
-
-                        </div>
-
-                        <h4 class="fw-bold">
-                            Built for Students
-                        </h4>
-
-                        <p class="text-secondary lh-lg mb-0">
-                            Every feature is designed with the real challenges
-                            students face during their learning journey in
-                            mind.
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
+            @endforeach
 
         </div>
 
@@ -540,118 +288,53 @@
             </div>
 
             <h2 class="display-5 fw-bold text-dark mb-3">
-                A simpler way to
-                <span class="text-primary">keep learning</span>
+                A Clearer Path from
+                <span class="text-primary">Studying to Revision</span>
             </h2>
 
             <p class="text-secondary lead">
-                From discovering resources to preparing for your next exam,
-                your learning journey can be simple and focused.
+                Make your learning time count with a more structured approach
+                to your academic goals.
             </p>
 
         </div>
 
         <div class="row g-4">
 
-            <div class="col-md-6 col-lg-3">
+            @php
+                $steps = [
+                    ['number' => '01', 'title' => 'Find Your Direction', 'text' => 'Explore relevant resources and identify what you need to focus on next.'],
+                    ['number' => '02', 'title' => 'Study Systematically', 'text' => 'Use structured resources and practical guidance to make your study sessions more focused.'],
+                    ['number' => '03', 'title' => 'Clear Your Doubts', 'text' => 'Get individual academic help or join group sessions when you need support.'],
+                    ['number' => '04', 'title' => 'Practise and Revise', 'text' => 'Use your study time to strengthen understanding, practise, and prepare for exams.'],
+                ];
+            @endphp
 
-                <div class="card border-0 shadow-sm rounded-4 h-100">
+            @foreach($steps as $step)
+                <div class="col-md-6 col-lg-3">
 
-                    <div class="card-body p-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
 
-                        <span class="badge bg-primary rounded-3 fs-6 px-3 py-2 mb-4">
-                            01
-                        </span>
+                        <div class="card-body p-4">
 
-                        <h5 class="fw-bold">
-                            Discover
-                        </h5>
+                            <span class="badge bg-primary rounded-3 fs-6 px-3 py-2 mb-4">
+                                {{ $step['number'] }}
+                            </span>
 
-                        <p class="text-secondary lh-lg mb-0">
-                            Explore subjects, topics, and resources relevant
-                            to what you're currently learning.
-                        </p>
+                            <h5 class="fw-bold">
+                                {{ $step['title'] }}
+                            </h5>
 
-                    </div>
+                            <p class="text-secondary lh-lg mb-0">
+                                {{ $step['text'] }}
+                            </p>
 
-                </div>
-
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                    <div class="card-body p-4">
-
-                        <span class="badge bg-primary rounded-3 fs-6 px-3 py-2 mb-4">
-                            02
-                        </span>
-
-                        <h5 class="fw-bold">
-                            Learn
-                        </h5>
-
-                        <p class="text-secondary lh-lg mb-0">
-                            Study through carefully organized notes, guides,
-                            videos, and educational materials.
-                        </p>
+                        </div>
 
                     </div>
 
                 </div>
-
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                    <div class="card-body p-4">
-
-                        <span class="badge bg-primary rounded-3 fs-6 px-3 py-2 mb-4">
-                            03
-                        </span>
-
-                        <h5 class="fw-bold">
-                            Practice
-                        </h5>
-
-                        <p class="text-secondary lh-lg mb-0">
-                            Test your knowledge with questions, revision
-                            material, and practical learning resources.
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                    <div class="card-body p-4">
-
-                        <span class="badge bg-primary rounded-3 fs-6 px-3 py-2 mb-4">
-                            04
-                        </span>
-
-                        <h5 class="fw-bold">
-                            Succeed
-                        </h5>
-
-                        <p class="text-secondary lh-lg mb-0">
-                            Build confidence, strengthen your knowledge, and
-                            approach your exams with better preparation.
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
+            @endforeach
 
         </div>
 
@@ -681,22 +364,24 @@
                         </div>
 
                         <h2 class="display-6 fw-bold mb-3">
-                            Ready to make your learning journey better?
+                            Make More Time for What Matters.
                         </h2>
 
                         <p class="lead opacity-75 mb-lg-0">
-                            Discover resources, prepare smarter, and take
-                            your next step with confidence.
+                            Stop spending so much time figuring out where to
+                            start. Find the structure and academic support you
+                            need to study with direction and make more time
+                            for revision.
                         </p>
 
                     </div>
 
                     <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
 
-                        <a href="#"
+                        <a href="{{ route('exam-aid') }}"
                            class="btn btn-light btn-lg px-4 rounded-3 fw-bold">
 
-                            Explore Resources
+                            Explore Exam Aid
                             <i class="bi bi-arrow-right ms-2"></i>
 
                         </a>
@@ -712,5 +397,81 @@
     </div>
 
 </section>
+
+
+@if(($teamMembers ?? collect())->isNotEmpty())
+    <section id="team" class="py-5 bg-light">
+
+        <div class="container py-lg-5">
+
+            <div class="text-center mx-auto mb-5" style="max-width:700px;">
+
+                <div class="text-primary text-uppercase fw-bold small mb-2">
+                    Meet Our Team
+                </div>
+
+                <h2 class="display-5 fw-bold text-dark mb-3">
+                    The People Behind
+                    <span class="text-primary">PhysioSource</span>
+                </h2>
+
+                <p class="text-secondary lead">
+                    PhysioSource brings together people committed to helping
+                    physiotherapy students learn with greater clarity,
+                    confidence, and direction.
+                </p>
+
+            </div>
+
+            <div class="row g-4 justify-content-center">
+
+                @foreach($teamMembers as $member)
+                    <div class="col-sm-6 col-lg-4">
+
+                        <div class="card border-0 shadow-sm rounded-4 h-100 text-center">
+
+                            <div class="card-body p-4">
+
+                                @if($member->photo_url)
+                                    <img src="{{ $member->photo_url }}"
+                                         alt="{{ $member->name }}"
+                                         class="rounded-circle object-fit-cover mb-3"
+                                         width="110" height="110">
+                                @else
+                                    <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-inline-flex align-items-center justify-content-center mb-3"
+                                         style="width:110px;height:110px;font-size:2rem;">
+                                        {{ $member->initials }}
+                                    </div>
+                                @endif
+
+                                <h5 class="fw-bold mb-1">
+                                    {{ $member->name }}
+                                </h5>
+
+                                @if($member->designation)
+                                    <div class="text-primary small fw-semibold mb-3">
+                                        {{ $member->designation }}
+                                    </div>
+                                @endif
+
+                                @if($member->bio)
+                                    <p class="text-secondary lh-lg mb-0">
+                                        {{ $member->bio }}
+                                    </p>
+                                @endif
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                @endforeach
+
+            </div>
+
+        </div>
+
+    </section>
+@endif
 
 @endsection

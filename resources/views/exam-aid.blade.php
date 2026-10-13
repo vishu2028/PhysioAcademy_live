@@ -224,13 +224,19 @@
                         </p>
                     </div>
 
+                    <div class="exam-search-bar reveal-up" id="examLiveSearch">
+                        <input type="search" id="examSearchInput" autocomplete="off"
+                               placeholder="Search by title, subject or unit..." aria-label="Search exam aid">
+                        <div class="exam-search-dropdown" id="examSearchDropdown" hidden></div>
+                    </div>
+
                     <div class="exam-resource-grid reveal-stagger">
                         @forelse($examAids as $examAid)
                             @php
                                 $firstPdf = $examAid->materials->firstWhere('type', 'pdf');
                             @endphp
 
-                            <article class="exam-subject-card">
+                            <article class="exam-subject-card" id="exam-aid-card-{{ $examAid->id }}">
                                 <div class="exam-card-top">
                                 <span class="exam-difficulty medium">
                                     {{ $examAid->subject->name ?? 'Subject' }}
@@ -244,7 +250,7 @@
                                 <h3>{{ $examAid->title }}</h3>
 
                                 <p>
-                                    {{ \Illuminate\Support\Str::limit($examAid->description, 120) }}
+                                    {{ \Illuminate\Support\Str::limit($examAid->description, \App\Models\ExamAid::DESCRIPTION_LIMIT) }}
                                 </p>
 
                                 <div class="exam-card-meta">
@@ -383,6 +389,95 @@
     </main>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('examSearchInput');
+            const dropdown = document.getElementById('examSearchDropdown');
+
+            if (searchInput && dropdown) {
+                let timer = null;
+                let controller = null;
+
+                const hide = () => { dropdown.hidden = true; dropdown.innerHTML = ''; };
+
+                const render = (items, term) => {
+                    dropdown.innerHTML = '';
+
+                    if (!items.length) {
+                        const empty = document.createElement('div');
+                        empty.className = 'exam-search-empty';
+                        empty.textContent = 'No results for "' + term + '"';
+                        dropdown.appendChild(empty);
+                    }
+
+                    items.forEach(function (item) {
+                        const row = document.createElement('button');
+                        row.type = 'button';
+                        row.className = 'exam-search-item';
+
+                        const title = document.createElement('strong');
+                        title.textContent = item.title;
+
+                        const meta = document.createElement('span');
+                        meta.textContent = [item.subject, item.unit, item.year].filter(Boolean).join(' · ');
+
+                        row.appendChild(title);
+                        row.appendChild(meta);
+
+                        if (item.topic) {
+                            const topic = document.createElement('em');
+                            topic.className = 'exam-search-topic';
+                            topic.textContent = 'Matched in: ' + item.topic;
+                            row.appendChild(topic);
+                        }
+
+                        row.addEventListener('click', function () {
+                            const card = document.getElementById('exam-aid-card-' + item.id);
+                            hide();
+
+                            if (card) {
+                                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                card.classList.add('exam-card-highlight');
+                                setTimeout(() => card.classList.remove('exam-card-highlight'), 2000);
+                            } else {
+                                window.location.href = @json(route('exam-aid')) + '?q=' + encodeURIComponent(item.title) + '#exam-resources';
+                            }
+                        });
+
+                        dropdown.appendChild(row);
+                    });
+
+                    dropdown.hidden = false;
+                };
+
+                searchInput.addEventListener('input', function () {
+                    const term = this.value.trim();
+                    clearTimeout(timer);
+
+                    if (controller) { controller.abort(); }
+
+                    if (!term) { hide(); return; }
+
+                    timer = setTimeout(function () {
+                        controller = new AbortController();
+
+                        fetch(@json(route('exam-aid.search')) + '?q=' + encodeURIComponent(term), {
+                            headers: { 'Accept': 'application/json' },
+                            signal: controller.signal
+                        })
+                            .then(r => r.json())
+                            .then(items => render(items, term))
+                            .catch(function () {});
+                    }, 200);
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!e.target.closest('#examLiveSearch')) { hide(); }
+                });
+
+                searchInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') { hide(); }
+                });
+            }
+
             document.querySelectorAll('.exam-view-toggle').forEach(function (button) {
                 button.addEventListener('click', function () {
                     const targetId = this.getAttribute('data-target');
@@ -405,6 +500,81 @@
     </script>
     @push('styles')
         <style>
+            .exam-search-bar {
+                position: relative;
+                max-width: 440px;
+                margin: 0 auto 24px;
+            }
+            .exam-search-bar input[type="search"] {
+                width: 100%;
+                padding: 9px 16px;
+                border: 1px solid #d5dce8;
+                border-radius: 999px;
+                background: #fff;
+                font-size: 14px;
+                outline: none;
+            }
+            .exam-search-bar input[type="search"]:focus {
+                border-color: #004AAD;
+                box-shadow: 0 0 0 3px rgba(0, 74, 173, .1);
+            }
+            .exam-search-dropdown {
+                position: absolute;
+                top: calc(100% + 4px);
+                left: 0;
+                right: 0;
+                z-index: 50;
+                background: #fff;
+                border: 1px solid #e3e8f1;
+                border-radius: 12px;
+                box-shadow: 0 6px 18px rgba(16, 32, 64, .08);
+                max-height: 260px;
+                overflow-y: auto;
+                padding: 4px;
+            }
+            .exam-search-bar .exam-search-item {
+                display: block;
+                width: 100%;
+                margin: 0;
+                padding: 7px 10px;
+                border: 0;
+                border-radius: 8px;
+                background: transparent;
+                color: #1c2a3f;
+                text-align: left;
+                font-weight: 400;
+                line-height: 1.3;
+                box-shadow: none;
+            }
+            .exam-search-bar .exam-search-item:hover,
+            .exam-search-bar .exam-search-item:focus-visible {
+                background: #f3f6fb;
+                outline: none;
+            }
+            .exam-search-item strong {
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .exam-search-item span {
+                display: block;
+                font-size: 11.5px;
+                color: #7a879b;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .exam-search-item .exam-search-topic {
+                display: block;
+                font-size: 11.5px;
+                font-style: normal;
+                color: #004AAD;
+            }
+            .exam-search-empty { padding: 8px 10px; font-size: 13px; color: #7a879b; }
+            .exam-card-highlight { outline: 3px solid #004AAD; outline-offset: 4px; }
             .exam-shell-wrapper {
                 --exam-brand-blue: #004AAD;
                 --exam-brand-white: #FFFFFF;

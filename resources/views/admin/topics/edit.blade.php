@@ -110,9 +110,20 @@
                                    <label class="form-label small fw-bold">Type</label>
                                    <select name="materials[{{ $index }}][type]" class="form-select form-select-sm material-type-select">
                                        <option value="pdf" {{ $material->type == 'pdf' ? 'selected' : '' }}>PDF File</option>
+                                       <option value="document" {{ $material->type == 'document' ? 'selected' : '' }}>Document (Word / PPT / Excel)</option>
                                        <option value="video" {{ $material->type == 'video' ? 'selected' : '' }}>Video Embed</option>
                                        <option value="link" {{ $material->type == 'link' ? 'selected' : '' }}>External Link</option>
                                        <option value="note" {{ $material->type == 'note' ? 'selected' : '' }}>Text Note</option>
+                                   </select>
+                               </div>
+
+                               <div class="col-12">
+                                   <label class="form-label small fw-bold">Category</label>
+                                   <select name="materials[{{ $index }}][category_id]" class="form-select form-select-sm">
+                                       <option value="">Uncategorized</option>
+                                       @foreach($categories as $category)
+                                           <option value="{{ $category->id }}" {{ (string) $material->exam_aid_category_id === (string) $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                       @endforeach
                                    </select>
                                </div>
 
@@ -122,6 +133,13 @@
                                        <div class="mb-1 small"><i class="bi bi-file-earmark-pdf"></i> {{ basename($material->file_path) }}</div>
                                    @endif
                                    <input type="file" name="materials[{{ $index }}][file]" class="form-control form-control-sm" accept=".pdf">
+                               </div>
+                               <div class="col-12 mt-2 type-fields {{ $material->type != 'document' ? 'd-none' : '' }}" data-type="document">
+                                   <label class="form-label small fw-bold">Upload Document (Leave empty to keep current)</label>
+                                   @if($material->type == 'document' && $material->file_path)
+                                       <div class="mb-1 small"><i class="bi bi-file-earmark-text"></i> {{ basename($material->file_path) }}</div>
+                                   @endif
+                                   <input type="file" name="materials[{{ $index }}][document_file]" class="form-control form-control-sm" accept=".doc,.docx,.ppt,.pptx,.xls,.xlsx">
                                </div>
                                <div class="col-12 mt-2 type-fields {{ $material->type != 'video' ? 'd-none' : '' }}" data-type="video">
                                    <label class="form-label small fw-bold">Video URL / Embed Code</label>
@@ -141,6 +159,7 @@
                    </div>
                </div>
            </div>
+        
         </div>
 
         <div class="col-lg-4">
@@ -331,14 +350,29 @@
                 <label class="form-label small fw-bold">Type</label>
                 <select name="materials[INDEX][type]" class="form-select form-select-sm material-type-select">
                     <option value="pdf">PDF File</option>
+                    <option value="document">Document (Word / PPT / Excel)</option>
                     <option value="video">Video Embed</option>
                     <option value="link">External Link</option>
                     <option value="note">Text Note</option>
                 </select>
             </div>
+            <div class="col-12">
+                <label class="form-label small fw-bold">Category</label>
+                <select name="materials[INDEX][category_id]" class="form-select form-select-sm">
+                    <option value="">Uncategorized</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
             <div class="col-12 mt-2 type-fields" data-type="pdf">
                 <label class="form-label small fw-bold">Upload PDF</label>
                 <input type="file" name="materials[INDEX][file]" class="form-control form-control-sm" accept=".pdf">
+            </div>
+            <div class="col-12 mt-2 type-fields d-none" data-type="document">
+                <label class="form-label small fw-bold">Upload Document</label>
+                <input type="file" name="materials[INDEX][document_file]" class="form-control form-control-sm" accept=".doc,.docx,.ppt,.pptx,.xls,.xlsx">
             </div>
             <div class="col-12 mt-2 type-fields d-none" data-type="video">
                 <label class="form-label small fw-bold">Video URL / Embed Code</label>
@@ -358,8 +392,6 @@
 
 @push('styles')
     <style>
-        /* Keep the description editor a fixed size: long text scrolls inside the box,
-           and the toolbar stays visible above it. */
         .ck-editor__editable_inline {
             min-height: 300px;
             max-height: 65vh;
