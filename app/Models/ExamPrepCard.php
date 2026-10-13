@@ -6,9 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class ExamPrepCard extends Model
 {
-    /**
-     * Icons available in the front-end icon set (public/ui-physio/style.css).
-     */
     public const ICONS = [
         'beaker', 'bone', 'book', 'brain', 'briefcase', 'calendar', 'check', 'clipboard',
         'clock', 'dna', 'edit', 'file', 'flame', 'folder', 'graduation', 'heart-pulse',
@@ -49,9 +46,6 @@ class ExamPrepCard extends Model
         return $query->orderBy('sort_order')->orderBy('id');
     }
 
-    /**
-     * Where the card button goes: custom URL, else its category page, else the Exam Aid page.
-     */
     public function getLinkUrlAttribute(): string
     {
         if ($this->custom_url) {

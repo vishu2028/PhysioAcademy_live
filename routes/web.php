@@ -66,6 +66,11 @@ Route::get(
 )->name('exam-aid');
 
 Route::get(
+    '/exam-aid/search',
+    [FrontendController::class, 'examAidSearch']
+)->name('exam-aid.search');
+
+Route::get(
     '/exam-aid/category/{slug}',
     [FrontendController::class, 'examAidCategory']
 )->name('exam-aid.category');
@@ -333,15 +338,20 @@ Route::middleware([
             \App\Http\Controllers\Admin\TopicController::class
         );
 
-        Route::post(
+        Route::resource(
             'exam-aid-categories',
-            [\App\Http\Controllers\Admin\ExamAidCategoryController::class, 'store']
-        )->name('exam-aid-categories.store');
+            \App\Http\Controllers\Admin\ExamAidCategoryController::class
+        )->except(['show']);
 
         Route::resource(
             'exam-aids',
             \App\Http\Controllers\Admin\ExamAidController::class
         );
+
+        Route::resource(
+            'team-members',
+            \App\Http\Controllers\Admin\TeamMemberController::class
+        )->parameters(['team-members' => 'teamMember'])->except(['show']);
 
         Route::get(
             'exam-prep',

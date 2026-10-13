@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ExamAid extends Model
 {
+    public const DESCRIPTION_LIMIT = 120;
+
     protected $fillable = [
         'subject_id',
         'unit_id',

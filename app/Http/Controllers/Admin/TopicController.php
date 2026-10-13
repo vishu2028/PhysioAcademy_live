@@ -7,6 +7,7 @@ use App\Models\Topic;
 use App\Models\Subject;
 use App\Models\AcademicYear;
 use App\Models\Semester;
+use App\Models\ExamAidCategory;
 use App\Models\LearningMaterial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -68,7 +69,10 @@ class TopicController extends Controller
                 ->get()
             : collect();
 
+        $categories = ExamAidCategory::ordered()->get();
+
         return view('admin.topics.create', compact(
+            'categories',
             'subjects',
             'years',
             'topics',
@@ -118,10 +122,12 @@ class TopicController extends Controller
 
             'materials' => 'nullable|array',
             'materials.*.title' => 'required|string|max:255',
-            'materials.*.type' => 'required|in:pdf,video,link,note',
+            'materials.*.type' => 'required|in:pdf,document,video,link,note',
+            'materials.*.category_id' => 'nullable|exists:exam_aid_categories,id',
             'materials.*.content' => 'nullable|string',
             'materials.*.url' => 'nullable|url',
             'materials.*.file' => 'nullable|file|max:10240',
+            'materials.*.document_file' => 'nullable|file|mimes:doc,docx,ppt,pptx,xls,xlsx|max:10240',
         ]);
 
         $unitTopic = UnitTopic::findOrFail($request->unit_topic_id);
@@ -140,6 +146,7 @@ class TopicController extends Controller
 
             foreach ($request->materials as $materialData) {
                 $material = new LearningMaterial([
+                    'exam_aid_category_id' => $materialData['category_id'] ?? null,
                     'title' => $materialData['title'],
                     'type' => $materialData['type'],
                     'content' => $materialData['content'] ?? null,
@@ -147,8 +154,10 @@ class TopicController extends Controller
                     'order' => $orderIndex,
                 ]);
 
-                if (isset($materialData['file']) && $materialData['file']) {
-                    $material->file_path = $materialData['file']->store('materials', 'public');
+                $uploadedFile = $this->uploadedMaterialFile($materialData);
+
+                if ($uploadedFile) {
+                    $material->file_path = $uploadedFile->store('materials', 'public');
                 }
 
                 $topic->materials()->save($material);
@@ -209,7 +218,10 @@ class TopicController extends Controller
                 ->get()
             : collect();
 
+        $categories = ExamAidCategory::ordered()->get();
+
         return view('admin.topics.edit', compact(
+            'categories',
             'topic',
             'subjects',
             'years',
@@ -261,10 +273,12 @@ class TopicController extends Controller
             'materials' => 'nullable|array',
             'materials.*.id' => 'nullable|exists:learning_materials,id',
             'materials.*.title' => 'required|string|max:255',
-            'materials.*.type' => 'required|in:pdf,video,link,note',
+            'materials.*.type' => 'required|in:pdf,document,video,link,note',
+            'materials.*.category_id' => 'nullable|exists:exam_aid_categories,id',
             'materials.*.content' => 'nullable|string',
             'materials.*.url' => 'nullable|url',
             'materials.*.file' => 'nullable|file|max:10240',
+            'materials.*.document_file' => 'nullable|file|mimes:doc,docx,ppt,pptx,xls,xlsx|max:10240',
         ]);
 
         $unitTopic = UnitTopic::findOrFail($request->unit_topic_id);
@@ -289,6 +303,7 @@ class TopicController extends Controller
 
                     if ($material) {
                         $material->update([
+                            'exam_aid_category_id' => $materialData['category_id'] ?? null,
                             'title' => $materialData['title'],
                             'type' => $materialData['type'],
                             'content' => $materialData['content'] ?? null,
@@ -296,8 +311,10 @@ class TopicController extends Controller
                             'order' => $orderIndex,
                         ]);
 
-                        if (isset($materialData['file']) && $materialData['file']) {
-                            $material->file_path = $materialData['file']->store('materials', 'public');
+                        $uploadedFile = $this->uploadedMaterialFile($materialData);
+
+                        if ($uploadedFile) {
+                            $material->file_path = $uploadedFile->store('materials', 'public');
                             $material->save();
                         }
 
@@ -305,6 +322,7 @@ class TopicController extends Controller
                     }
                 } else {
                     $material = new LearningMaterial([
+                        'exam_aid_category_id' => $materialData['category_id'] ?? null,
                         'title' => $materialData['title'],
                         'type' => $materialData['type'],
                         'content' => $materialData['content'] ?? null,
@@ -312,8 +330,10 @@ class TopicController extends Controller
                         'order' => $orderIndex,
                     ]);
 
-                    if (isset($materialData['file']) && $materialData['file']) {
-                        $material->file_path = $materialData['file']->store('materials', 'public');
+                    $uploadedFile = $this->uploadedMaterialFile($materialData);
+
+                    if ($uploadedFile) {
+                        $material->file_path = $uploadedFile->store('materials', 'public');
                     }
 
                     $topic->materials()->save($material);
@@ -336,6 +356,13 @@ class TopicController extends Controller
     {
         $topic->delete();
         return back()->with('success', 'Topic deleted successfully.');
+    }
+
+    private function uploadedMaterialFile(array $materialData)
+    {
+        $key = ($materialData['type'] ?? null) === 'document' ? 'document_file' : 'file';
+
+        return ! empty($materialData[$key]) ? $materialData[$key] : null;
     }
 
     public function uploadImage(Request $request)

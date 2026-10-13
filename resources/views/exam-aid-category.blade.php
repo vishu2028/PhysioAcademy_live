@@ -183,7 +183,7 @@
 
                                 <div class="eac-meta">
                                     <span class="eac-type">{{ strtoupper($material->type) }}</span>
-                                    {{ $material->examAid->title }}
+                                    {{ $material->source_title }}
                                 </div>
 
                                 @auth
@@ -195,8 +195,8 @@
 
                             <div class="eac-action">
                                 @auth
-                                    @if(in_array($material->type, ['pdf', 'document']) && $material->file_path)
-                                        <a href="{{ asset('storage/' . $material->file_path) }}" target="_blank" rel="noopener"
+                                    @if(in_array($material->type, ['pdf', 'document']) && $material->download_url)
+                                        <a href="{{ $material->download_url }}" target="_blank" rel="noopener"
                                            class="eac-btn">
                                             {{ $material->type === 'pdf' ? 'Open PDF' : 'Download' }}
                                         </a>

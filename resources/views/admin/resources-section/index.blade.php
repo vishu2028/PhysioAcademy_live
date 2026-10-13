@@ -9,7 +9,6 @@
             <p class="text-secondary mb-0">Show or hide the "Learning Materials" section on the homepage.</p>
         </div>
 
-        {{-- Section Visibility Toggle --}}
         <form action="{{ route('admin.resources-section.section-toggle') }}" method="POST">
             @csrf
             @method('PATCH')

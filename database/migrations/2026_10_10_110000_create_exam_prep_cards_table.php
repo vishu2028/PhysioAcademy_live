@@ -26,7 +26,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Seed the cards that were previously hard-coded on the homepage.
         $now = now();
 
         $cards = [

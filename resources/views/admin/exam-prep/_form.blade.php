@@ -41,7 +41,7 @@
                         @endforeach
                     </select>
                     <div class="form-text">
-                        Categories are added from the Exam Aid create page.
+                        Manage categories from <strong>Material Categories</strong> in the sidebar.
                     </div>
                     @error('exam_aid_category_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
