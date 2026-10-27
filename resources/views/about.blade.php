@@ -4,6 +4,8 @@
 
 @section('content')
 
+<div class="about-page">
+
 {{-- =========================================================
      HERO SECTION
 ========================================================= --}}
@@ -473,5 +475,121 @@
 
     </section>
 @endif
+
+</div>
+
+@push('styles')
+    <style>
+        .about-page {
+            --about-navy: #0f172a;
+            --about-blue: #2563eb;
+            --about-cyan: #38bdf8;
+            --about-muted: #64748b;
+            --about-surface: rgba(255, 255, 255, 0.72);
+            min-height: 100vh;
+            color: var(--about-navy);
+            background:
+                radial-gradient(circle at 8% 8%, rgba(56, 189, 248, 0.14), transparent 28rem),
+                radial-gradient(circle at 92% 18%, rgba(37, 99, 235, 0.10), transparent 30rem),
+                linear-gradient(180deg, #f8fbff 0%, #eef5ff 48%, #ffffff 100%);
+        }
+
+        .about-page > section {
+            position: relative;
+            background: transparent !important;
+        }
+
+        .about-page > section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.42), transparent 55%);
+        }
+
+        .about-page > section > .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .about-page .text-dark,
+        .about-page h1,
+        .about-page h2,
+        .about-page h3,
+        .about-page h4,
+        .about-page h5 {
+            color: var(--about-navy) !important;
+        }
+
+        .about-page .text-secondary {
+            color: var(--about-muted) !important;
+        }
+
+        .about-page .text-primary {
+            color: var(--about-blue) !important;
+        }
+
+        .about-page .bg-light {
+            background: transparent !important;
+        }
+
+        .about-page .card {
+            background: var(--about-surface);
+            border: 1px solid rgba(37, 99, 235, 0.10) !important;
+            box-shadow: 0 16px 40px rgba(37, 99, 235, 0.08) !important;
+            backdrop-filter: blur(14px);
+        }
+
+        .about-page .bg-primary {
+            background: linear-gradient(135deg, #2563eb, #38bdf8) !important;
+        }
+
+        .about-page .bg-primary-subtle {
+            background: rgba(56, 189, 248, 0.12) !important;
+        }
+
+        .about-page .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #38bdf8);
+            border-color: transparent;
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
+        }
+
+        .about-page .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8, #0ea5e9);
+            border-color: transparent;
+            transform: translateY(-2px);
+        }
+
+        .about-page .btn-outline-secondary {
+            color: var(--about-blue);
+            border-color: rgba(37, 99, 235, 0.28);
+        }
+
+        .about-page .btn-outline-secondary:hover {
+            color: #fff;
+            background: var(--about-blue);
+            border-color: var(--about-blue);
+        }
+
+        .about-page .btn-light {
+            color: var(--about-blue);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .about-page .text-primary.fst-italic {
+            color: var(--about-blue) !important;
+        }
+
+        @media (max-width: 767.98px) {
+            .about-page .display-3 {
+                font-size: 2.65rem;
+            }
+
+            .about-page .display-5 {
+                font-size: 2.15rem;
+            }
+        }
+    </style>
+@endpush
 
 @endsection
