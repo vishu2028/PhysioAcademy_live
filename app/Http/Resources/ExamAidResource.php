@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Str;
 
 class ExamAidResource extends JsonResource
 {
@@ -14,12 +13,7 @@ class ExamAidResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
 
-            'description' => $this->description
-                ? Str::limit(
-                    strip_tags($this->description),
-                    180
-                )
-                : null,
+            'description' => $this->description,
 
             /*
              * List API mein full questions return nahi kar rahe.

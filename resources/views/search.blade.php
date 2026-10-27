@@ -1,20 +1,20 @@
 @extends('layouts.frontend')
 
-@section('title', 'Search Topics')
+@section('title', 'Search')
 
 @section('content')
     <main class="site-search-page">
         <section class="site-search-hero">
             <div class="site-search-copy">
-                <span class="site-search-kicker"><span class="site-search-dot"></span> Topic Finder</span>
-                <h1>Search Topics</h1>
-                <p>Find syllabus topics, subjects, units, and study pages across Physio Academy.</p>
+                <span class="site-search-kicker"><span class="site-search-dot"></span> Site Search</span>
+                <h1>Search</h1>
+                <p>Find syllabus topics, subjects, units, and Exam Aid resources across Physio Academy.</p>
             </div>
 
             <div class="site-search-panel">
                 <form action="{{ route('search') }}" method="GET" class="site-search-input-wrap">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="search" name="query" value="{{ $query }}" placeholder="Search topics, subjects, units..." autocomplete="off" autofocus id="siteSearchInput">
+                    <input type="search" name="query" value="{{ $query }}" placeholder="Search topics, Exam Aid, subjects, units..." aria-label="Search topics, Exam Aid, subjects, and units" autocomplete="off" autofocus id="siteSearchInput">
                     @if($query)
                         <a href="{{ route('search') }}" class="site-search-clear">Clear</a>
                     @endif
@@ -33,7 +33,10 @@
             <div class="site-search-toolbar">
                 <p id="searchResultCount">
                     @if($query)
-                        <span id="resultCountText">{{ $results->count() }}</span> result{{ $results->count() === 1 ? '' : 's' }} found for "{{ $query }}"
+                        @php
+                            $resultCount = $results->count() + $examAidResults->count();
+                        @endphp
+                        <span id="resultCountText">{{ $resultCount }}</span> result{{ $resultCount === 1 ? '' : 's' }} found for "{{ $query }}"
                     @else
                         Showing trending topics
                     @endif
@@ -59,23 +62,11 @@
                     $visibleResults = auth()->check() ? $results : $results->take(ceil($results->count() / 2) ?: 5);
                 @endphp
 
-                @forelse($visibleResults as $topic)
-                    <a class="site-search-result-card"
-                       href="{{ route('topics.show', ['slug' => $topic->slug]) }}"
-                       data-year="{{ $topic->academicYear->name ?? '' }}"
-                       data-subject="{{ $topic->subject->name ?? '' }}">
-                        <div>
-                            <span class="site-search-result-subject">{{ $topic->subject->name ?? 'General' }}</span>
-                            <h2>{{ $topic->title }}</h2>
-                            <p>{{ $topic->academicYear->name ?? 'All Years' }}</p>
-                        </div>
-                        <span class="site-search-status available">✓ Available</span>
-                    </a>
-                @empty
+                @if($visibleResults->isEmpty() && $examAidResults->isEmpty())
                     @if($query)
                         <div class="site-search-empty" id="siteSearchEmpty">
-                            <h2>No matching topics found</h2>
-                            <p>Try a subject name, unit name, or a shorter keyword.</p>
+                            <h2>No matching results found</h2>
+                            <p>Try a subject name, unit name, Exam Aid topic, or a shorter keyword.</p>
                             <a href="{{ route('topics.index') }}">Browse all topics</a>
                         </div>
                     @else
@@ -85,7 +76,37 @@
                             <a href="{{ route('home') }}">Go to Homepage</a>
                         </div>
                     @endif
-                @endforelse
+                @else
+                    @foreach($visibleResults as $topic)
+                        <a class="site-search-result-card"
+                           href="{{ route('topics.show', ['slug' => $topic->slug]) }}"
+                           data-year="{{ $topic->academicYear->name ?? '' }}"
+                           data-subject="{{ $topic->subject->name ?? '' }}">
+                            <div>
+                                <span class="site-search-result-subject">{{ $topic->subject->name ?? 'General' }}</span>
+                                <h2>{{ $topic->title }}</h2>
+                                <p>{{ $topic->academicYear->name ?? 'All Years' }}</p>
+                            </div>
+                            <span class="site-search-status available">✓ Available</span>
+                        </a>
+                    @endforeach
+
+                    @foreach($examAidResults as $examAid)
+                        <a class="site-search-result-card"
+                           href="{{ route('exam-aid', ['q' => $examAid->title, 'exam_aid' => $examAid->id]) }}#exam-aid-card-{{ $examAid->id }}"
+                           data-year="{{ $examAid->academicYear->name ?? '' }}"
+                           data-subject="{{ $examAid->subject->name ?? '' }}">
+                            <div>
+                                <span class="site-search-result-subject">
+                                    Exam Aid{{ $examAid->subject ? ' · ' . $examAid->subject->name : '' }}
+                                </span>
+                                <h2>{{ $examAid->title }}</h2>
+                                <p>{{ $examAid->unit->name ?? $examAid->academicYear->name ?? 'Exam Aid resource' }}</p>
+                            </div>
+                            <span class="site-search-status available">✓ Available</span>
+                        </a>
+                    @endforeach
+                @endif
             </div>
 
             @guest

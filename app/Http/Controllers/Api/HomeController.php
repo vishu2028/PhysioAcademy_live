@@ -64,19 +64,13 @@ class HomeController extends Controller
          * Trending topics
          */
         $trendingTopics = Topic::query()
-            ->active()
-            ->whereNull('parent_id')
-            ->whereHas('subject', function ($query) {
-                $query->where('status', true);
-            })
-            ->whereHas('academicYear', function ($query) {
-                $query->where('status', true);
-            })
+            ->trending()
             ->with([
                 'subject:id,name,slug',
                 'academicYear:id,name,slug',
             ])
             ->orderBy('order')
+            ->orderByDesc('updated_at')
             ->limit(4)
             ->get();
 

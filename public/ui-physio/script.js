@@ -379,29 +379,49 @@ function initSearchInput() {
     }
 
     // Render API results into the dynamic container
-    function renderResults(data, type) {
+    function renderResults(data, type, examAids = []) {
         if (!dynContainer) return;
-        if (!data || !data.length) {
+        if ((!data || !data.length) && (!examAids || !examAids.length)) {
             showNoResult(input.value.trim());
             return;
         }
 
-        const label     = type === 'trending' ? '🔥 Trending Topics' : '🔍 Search Results';
-        const itemsHtml = data.map((topic, i) => {
+        const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        })[character]);
+        const label = type === 'trending' ? '🔥 Trending Topics' : '🔍 Search Results';
+        const topicItems = (data || []).map((topic, i) => {
             const icon    = icons[i % icons.length];
-            const subject = topic.subject ? `<small style="opacity:.55;margin-left:8px;font-size:.75rem;">${topic.subject.name}</small>` : '';
-            const url     = `${topicBaseUrl}/${topic.slug}`;
-            return `<a href="${url}" class="suggestion-item" style="text-decoration:none;display:flex;align-items:center;gap:6px;">
+            const subject = topic.subject ? `<small style="opacity:.55;margin-left:8px;font-size:.75rem;">${escapeHtml(topic.subject.name)}</small>` : '';
+            const url     = `${topicBaseUrl}/${encodeURIComponent(topic.slug)}`;
+            return `<a href="${escapeHtml(url)}" class="suggestion-item" style="text-decoration:none;display:flex;align-items:center;gap:6px;">
                 <span class="suggest-icon ui-icon ${icon}" aria-hidden="true"></span>
-                <span>${topic.title}</span>${subject}
+                <span>${escapeHtml(topic.title)}</span>${subject}
               </a>`;
         }).join('');
 
-        dynContainer.innerHTML = `
-      <div class="suggestion-group">
-        <span class="suggestion-label">${label}</span>
-        <div class="suggestion-items">${itemsHtml}</div>
-      </div>`;
+        const examAidItems = (examAids || []).map((examAid, i) => {
+            const icon = icons[(i + (data || []).length) % icons.length];
+            const subject = examAid.subject ? `<small style="opacity:.55;margin-left:8px;font-size:.75rem;">${escapeHtml(examAid.subject.name)}</small>` : '';
+            return `<a href="${escapeHtml(examAid.url)}" class="suggestion-item" style="text-decoration:none;display:flex;align-items:center;gap:6px;">
+                <span class="suggest-icon ui-icon ${icon}" aria-hidden="true"></span>
+                <span>${escapeHtml(examAid.title)}</span>${subject}
+              </a>`;
+        }).join('');
+
+        dynContainer.innerHTML = `${topicItems ? `
+          <div class="suggestion-group">
+            <span class="suggestion-label">${label}</span>
+            <div class="suggestion-items">${topicItems}</div>
+          </div>` : ''}${examAidItems ? `
+          <div class="suggestion-group">
+            <span class="suggestion-label">📘 Exam Aid</span>
+            <div class="suggestion-items">${examAidItems}</div>
+          </div>` : ''}`;
 
         showSuggestions();
     }
@@ -421,7 +441,7 @@ function initSearchInput() {
             });
             if (!res.ok) return;
             const json = await res.json();
-            renderResults(json.data || [], json.type || 'search');
+            renderResults(json.data || [], json.type || 'search', json.exam_aids || []);
         } catch (e) {
             if (e.name !== 'AbortError') console.warn('[Search] fetch error:', e);
         }

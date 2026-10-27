@@ -249,9 +249,9 @@
 
                                 <h3>{{ $examAid->title }}</h3>
 
-                                <p>
-                                    {{ \Illuminate\Support\Str::limit($examAid->description, \App\Models\ExamAid::DESCRIPTION_LIMIT) }}
-                                </p>
+                                <div class="exam-card-description">
+                                    {!! $examAid->description !!}
+                                </div>
 
                                 <div class="exam-card-meta">
                                     <span>{{ $examAid->materials->count() }} Materials</span>
@@ -1019,6 +1019,38 @@
                 font-size: 1.25rem;
                 font-weight: 800;
                 margin-bottom: 10px;
+            }
+
+            .exam-subject-card .exam-card-description {
+                color: #64748b;
+                line-height: 1.65;
+                overflow-wrap: anywhere;
+                margin-bottom: 16px;
+            }
+
+            .exam-subject-card .exam-card-description > :first-child {
+                margin-top: 0;
+            }
+
+            .exam-subject-card .exam-card-description > :last-child {
+                margin-bottom: 0;
+            }
+
+            .exam-subject-card .exam-card-description img {
+                max-width: 100%;
+                height: auto;
+            }
+
+            .exam-subject-card .exam-card-description ul,
+            .exam-subject-card .exam-card-description ol {
+                margin: 0 0 1rem;
+                padding-left: 1.5rem;
+                list-style-position: outside;
+            }
+
+            .exam-subject-card .exam-card-description a {
+                color: #004AAD;
+                text-decoration: underline;
             }
 
             .exam-subject-card p {

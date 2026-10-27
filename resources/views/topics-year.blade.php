@@ -260,18 +260,6 @@
                 </div>
             </section>
 
-        @else
-
-            <section class="typage-explorer">
-                <div class="typage-explorer-inner">
-                    <div class="typage-empty-panel text-center">
-                        <div class="typage-empty-icon">📦</div>
-                        <h3>No Academic Years Found</h3>
-                        <p>No academic years are available at the moment. Please add an academic year from the admin panel.</p>
-                    </div>
-                </div>
-            </section>
-
         @endif
     </div>
 

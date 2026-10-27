@@ -26,7 +26,7 @@
 {{--                    </div>--}}
                     <div class="mb-3">
                         <label class="form-label fw-bold">Description / Overview</label>
-                        <textarea name="description" class="form-control" rows="4">{{ old('description', $topic->description) }}</textarea>
+                        <textarea name="description" id="description" class="form-control" rows="4">{{ old('description', $topic->description) }}</textarea>
                     </div>
                     <div class="mb-3">
                         <label for="bottom_line" class="form-label fw-bold">
@@ -38,7 +38,6 @@
                             id="bottom_line"
                             class="form-control @error('bottom_line') is-invalid @enderror"
                             rows="5"
-                            maxlength="5000"
                             placeholder="Write the most important takeaway students should remember from this topic..."
                         >{{ old('bottom_line', $topic->bottom_line) }}</textarea>
 
@@ -89,13 +88,13 @@
 
             <!-- Learning Materials (LMS Style) -->
            <div class="card border-0 shadow-sm rounded-4 mb-4">
-               <div class="card-header bg-white p-4 border-0 d-flex justify-content-between align-items-center">
+               <div class="card-header bg-white p-4 border-0 d-flex justify-content-between align-items-center learning-materials-sticky-header">
                    <h5 class="fw-bold mb-0">Learning Materials</h5>
                    <button type="button" class="btn btn-sm btn-primary" id="addMaterial">
                        <i class="bi bi-plus-lg"></i> Add Material
                    </button>
                </div>
-               <div class="card-body p-4 pt-0">
+               <div class="card-body p-4 pt-0 learning-materials-content">
                    <div id="materialContainer">
                        @foreach($topic->materials as $index => $material)
                        <div class="material-item border rounded-3 p-3 mb-3 bg-light position-relative">
@@ -170,6 +169,30 @@
                 </div>
 
                 <div class="card-body p-4 pt-0">
+                    <!-- Academic Year -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Academic Year</label>
+
+                        <select
+                            name="academic_year_id"
+                            id="yearSelect"
+                            class="form-select @error('academic_year_id') is-invalid @enderror"
+                            required
+                        >
+                            <option value="">-- Select Year --</option>
+
+                            @foreach($years as $year)
+                                <option value="{{ $year->id }}" {{ old('academic_year_id', $topic->academic_year_id) == $year->id ? 'selected' : '' }}>
+                                    {{ $year->name }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        @error('academic_year_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <!-- Subject -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">Subject</label>
@@ -265,30 +288,6 @@
                         @enderror
                     </div>
 
-                    <!-- Academic Year -->
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Academic Year</label>
-
-                        <select
-                            name="academic_year_id"
-                            id="yearSelect"
-                            class="form-select @error('academic_year_id') is-invalid @enderror"
-                            required
-                        >
-                            <option value="">-- Select Year --</option>
-
-                            @foreach($years as $year)
-                                <option value="{{ $year->id }}" {{ old('academic_year_id', $topic->academic_year_id) == $year->id ? 'selected' : '' }}>
-                                    {{ $year->name }}
-                                </option>
-                            @endforeach
-                        </select>
-
-                        @error('academic_year_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
                     <!-- Semester -->
                     <div class="mb-3">
                         <label class="form-label fw-bold">Semester (Optional)</label>
@@ -327,6 +326,11 @@
                         <input class="form-check-input" type="checkbox" name="is_protected" id="is_protected" value="1" {{ $topic->is_protected ? 'checked' : '' }}>
                         <label class="form-check-label fw-bold" for="is_protected">Protected Content</label>
                         <div class="small text-muted">Restrict copying/downloading.</div>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="is_trending" id="is_trending" value="1" {{ $topic->is_trending ? 'checked' : '' }}>
+                        <label class="form-check-label fw-bold" for="is_trending">Show in Trending Topics</label>
+                        <div class="small text-muted">Include this topic in the homepage trending section.</div>
                     </div>
                  </div>
                  <div class="card-footer bg-light p-3 d-grid">
@@ -397,15 +401,36 @@
             max-height: 65vh;
             overflow-y: auto;
         }
+
+        .learning-materials-sticky-header {
+            position: sticky;
+            top: 4.75rem;
+            z-index: 1020;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            box-shadow: 0 0.5rem 0.75rem -0.75rem rgba(15, 23, 42, 0.35);
+        }
+
+        .learning-materials-content {
+            max-height: min(32rem, calc(100vh - 12rem));
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        @media (max-width: 575.98px) {
+            .learning-materials-sticky-header {
+                padding: 1rem !important;
+            }
+
+            .learning-materials-content {
+                max-height: 60vh;
+            }
+        }
     </style>
 @endpush
 
 @push('scripts')
-    {{-- Agar jQuery aur Select2 layout me already added hain to ye 2 lines duplicate na karein --}}
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/super-build/ckeditor.js"></script>
 
     <script>
         $(document).ready(function () {
@@ -655,39 +680,76 @@
                 }
             });
 
-            // --- CKEditor ---
-            try {
-                const descriptionTextarea = document.querySelector('textarea[name="description"]');
-
-                if (typeof ClassicEditor !== 'undefined' && descriptionTextarea) {
-                    ClassicEditor
-                        .create(descriptionTextarea, {
-                            ckfinder: {
-                                uploadUrl: '{{ route("admin.topics.upload_image") }}?_token={{ csrf_token() }}'
-                            },
-                            toolbar: [
-                                'heading',
-                                '|',
-                                'bold',
-                                'italic',
-                                'link',
-                                'bulletedList',
-                                'numberedList',
-                                'blockQuote',
-                                '|',
-                                'imageUpload',
-                                'insertTable',
-                                'mediaEmbed',
-                                'undo',
-                                'redo'
-                            ]
-                        })
-                        .catch(error => console.warn('CKEditor init error:', error));
-                }
-            } catch (error) {
-                console.warn('CKEditor not available:', error);
-            }
         });
+    </script>
+    <script>
+        (() => {
+            const fields = ['description', 'bottom_line']
+                .map(id => document.getElementById(id))
+                .filter(Boolean);
+
+            if (fields.length !== 2) {
+                console.error('Topic CKEditor initialization failed: Description and Bottom Line fields were not both found.');
+                return;
+            }
+
+            const Editor = window.CKEDITOR?.ClassicEditor;
+            if (!Editor) {
+                console.error('Topic CKEditor initialization failed: CKEditor 5 super-build did not load.');
+                return;
+            }
+
+            const config = {
+                removePlugins: [
+                    'RealTimeCollaborativeComments',
+                    'RealTimeCollaborativeTrackChanges',
+                    'RealTimeCollaborativeRevisionHistory',
+                    'PresenceList',
+                    'Comments',
+                    'TrackChanges',
+                    'TrackChangesData',
+                    'RevisionHistory',
+                    'Users',
+                    'CommentsRepository',
+                    'WProofreader',
+                    'Pagination',
+                    'DocumentOutline',
+                    'AIAssistant',
+                    'AIAssistantUI',
+                    'AIAssistantEditing',
+                    'AIAdapter',
+                    'TableOfContents',
+                    'FormatPainter',
+                    'Template',
+                    'SlashCommand',
+                    'PasteFromOfficeEnhanced',
+                    'CaseChange',
+                    'MathType'
+                ],
+                ckfinder: {
+                    uploadUrl: '{{ route("admin.topics.upload_image") }}?_token={{ csrf_token() }}'
+                },
+                toolbar: {
+                    items: [
+                        'heading', '|',
+                        'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
+                        'bold', 'italic', 'underline', 'strikethrough', 'removeFormat', '|',
+                        'link', 'bulletedList', 'numberedList', 'outdent', 'indent', '|',
+                        'blockQuote', 'imageUpload', 'insertTable', 'mediaEmbed', '|',
+                        'undo', 'redo'
+                    ]
+                }
+            };
+
+            fields.forEach(textarea => {
+                try {
+                    Editor.create(textarea, config)
+                        .catch(error => console.error(`Topic CKEditor failed for ${textarea.name}:`, error));
+                } catch (error) {
+                    console.error(`Topic CKEditor failed for ${textarea.name}:`, error);
+                }
+            });
+        })();
     </script>
 @endpush
 @endsection

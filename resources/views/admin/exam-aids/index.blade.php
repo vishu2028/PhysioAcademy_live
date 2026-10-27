@@ -37,7 +37,7 @@
                         <td>
                             <strong>{{ $examAid->title }}</strong>
                             <div class="small text-muted">
-                                {{ \Illuminate\Support\Str::limit($examAid->description, 70) }}
+                                {{ \Illuminate\Support\Str::limit(strip_tags($examAid->description), 70) }}
                             </div>
                         </td>
 

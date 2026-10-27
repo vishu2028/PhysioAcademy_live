@@ -22,6 +22,7 @@ class Topic extends Model
         'parent_id',
         'module_number',
         'status',
+        'is_trending',
         'order',
         'study_time',
         'is_protected',
@@ -82,6 +83,20 @@ class Topic extends Model
                     ->whereHas('unit', function (Builder $unitQuery) {
                         $unitQuery->where('is_active', true);
                     });
+            });
+    }
+
+    public function scopeTrending(Builder $query): Builder
+    {
+        return $query
+            ->active()
+            ->where('topics.is_trending', true)
+            ->whereNull('topics.parent_id')
+            ->whereHas('subject', function (Builder $subjectQuery) {
+                $subjectQuery->where('status', true);
+            })
+            ->whereHas('academicYear', function (Builder $yearQuery) {
+                $yearQuery->where('status', true);
             });
     }
 

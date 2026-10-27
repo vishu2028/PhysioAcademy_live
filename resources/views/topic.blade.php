@@ -161,7 +161,7 @@
                                             </h2>
 
                                             <div class="bottom-line-text">
-                                                {!! nl2br(e($topic->bottom_line)) !!}
+                                                {!! $topic->bottom_line !!}
                                             </div>
                                         </div>
                                     </div>
@@ -322,6 +322,7 @@
                 font-size: 1rem;
                 line-height: 1.8;
                 overflow-wrap: anywhere;
+                white-space: pre-line;
             }
             /* ─── TOPIC DETAIL PAGE STYLES ────────────────────────── */
             :root {

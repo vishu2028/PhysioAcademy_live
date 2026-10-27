@@ -52,14 +52,8 @@
                         id="examAidDescription"
                         class="form-control @error('description') is-invalid @enderror"
                         rows="4"
-                        maxlength="{{ \App\Models\ExamAid::DESCRIPTION_LIMIT }}"
                         placeholder="Brief introduction..."
                     >{{ old('description', $examAid->description) }}</textarea>
-
-                    <div class="form-text d-flex justify-content-between">
-                        <span>Shown on the Exam Aid cards, so it is limited to {{ \App\Models\ExamAid::DESCRIPTION_LIMIT }} characters.</span>
-                        <span id="examAidDescriptionCount"></span>
-                    </div>
 
                     @error('description')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -99,7 +93,7 @@
         </div>
 
         <div class="card border-0 shadow-sm rounded-4 mb-4">
-            <div class="card-header bg-white p-4 border-0 d-flex justify-content-between align-items-center">
+            <div class="card-header bg-white p-4 border-0 d-flex justify-content-between align-items-center learning-materials-sticky-header">
                 <h5 class="fw-bold mb-0">Learning Materials</h5>
 
                 <button type="button" class="btn btn-sm btn-primary" id="addMaterial">
@@ -107,7 +101,7 @@
                 </button>
             </div>
 
-            <div class="card-body p-4 pt-0">
+            <div class="card-body p-4 pt-0 learning-materials-content">
                 <div id="materialContainer">
                     <div class="text-center py-4 text-muted {{ count($formMaterials) ? 'd-none' : '' }}" id="noMaterialsMsg">
                         <i class="bi bi-box fs-1 d-block mb-2"></i>
@@ -530,21 +524,105 @@
     });
 </script>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const description = document.getElementById('examAidDescription');
-        const counter = document.getElementById('examAidDescriptionCount');
-
-        if (!description || !counter) {
-            return;
+@push('styles')
+    <style>
+        .ck-editor__editable_inline {
+            min-height: 300px;
+            max-height: 65vh;
+            overflow-y: auto;
         }
 
-        function updateCounter() {
-            counter.textContent = description.value.length + ' / ' + description.maxLength;
-            counter.classList.toggle('text-danger', description.value.length >= description.maxLength);
+        .learning-materials-sticky-header {
+            position: sticky;
+            top: 4.75rem;
+            z-index: 1020;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            box-shadow: 0 0.5rem 0.75rem -0.75rem rgba(15, 23, 42, 0.35);
         }
 
-        description.addEventListener('input', updateCounter);
-        updateCounter();
-    });
-</script>
+        .learning-materials-content {
+            max-height: min(32rem, calc(100vh - 12rem));
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        @media (max-width: 575.98px) {
+            .learning-materials-sticky-header {
+                padding: 1rem !important;
+            }
+
+            .learning-materials-content {
+                max-height: 60vh;
+            }
+        }
+    </style>
+@endpush
+
+@push('scripts')
+    <script
+        src="https://cdn.ckeditor.com/ckeditor5/41.1.0/super-build/ckeditor.js"
+        onerror="console.error('Exam Aid CKEditor bundle failed to load.')"
+    ></script>
+    <script>
+        (() => {
+            const description = document.getElementById('examAidDescription');
+            if (!description) {
+                console.error('Exam Aid CKEditor initialization failed: Description field was not found.');
+                return;
+            }
+
+            const Editor = window.CKEDITOR?.ClassicEditor;
+            if (!Editor) {
+                console.error('Exam Aid CKEditor initialization failed: CKEditor 5 super-build is unavailable.');
+                return;
+            }
+
+            try {
+                Editor.create(description, {
+                    removePlugins: [
+                        'RealTimeCollaborativeComments',
+                        'RealTimeCollaborativeTrackChanges',
+                        'RealTimeCollaborativeRevisionHistory',
+                        'PresenceList',
+                        'Comments',
+                        'TrackChanges',
+                        'TrackChangesData',
+                        'RevisionHistory',
+                        'Users',
+                        'CommentsRepository',
+                        'WProofreader',
+                        'Pagination',
+                        'DocumentOutline',
+                        'AIAssistant',
+                        'AIAssistantUI',
+                        'AIAssistantEditing',
+                        'AIAdapter',
+                        'TableOfContents',
+                        'FormatPainter',
+                        'Template',
+                        'SlashCommand',
+                        'PasteFromOfficeEnhanced',
+                        'CaseChange',
+                        'MathType'
+                    ],
+                    ckfinder: {
+                        uploadUrl: '{{ route("admin.topics.upload_image") }}?_token={{ csrf_token() }}'
+                    },
+                    toolbar: {
+                        items: [
+                            'heading', '|',
+                            'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
+                            'bold', 'italic', 'underline', 'strikethrough', 'removeFormat', '|',
+                            'link', 'bulletedList', 'numberedList', 'outdent', 'indent', '|',
+                            'blockQuote', 'imageUpload', 'insertTable', 'mediaEmbed', '|',
+                            'undo', 'redo'
+                        ]
+                    }
+                }).catch(error => console.error('Exam Aid CKEditor initialization failed:', error));
+            } catch (error) {
+                console.error('Exam Aid CKEditor initialization failed:', error);
+            }
+        })();
+    </script>
+@endpush

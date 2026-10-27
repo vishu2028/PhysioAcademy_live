@@ -114,10 +114,11 @@ class TopicController extends Controller
             'parent_id' => 'nullable|exists:topics,id',
             'module_number' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'bottom_line' => 'nullable|string|max:5000',
+            'bottom_line' => 'nullable|string',
             'study_time' => 'nullable|string|max:100',
             'order' => 'nullable|integer',
             'status' => 'sometimes|boolean',
+            'is_trending' => 'sometimes|boolean',
             'is_protected' => 'sometimes|boolean',
 
             'materials' => 'nullable|array',
@@ -137,6 +138,7 @@ class TopicController extends Controller
         $data['title'] = $unitTopic->title;
         $data['slug'] = Str::slug($unitTopic->title . '-' . time());
         $data['status'] = $request->has('status');
+        $data['is_trending'] = $request->has('is_trending');
         $data['is_protected'] = $request->has('is_protected');
         $data['study_time'] = $request->study_time;
         $topic = Topic::create($data);
@@ -264,10 +266,11 @@ class TopicController extends Controller
             'parent_id' => 'nullable|exists:topics,id',
             'module_number' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'bottom_line' => 'nullable|string|max:5000',
+            'bottom_line' => 'nullable|string',
             'study_time' => 'nullable|string|max:100',
             'order' => 'nullable|integer',
             'status' => 'sometimes|boolean',
+            'is_trending' => 'sometimes|boolean',
             'is_protected' => 'sometimes|boolean',
 
             'materials' => 'nullable|array',
@@ -288,6 +291,7 @@ class TopicController extends Controller
         $data['title'] = $unitTopic->title;
         $data['slug'] = Str::slug($unitTopic->title . '-' . $topic->id);
         $data['status'] = $request->has('status');
+        $data['is_trending'] = $request->has('is_trending');
         $data['is_protected'] = $request->has('is_protected');
 
         $topic->update($data);

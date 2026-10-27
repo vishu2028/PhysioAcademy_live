@@ -47,7 +47,12 @@ class FrontendController extends Controller
             
 
         // Trending Topics
-        $trendingTopics = \App\Models\Topic::active()->with('subject')->orderBy('order')->limit(4)->get();
+        $trendingTopics = \App\Models\Topic::trending()
+            ->with(['subject', 'academicYear'])
+            ->orderBy('order')
+            ->orderByDesc('updated_at')
+            ->limit(4)
+            ->get();
 
         $examPrepSettings = \App\Http\Controllers\Admin\ExamPrepController::settings();
         $examPrepCards = $examPrepSettings['exam_prep_enabled']
@@ -296,25 +301,7 @@ class FrontendController extends Controller
             return response()->json([]);
         }
 
-        $results = ExamAid::with(['subject', 'unit', 'academicYear', 'materials'])
-            ->where('status', 1)
-            ->where(function ($query) use ($search) {
-                $query->where('title', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhereHas('subject', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
-                    })
-                    ->orWhereHas('unit', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
-                    })
-                    ->orWhere('viva_question', 'like', "%{$search}%")
-                    ->orWhere('exam_question', 'like', "%{$search}%")
-                    ->orWhereHas('materials', function ($q) use ($search) {
-                        $q->where('title', 'like', "%{$search}%")
-                            ->orWhere('content', 'like', "%{$search}%");
-                    });
-            })
-            ->latest()
+        $results = $this->examAidSearchQuery($search)
             ->limit(8)
             ->get()
             ->map(function ($aid) use ($search) {
@@ -442,6 +429,10 @@ class FrontendController extends Controller
         ])
             ->where('status', 1)
 
+            ->when($request->filled('exam_aid'), function ($query) use ($request) {
+                $query->whereKey($request->integer('exam_aid'));
+            })
+
             // Academic Year filter
             ->when($request->filled('year') && $request->year !== 'all', function ($query) use ($request) {
                 $query->where('academic_year_id', $request->year);
@@ -515,11 +506,10 @@ class FrontendController extends Controller
             });
 
         $topicMaterials = $category->learningMaterials()
-            ->whereHas('topic', fn ($query) => $query->active())
             ->with('topic:id,title')
             ->get()
             ->each(function ($material) {
-                $material->source_title = $material->topic->title;
+                $material->source_title = $material->topic?->title;
                 $material->download_url = $material->file_path ? route('materials.download', $material->id) : null;
             });
 
@@ -723,17 +713,34 @@ class FrontendController extends Controller
 
     public function search(Request $request)
     {
-        $query = $request->input('query');
+        $query = trim((string) $request->input('query', ''));
         $results = collect();
+        $examAidResults = collect();
 
         if ($query) {
+            $normalizedQuery = mb_strtolower($query);
             $results = \App\Models\Topic::active()
-                ->where(function($q) use ($query) {
-                    $q->where('title', 'like', "%{$query}%")
-                        ->orWhere('description', 'like', "%{$query}%");
+                ->where(function ($q) use ($normalizedQuery) {
+                    $like = "%{$normalizedQuery}%";
+
+                    $q->whereRaw('LOWER(topics.title) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(topics.description) LIKE ?', [$like])
+                        ->orWhereHas('subject', function ($subjectQuery) use ($like) {
+                            $subjectQuery->whereRaw('LOWER(name) LIKE ?', [$like]);
+                        })
+                        ->orWhereHas('unitTopic.unit', function ($unitQuery) use ($like) {
+                            $unitQuery->whereRaw('LOWER(units.name) LIKE ?', [$like]);
+                        })
+                        ->orWhereHas('academicYear', function ($yearQuery) use ($like) {
+                            $yearQuery->whereRaw('LOWER(name) LIKE ?', [$like]);
+                        });
                 })
                 ->with(['subject', 'academicYear'])
                 ->orderBy('order')
+                ->get();
+
+            $examAidResults = $this->examAidSearchQuery($query)
+                ->latest()
                 ->get();
         } else {
             // Show trending topics when no query is given
@@ -744,7 +751,7 @@ class FrontendController extends Controller
                 ->get();
         }
 
-        return view('search', compact('results', 'query'));
+        return view('search', compact('results', 'examAidResults', 'query'));
     }
 
     public function searchSuggestions(Request $request)
@@ -753,7 +760,7 @@ class FrontendController extends Controller
 
         if (!$query) {
             // Return trending/popular topics if query is empty
-            $trending = \App\Models\Topic::active()
+            $trending = \App\Models\Topic::trending()
                 ->with('subject:id,name')
                 ->orderBy('order')
                 ->limit(8)
@@ -762,29 +769,83 @@ class FrontendController extends Controller
             return response()->json([
                 'status' => 'success',
                 'type'   => 'trending',
-                'data'   => $trending
+                'data'   => $trending,
+                'exam_aids' => [],
             ]);
         }
 
         // Wrap OR conditions in a grouped closure so active() scope is not broken
+        $normalizedQuery = mb_strtolower($query);
+        $like = "%{$normalizedQuery}%";
+
         $results = \App\Models\Topic::active()
-            ->where(function($q) use ($query) {
-                $q->where('title', 'like', "%{$query}%")
-                    ->orWhere('description', 'like', "%{$query}%")
-                    ->orWhereHas('subject', function($sq) use ($query) {
-                        $sq->where('name', 'like', "%{$query}%");
+            ->where(function ($q) use ($like) {
+                $q->whereRaw('LOWER(topics.title) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(topics.description) LIKE ?', [$like])
+                    ->orWhereHas('subject', function ($subjectQuery) use ($like) {
+                        $subjectQuery->whereRaw('LOWER(name) LIKE ?', [$like]);
+                    })
+                    ->orWhereHas('unitTopic.unit', function ($unitQuery) use ($like) {
+                        $unitQuery->whereRaw('LOWER(units.name) LIKE ?', [$like]);
+                    })
+                    ->orWhereHas('academicYear', function ($yearQuery) use ($like) {
+                        $yearQuery->whereRaw('LOWER(name) LIKE ?', [$like]);
                     });
             })
-            ->with('subject:id,name')
+            ->with(['subject:id,name', 'academicYear:id,name'])
             ->orderBy('order')
             ->limit(10)
             ->get(['id', 'title', 'slug', 'subject_id']);
 
+        $examAids = $this->examAidSearchQuery($query)
+            ->latest()
+            ->limit(8)
+            ->get()
+            ->map(function (ExamAid $examAid) {
+                return [
+                    'id' => $examAid->id,
+                    'title' => $examAid->title,
+                    'subject' => $examAid->subject
+                        ? ['name' => $examAid->subject->name]
+                        : null,
+                    'unit' => $examAid->unit?->name,
+                    'year' => $examAid->academicYear?->name,
+                    'url' => route('exam-aid', [
+                        'q' => $examAid->title,
+                        'exam_aid' => $examAid->id,
+                    ]) . '#exam-aid-card-' . $examAid->id,
+                ];
+            })
+            ->values();
+
         return response()->json([
             'status' => 'success',
             'type'   => 'search',
-            'data'   => $results
+            'data'   => $results,
+            'exam_aids' => $examAids,
         ]);
+    }
+
+    private function examAidSearchQuery(string $search)
+    {
+        return ExamAid::with(['subject', 'unit', 'academicYear', 'materials'])
+            ->where('status', true)
+            ->where(function ($query) use ($search) {
+                $query->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhereHas('subject', function ($subjectQuery) use ($search) {
+                        $subjectQuery->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('unit', function ($unitQuery) use ($search) {
+                        $unitQuery->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhere('viva_question', 'like', "%{$search}%")
+                    ->orWhere('exam_question', 'like', "%{$search}%")
+                    ->orWhereHas('materials', function ($materialQuery) use ($search) {
+                        $materialQuery->where('title', 'like', "%{$search}%")
+                            ->orWhere('content', 'like', "%{$search}%");
+                    });
+            });
     }
 
     public function bookmarks()
