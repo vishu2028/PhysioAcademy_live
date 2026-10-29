@@ -19,6 +19,8 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/app/private/*.json
+/storage/app/firebase/*.json
 /vendor
 Homestead.json
 Homestead.yaml

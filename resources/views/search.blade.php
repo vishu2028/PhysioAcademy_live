@@ -21,10 +21,10 @@
                 </form>
 
                 <div class="site-search-filters" aria-label="Search filters">
-                    <button class="site-search-filter active" type="button" data-filter="all">All</button>
-                    <button class="site-search-filter" type="button" data-filter="available">Available</button>
-                    <button class="site-search-filter" type="button" data-filter="progress">In Progress</button>
-                    <button class="site-search-filter" type="button" data-filter="developing">Developing</button>
+                    <button class="site-search-filter active" type="button" data-filter="all" aria-pressed="true">All</button>
+                    <button class="site-search-filter" type="button" data-filter="available" aria-pressed="false">Available</button>
+                    <button class="site-search-filter" type="button" data-filter="progress" aria-pressed="false">In Progress</button>
+                    <button class="site-search-filter" type="button" data-filter="developing" aria-pressed="false">Developing</button>
                 </div>
             </div>
         </section>
@@ -81,7 +81,8 @@
                         <a class="site-search-result-card"
                            href="{{ route('topics.show', ['slug' => $topic->slug]) }}"
                            data-year="{{ $topic->academicYear->name ?? '' }}"
-                           data-subject="{{ $topic->subject->name ?? '' }}">
+                           data-subject="{{ $topic->subject->name ?? '' }}"
+                           data-status="available">
                             <div>
                                 <span class="site-search-result-subject">{{ $topic->subject->name ?? 'General' }}</span>
                                 <h2>{{ $topic->title }}</h2>
@@ -95,7 +96,8 @@
                         <a class="site-search-result-card"
                            href="{{ route('exam-aid', ['q' => $examAid->title, 'exam_aid' => $examAid->id]) }}#exam-aid-card-{{ $examAid->id }}"
                            data-year="{{ $examAid->academicYear->name ?? '' }}"
-                           data-subject="{{ $examAid->subject->name ?? '' }}">
+                           data-subject="{{ $examAid->subject->name ?? '' }}"
+                           data-status="available">
                             <div>
                                 <span class="site-search-result-subject">
                                     Exam Aid{{ $examAid->subject ? ' · ' . $examAid->subject->name : '' }}
@@ -668,47 +670,62 @@
             (function () {
                 'use strict';
 
-                /* ── Year Filter ────────────────────────────────────────── */
+                /* ── Result filters ─────────────────────────────────────── */
                 const yearSelect  = document.getElementById('yearFilter');
                 const resultsGrid = document.getElementById('siteSearchResults');
                 const countText   = document.getElementById('resultCountText');
+                const statusFilters = document.querySelectorAll('.site-search-filter');
+                const initialEmpty = document.getElementById('siteSearchEmpty');
+                let selectedStatus = 'all';
 
-                function applyYearFilter() {
+                function applyFilters() {
                     if (!yearSelect || !resultsGrid) return;
-                    const selected = yearSelect.value;
-                    const cards    = resultsGrid.querySelectorAll('.site-search-result-card');
-                    let visible    = 0;
+                    const selectedYear = yearSelect.value;
+                    const cards = resultsGrid.querySelectorAll('.site-search-result-card[data-status]');
+                    let visible = 0;
+
+                    if (!cards.length) {
+                        return;
+                    }
 
                     cards.forEach(card => {
                         const cardYear = (card.dataset.year || '').trim();
-                        const show     = selected === 'all' || cardYear === selected;
+                        const cardStatus = (card.dataset.status || '').trim();
+                        const matchesYear = selectedYear === 'all' || cardYear === selectedYear;
+                        const matchesStatus = selectedStatus === 'all' || cardStatus === selectedStatus;
+                        const show = matchesYear && matchesStatus;
                         card.style.display = show ? '' : 'none';
                         if (show) visible++;
                     });
 
-                    // Update count text
                     if (countText) {
                         countText.textContent = visible;
                     }
 
-                    // Toggle empty state
                     let emptyEl = document.getElementById('dynamicEmptyState');
                     if (visible === 0) {
                         if (!emptyEl) {
                             emptyEl = document.createElement('div');
                             emptyEl.id = 'dynamicEmptyState';
                             emptyEl.className = 'site-search-empty';
-                            emptyEl.innerHTML = '<h2>No topics for this year</h2><p>Try selecting a different year or clear the filter.</p>';
                             resultsGrid.after(emptyEl);
                         }
+                        const filterLabel = selectedStatus === 'all'
+                            ? 'topics for this year'
+                            : `${selectedStatus === 'available' ? 'Available' : selectedStatus === 'progress' ? 'In Progress' : 'Developing'} topics`;
+                        emptyEl.innerHTML = `<h2>No matching topics</h2><p>There are no ${filterLabel} in the current search results.</p>`;
                         emptyEl.style.display = 'block';
                     } else {
                         if (emptyEl) emptyEl.style.display = 'none';
                     }
+
+                    if (initialEmpty) {
+                        initialEmpty.style.display = 'none';
+                    }
                 }
 
                 if (yearSelect) {
-                    yearSelect.addEventListener('change', applyYearFilter);
+                    yearSelect.addEventListener('change', applyFilters);
                 }
 
                 /* ── Search Input Live Redirect ─────────────────────────── */
@@ -738,14 +755,20 @@
                     });
                 }
 
-                /* ── Filter Tabs (visual only) ──────────────────────────── */
-                document.querySelectorAll('.site-search-filter').forEach(btn => {
+                statusFilters.forEach(btn => {
                     btn.addEventListener('click', () => {
-                        document.querySelectorAll('.site-search-filter').forEach(b => b.classList.remove('active'));
+                        statusFilters.forEach(b => {
+                            b.classList.remove('active');
+                            b.setAttribute('aria-pressed', 'false');
+                        });
                         btn.classList.add('active');
+                        btn.setAttribute('aria-pressed', 'true');
+                        selectedStatus = btn.dataset.filter || 'all';
+                        applyFilters();
                     });
                 });
 
+                applyFilters();
             })();
         </script>
     @endpush

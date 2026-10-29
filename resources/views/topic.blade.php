@@ -28,7 +28,9 @@
                         <h1 class="topic-title">{{ $topic->title }}</h1>
                     </div>
                     <div class="topic-actions">
-                        <button class="btn-share" title="Share Topic">
+                        <button class="btn-share" type="button" title="Share Topic"
+                                aria-label="Share this topic" aria-haspopup="dialog"
+                                aria-controls="topicShareDialog" aria-expanded="false">
                             <i class="bi bi-share"></i>
                         </button>
                         <button class="btn-bookmark {{ $topic->isBookmarked() ? 'active' : '' }}"
@@ -64,6 +66,48 @@
                 </div>
             </div>
         </header>
+
+        <div class="topic-share-dialog" id="topicShareDialog" role="dialog"
+             aria-modal="true" aria-labelledby="topicShareTitle" hidden>
+            <div class="topic-share-backdrop" data-share-close></div>
+            <div class="topic-share-panel" role="document">
+                <div class="topic-share-header">
+                    <div>
+                        <span class="topic-share-eyebrow">Share topic</span>
+                        <h2 id="topicShareTitle">Share this topic</h2>
+                    </div>
+                    <button type="button" class="topic-share-close" data-share-close
+                            aria-label="Close share dialog">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <p class="topic-share-description">Share this topic with a classmate or save the link for later.</p>
+                <div class="topic-share-options">
+                    <button type="button" class="topic-share-option" data-share-action="native">
+                        <i class="bi bi-share"></i><span>Native Share</span>
+                    </button>
+                    <button type="button" class="topic-share-option" data-share-action="copy">
+                        <i class="bi bi-link-45deg"></i><span>Copy Link</span>
+                    </button>
+                    <a class="topic-share-option" data-share-link="whatsapp" target="_blank" rel="noopener noreferrer">
+                        <i class="bi bi-whatsapp"></i><span>WhatsApp</span>
+                    </a>
+                    <a class="topic-share-option" data-share-link="telegram" target="_blank" rel="noopener noreferrer">
+                        <i class="bi bi-telegram"></i><span>Telegram</span>
+                    </a>
+                    <a class="topic-share-option" data-share-link="facebook" target="_blank" rel="noopener noreferrer">
+                        <i class="bi bi-facebook"></i><span>Facebook</span>
+                    </a>
+                    <a class="topic-share-option" data-share-link="x" target="_blank" rel="noopener noreferrer">
+                        <strong class="topic-share-x">X</strong><span>Post on X</span>
+                    </a>
+                    <a class="topic-share-option" data-share-link="email">
+                        <i class="bi bi-envelope"></i><span>Email</span>
+                    </a>
+                </div>
+                <p class="topic-share-feedback" id="topicShareFeedback" role="status" aria-live="polite"></p>
+            </div>
+        </div>
 
         <section class="topic-content-section">
             <div class="topic-container">
@@ -337,7 +381,12 @@
                 background: var(--topic-bg);
                 font-family: var(--font-body);
                 padding-top: 72px; /* Navbar height */
+                overflow-x: hidden;
+                box-sizing: border-box;
             }
+            .topic-page *,
+            .topic-page *::before,
+            .topic-page *::after { box-sizing: border-box; }
 
             /* ─── HERO SECTION ────────────────────────────────── */
             .topic-hero {
@@ -403,6 +452,55 @@
                 background: var(--topic-blue); color: white; transform: translateY(-3px);
                 box-shadow: 0 10px 20px rgba(0, 74, 173, 0.2);
             }
+            .topic-share-dialog[hidden] { display: none; }
+            .topic-share-dialog {
+                position: fixed; inset: 0; z-index: 1100;
+                display: grid; place-items: center; padding: 20px;
+            }
+            .topic-share-backdrop {
+                position: absolute; inset: 0;
+                background: rgba(15, 23, 42, 0.48);
+                backdrop-filter: blur(4px);
+            }
+            .topic-share-panel {
+                position: relative; width: min(100%, 520px); padding: 28px;
+                border: 1px solid rgba(148, 163, 184, 0.24);
+                border-radius: 24px; background: #fff;
+                box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+            }
+            .topic-share-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+            .topic-share-eyebrow {
+                display: block; margin-bottom: 6px; color: var(--topic-blue);
+                font-size: .75rem; font-weight: 800; letter-spacing: .08em;
+                text-transform: uppercase;
+            }
+            .topic-share-header h2 { margin: 0; color: #0f172a; font-size: 1.45rem; }
+            .topic-share-close {
+                width: 36px; height: 36px; border: 0; border-radius: 10px;
+                background: #f1f5f9; color: #475569; cursor: pointer;
+            }
+            .topic-share-description { margin: 14px 0 20px; color: #64748b; }
+            .topic-share-options {
+                display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;
+            }
+            .topic-share-option {
+                display: flex; align-items: center; gap: 10px; min-height: 48px;
+                padding: 11px 13px; border: 1px solid #e2e8f0; border-radius: 12px;
+                background: #fff; color: #1e293b; font: inherit; font-weight: 700;
+                text-decoration: none; cursor: pointer; transition: .2s ease;
+            }
+            .topic-share-option:hover, .topic-share-option:focus-visible {
+                border-color: var(--topic-blue); color: var(--topic-blue);
+                background: #eff6ff; outline: none;
+            }
+            .topic-share-option i { width: 20px; color: var(--topic-blue); font-size: 1.1rem; text-align: center; }
+            .topic-share-x { width: 20px; color: #0f172a; font-size: 1.1rem; text-align: center; }
+            .topic-share-feedback { min-height: 21px; margin: 16px 0 0; color: #047857; font-size: .9rem; font-weight: 700; }
+            body.topic-share-open { overflow: hidden; }
+            @media (max-width: 480px) {
+                .topic-share-panel { padding: 22px 18px; border-radius: 20px; }
+                .topic-share-options { grid-template-columns: 1fr; }
+            }
             .btn-bookmark.active i::before { content: "\f199"; } /* bi-bookmark-fill */
             .material-bookmark-btn { background: none; border: none; padding: 5px; cursor: pointer; transition: all 0.2s; }
             .material-bookmark-btn:hover { transform: scale(1.2); }
@@ -429,7 +527,8 @@
             /* ─── MAIN CONTENT ────────────────────────────────── */
             .topic-content-section { padding-bottom: 100px; margin-top: -40px; position: relative; z-index: 2; }
             .topic-container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
-            .topic-main-layout { display: grid; grid-template-columns: 1fr 340px; gap: 40px; align-items: start; }
+            .topic-main-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 40px; align-items: start; }
+            .topic-main-layout > * { min-width: 0; }
 
             .content-glass-card {
                 background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.8));
@@ -451,10 +550,62 @@
 
             .topic-long-desc {
                 font-size: 1.15rem; line-height: 1.8; color: var(--text-secondary);
+                min-width: 0;
+                overflow-wrap: break-word;
+                word-break: normal;
+            }
+            .topic-long-desc > * { max-width: 100%; }
+            .topic-long-desc p,
+            .topic-long-desc li,
+            .topic-long-desc blockquote,
+            .topic-long-desc h1,
+            .topic-long-desc h2,
+            .topic-long-desc h3,
+            .topic-long-desc h4,
+            .topic-long-desc h5,
+            .topic-long-desc h6 {
+                overflow-wrap: break-word;
+                word-break: normal;
             }
             .topic-long-desc img {
                 max-width: 100%; height: auto; border-radius: 16px; margin: 20px 0;
                 box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            }
+            .topic-long-desc video,
+            .topic-long-desc iframe,
+            .topic-long-desc audio {
+                max-width: 100%;
+            }
+            .topic-long-desc a {
+                overflow-wrap: break-word;
+                word-break: normal;
+            }
+            .topic-long-desc pre {
+                max-width: 100%;
+                overflow-x: auto;
+                white-space: pre-wrap;
+                overflow-wrap: break-word;
+            }
+            .topic-table-scroll {
+                width: 100%;
+                max-width: 100%;
+                margin: 20px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior-x: contain;
+            }
+            .topic-table-scroll table {
+                width: 100%;
+                min-width: 0;
+                table-layout: auto;
+                border-collapse: collapse;
+            }
+            .topic-table-scroll th,
+            .topic-table-scroll td {
+                min-width: 0;
+                overflow-wrap: normal;
+                word-break: normal;
+                white-space: normal;
             }
 
             /* Materials */
@@ -739,7 +890,8 @@
                 .topic-page .topic-long-desc {
                     font-size: 1rem;
                     line-height: 1.75;
-                    overflow-wrap: anywhere;
+                    overflow-wrap: break-word;
+                    word-break: normal;
                 }
 
                 .topic-page .topic-long-desc img,
@@ -754,12 +906,18 @@
                     min-height: 220px;
                 }
 
-                .topic-page .topic-long-desc table {
-                    display: block;
-                    width: 100% !important;
-                    max-width: 100%;
-                    overflow-x: auto;
-                    -webkit-overflow-scrolling: touch;
+                .topic-page .topic-table-scroll {
+                    margin: 16px 0;
+                }
+
+                .topic-page .topic-table-scroll table {
+                    min-width: 560px;
+                }
+
+                .topic-page .topic-table-scroll th,
+                .topic-page .topic-table-scroll td {
+                    overflow-wrap: normal;
+                    word-break: normal;
                 }
 
                 .topic-page .topic-long-desc pre,
@@ -767,7 +925,7 @@
                     max-width: 100%;
                     overflow-x: auto;
                     white-space: pre-wrap;
-                    overflow-wrap: anywhere;
+                    overflow-wrap: break-word;
                 }
 
                 .topic-page .material-card {
@@ -895,6 +1053,17 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.topic-long-desc table').forEach(function (table) {
+                    if (table.parentElement?.classList.contains('topic-table-scroll')) {
+                        return;
+                    }
+
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'topic-table-scroll';
+                    table.parentNode.insertBefore(wrapper, table);
+                    wrapper.appendChild(table);
+                });
+
                 // Simple reveal observer
                 const observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
@@ -905,6 +1074,124 @@
                 }, { threshold: 0 });
 
                 document.querySelectorAll('.reveal-up, .reveal-right').forEach(el => observer.observe(el));
+
+                const shareButton = document.querySelector('.btn-share');
+                const shareDialog = document.getElementById('topicShareDialog');
+                const shareFeedback = document.getElementById('topicShareFeedback');
+                const nativeShareOption = document.querySelector('[data-share-action="native"]');
+                const topicTitle = document.querySelector('.topic-title')?.textContent.trim()
+                    || document.title;
+                const topicUrl = window.location.href.split('#')[0];
+                let lastFocusedElement;
+
+                if (!shareButton || !shareDialog) {
+                    return;
+                }
+
+                const shareText = `${topicTitle} - ${topicUrl}`;
+                const encodedUrl = encodeURIComponent(topicUrl);
+                const encodedText = encodeURIComponent(shareText);
+                const encodedTitle = encodeURIComponent(topicTitle);
+
+                const shareLinks = {
+                    whatsapp: `https://wa.me/?text=${encodedText}`,
+                    telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`,
+                    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+                    x: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+                    email: `mailto:?subject=${encodedTitle}&body=${encodedText}`
+                };
+
+                document.querySelectorAll('[data-share-link]').forEach((link) => {
+                    link.href = shareLinks[link.dataset.shareLink];
+                    if (link.dataset.shareLink === 'email') {
+                        link.removeAttribute('target');
+                        link.removeAttribute('rel');
+                    }
+                });
+
+                if (! navigator.share && nativeShareOption) {
+                    nativeShareOption.hidden = true;
+                }
+
+                const showFeedback = (message) => {
+                    shareFeedback.textContent = message;
+                    window.setTimeout(() => {
+                        shareFeedback.textContent = '';
+                    }, 3000);
+                };
+
+                const copyToClipboard = async () => {
+                    try {
+                        if (navigator.clipboard?.writeText) {
+                            await navigator.clipboard.writeText(topicUrl);
+                        } else {
+                            throw new Error('Clipboard API unavailable');
+                        }
+                    } catch {
+                        const fallback = document.createElement('textarea');
+                        fallback.value = topicUrl;
+                        fallback.setAttribute('readonly', '');
+                        fallback.style.position = 'fixed';
+                        fallback.style.opacity = '0';
+                        document.body.appendChild(fallback);
+                        fallback.select();
+                        const copied = document.execCommand('copy');
+                        fallback.remove();
+
+                        if (! copied) {
+                            throw new Error('Copy command failed');
+                        }
+                    }
+
+                    showFeedback('Link copied!');
+                };
+
+                const openShareDialog = () => {
+                    lastFocusedElement = document.activeElement;
+                    shareDialog.hidden = false;
+                    shareButton.setAttribute('aria-expanded', 'true');
+                    document.body.classList.add('topic-share-open');
+                    shareDialog.querySelector('[data-share-close]')?.focus();
+                };
+
+                const closeShareDialog = () => {
+                    shareDialog.hidden = true;
+                    shareButton.setAttribute('aria-expanded', 'false');
+                    document.body.classList.remove('topic-share-open');
+                    lastFocusedElement?.focus();
+                };
+
+                shareButton.addEventListener('click', openShareDialog);
+                shareDialog.querySelectorAll('[data-share-close]').forEach((element) => {
+                    element.addEventListener('click', closeShareDialog);
+                });
+                shareDialog.addEventListener('click', (event) => {
+                    if (event.target === shareDialog) {
+                        closeShareDialog();
+                    }
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && ! shareDialog.hidden) {
+                        closeShareDialog();
+                    }
+                });
+
+                shareDialog.querySelector('[data-share-action="copy"]')?.addEventListener(
+                    'click',
+                    () => copyToClipboard().catch(() => showFeedback('Unable to copy link.'))
+                );
+
+                nativeShareOption?.addEventListener('click', async () => {
+                    try {
+                        await navigator.share({ title: topicTitle, text: topicTitle, url: topicUrl });
+                        closeShareDialog();
+                    } catch (error) {
+                        if (error.name !== 'AbortError') {
+                            showFeedback('Native sharing is unavailable.');
+                        }
+                    }
+                });
             });
 
             function toggleBookmark(id, type, btn) {

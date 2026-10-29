@@ -408,6 +408,15 @@
                     @endif
                 </a>
                 @php
+                    $pendingTopicRequests = \App\Models\TopicRequest::where('status', \App\Models\TopicRequest::STATUS_PENDING)->count();
+                @endphp
+                <a href="{{ route('admin.topic-requests.index') }}" class="nav-link-admin @if(request()->routeIs('admin.topic-requests.*')) active @endif">
+                    <i class="bi bi-lightbulb"></i> Topic Requests
+                    @if($pendingTopicRequests > 0)
+                        <span class="badge bg-danger ms-auto rounded-pill">{{ $pendingTopicRequests }}</span>
+                    @endif
+                </a>
+                @php
                     $pendingDoubtSessions =
                         \App\Models\DoubtSessionBooking::where(
                             'booking_status',
@@ -431,6 +440,9 @@
             {{ $pendingDoubtSessions }}
         </span>
                     @endif
+                </a>
+                <a href="{{ route('admin.webinars.index') }}" class="nav-link-admin @if(request()->routeIs('admin.webinars.*','admin.webinar-registrations.*')) active @endif">
+                    <i class="bi bi-broadcast-pin"></i> Webinars
                 </a>
                 <a href="{{ route('admin.users.index') }}" class="nav-link-admin @if(request()->routeIs('admin.users.*')) active @endif">
                     <i class="bi bi-people"></i> User Management
@@ -577,5 +589,25 @@
         });
     </script>
     @stack('scripts')
+@if (filled(config('services.firebase.web.apiKey')))
+    <script>
+        window.physioFirebaseLogoutConfig = @json(config('services.firebase.web'));
+    </script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
+        import { getAuth, signOut } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
+
+        document.querySelectorAll('form[action$="/logout"]').forEach((form) => {
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                try {
+                    await signOut(getAuth(initializeApp(window.physioFirebaseLogoutConfig)));
+                } finally {
+                    form.submit();
+                }
+            });
+        });
+    </script>
+@endif
 </body>
 </html>

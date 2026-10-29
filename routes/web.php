@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DoubtSessionBookingController as AdminDoubtSessio
 use App\Http\Controllers\Admin\FeatureController;
 use App\Http\Controllers\DoubtController;
 use App\Http\Controllers\DoubtSessionBookingController;
+use App\Http\Controllers\WebinarController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -90,6 +91,9 @@ Route::get(
     [FrontendController::class, 'faq']
 )->name('faq');
 
+Route::get('/webinars', [WebinarController::class, 'index'])->name('webinars.index');
+Route::get('/webinars/{webinar:slug}', [WebinarController::class, 'show'])->name('webinars.show');
+
 /*
 |--------------------------------------------------------------------------
 | Authenticated Student Routes
@@ -124,6 +128,11 @@ Route::middleware('auth')->group(function () {
         [NotificationController::class, 'open']
     )->name('notifications.open');
 
+    Route::get(
+        '/notifications/poll',
+        [NotificationController::class, 'poll']
+    )->name('notifications.poll');
+
     /*
      * Student Doubts
      */
@@ -131,6 +140,16 @@ Route::middleware('auth')->group(function () {
         '/doubts',
         [DoubtController::class, 'store']
     )->name('doubts.store');
+
+    Route::post(
+        '/topic-requests',
+        [\App\Http\Controllers\TopicRequestController::class, 'store']
+    )->name('topic-requests.store');
+
+    Route::get(
+        '/my-topic-requests',
+        [\App\Http\Controllers\TopicRequestController::class, 'mine']
+    )->name('topic-requests.mine');
 
     Route::get(
         '/my-doubts',
@@ -170,6 +189,11 @@ Route::middleware('auth')->group(function () {
         '/doubt-sessions/{booking}/success',
         [DoubtSessionBookingController::class, 'success']
     )->name('doubt-sessions.success');
+
+    Route::get('/my-webinars', [WebinarController::class, 'myWebinars'])->name('webinars.my');
+    Route::post('/webinars/{webinar:slug}/register', [WebinarController::class, 'register'])->name('webinars.register');
+    Route::post('/webinar-registrations/{registration}/payment/verify', [WebinarController::class, 'verify'])->name('webinars.payment.verify');
+    Route::get('/webinar-registrations/{registration}/join', [WebinarController::class, 'join'])->name('webinars.join');
 });
 
 /*
@@ -420,6 +444,16 @@ Route::middleware([
             'destroy',
         ]);
 
+        Route::get(
+            'topic-requests',
+            [\App\Http\Controllers\Admin\TopicRequestController::class, 'index']
+        )->name('topic-requests.index');
+
+        Route::patch(
+            'topic-requests/{topicRequest}',
+            [\App\Http\Controllers\Admin\TopicRequestController::class, 'update']
+        )->name('topic-requests.update');
+
         /*
          * One-on-One Doubt Session Bookings
          */
@@ -431,6 +465,9 @@ Route::middleware([
             'show',
             'update',
         ]);
+
+        Route::resource('webinars', \App\Http\Controllers\Admin\WebinarController::class)->except(['destroy']);
+        Route::patch('webinar-registrations/{registration}', [\App\Http\Controllers\Admin\WebinarController::class, 'updateRegistration'])->name('webinar-registrations.update');
 
         /*
          * Media and Layout

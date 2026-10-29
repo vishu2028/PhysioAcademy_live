@@ -73,7 +73,7 @@
                         <div class="stat-divider"></div>
 
                         <div class="stat-item">
-                            <span class="stat-num" data-count="{{ \App\Models\Faq::count() }}">0</span>
+                            <span class="stat-num" data-count="{{ \App\Models\FAQ::count() }}">0</span>
                             <span class="stat-suffix">+</span>
                             <span class="stat-label">Questions</span>
                         </div>
@@ -692,7 +692,7 @@
             {{ $doubtSessionDuration ?? '0' }} Minutes
         </span>
 
-                                {{-- @if($doubtSessionIsFree)
+                                @if($doubtSessionIsFree)
                                     <span class="dsp-price free">
                                         Free Session
                                     </span>
@@ -700,7 +700,7 @@
                                     <span class="dsp-price">
                                         ₹{{ number_format($doubtSessionPrice, 2) }}
                                     </span>
-                                @endif --}}
+                                @endif
                             </div>
 
                             @if(session('session_error'))
@@ -709,7 +709,7 @@
                                 </div>
                             @endif
 
-                            {{-- @if($doubtSessionEnabled)
+                            @if($doubtSessionEnabled)
                                 <a
                                     href="{{ route('doubt-sessions.create') }}"
                                     class="dsp-book-button"
@@ -726,12 +726,33 @@
                                     <span>Sessions Currently Unavailable</span>
                                     <i class="bi bi-lock"></i>
                                 </button>
-                            @endif --}}
+                            @endif
 
                             <small class="dsp-note">
                                 The admin will confirm your session date and time afterward.
                             </small>
                         </div>
+                        @if(isset($webinars) && $webinars->isNotEmpty())
+                            <div class="doubt-session-promo mt-4">
+                                <div class="dsp-header">
+                                    <div class="dsp-icon"><i class="bi bi-broadcast-pin"></i></div>
+                                    <div>
+                                        <span class="dsp-eyebrow">Live Learning</span>
+                                        <h3>Attend a Webinar</h3>
+                                    </div>
+                                </div>
+                                @php($webinar = $webinars->first())
+                                <p class="dsp-description">{{ $webinar->title }}</p>
+                                <div class="dsp-meta">
+                                    <span><i class="bi bi-calendar-event"></i>{{ $webinar->starts_at->timezone($webinar->timezone)->format('d M Y, h:i A') }}</span>
+                                    <span class="dsp-price {{ $webinar->isPaid() ? '' : 'free' }}">{{ $webinar->isPaid() ? '₹'.number_format($webinar->price, 2) : 'Free Webinar' }}</span>
+                                </div>
+                                <a href="{{ route('webinars.show', $webinar) }}" class="dsp-book-button">
+                                    <span>{{ auth()->check() ? 'Register for Webinar' : 'View Webinar' }}</span>
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="ask-doubt-form glass-card">
@@ -831,14 +852,14 @@
                                     Ask Doubt
                                 </button>
 
-                                <button type="button" class="btn-form-secondary" onclick="document.getElementById('authOverlay').classList.add('active')">
+                                <a href="#request-topic" class="btn-form-secondary text-decoration-none">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <circle cx="12" cy="12" r="10"/>
                                         <line x1="12" y1="8" x2="12" y2="12"/>
                                         <line x1="12" y1="16" x2="12.01" y2="16"/>
                                     </svg>
                                     Request Topic
-                                </button>
+                                </a>
                             </div>
                             <br>
                             @auth
@@ -856,6 +877,186 @@
                             <h4>Doubt Submitted!</h4>
                             <p>We'll get back to you with a structured academic response.</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        @if(isset($webinars) && $webinars->isNotEmpty())
+        <section class="section" id="webinars">
+            <div class="section-container">
+                <span class="section-tag">Live Learning</span>
+                <h2 class="section-title">Upcoming <span class="text-gradient">Webinars</span></h2>
+                <div class="row g-4 mt-2">
+                    @foreach($webinars as $webinar)
+                        <div class="col-md-4"><div class="glass-card p-4 h-100">
+                            <h3>{{ $webinar->title }}</h3>
+                            <p>{{ $webinar->starts_at->timezone($webinar->timezone)->format('d M Y, h:i A') }}</p>
+                            <a class="btn-form-primary text-decoration-none" href="{{ route('webinars.show',$webinar) }}">View webinar</a>
+                        </div></div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        @endif
+
+        <section class="section request-topic-section" id="request-topic">
+            <div class="section-container">
+                <div class="ask-doubt-grid">
+                    <div class="ask-doubt-info">
+                        <span class="section-tag">Help Shape PhysioSource</span>
+                        <h2 class="section-title">Request a <span class="text-gradient">Topic</span></h2>
+                        <p class="section-subtitle">
+                            Tell us what you want to learn next. Our academic team will review your request and keep you updated.
+                        </p>
+                        <div class="ask-doubt-features">
+                            <div class="adf-item">
+                                <div class="adf-dot"></div>
+                                <span>Suggest topics missing from your study plan</span>
+                            </div>
+                            <div class="adf-item">
+                                <div class="adf-dot" style="--dot-color:#004AAD"></div>
+                                <span>Track progress from your account</span>
+                            </div>
+                            <div class="adf-item">
+                                <div class="adf-dot" style="--dot-color:#004AAD"></div>
+                                <span>Get notified when the request is updated</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ask-doubt-form glass-card">
+                        <div class="form-glow"></div>
+                        <h3 class="form-title">Request a Topic</h3>
+
+                        @if(session('topic_request_success'))
+                            <div class="alert alert-success rounded-3">
+                                {{ session('topic_request_success') }}
+                            </div>
+                        @endif
+
+                        @if($errors->topicRequest->any())
+                            <div class="alert alert-danger rounded-3">
+                                Please fix the highlighted topic request fields and try again.
+                            </div>
+                        @endif
+
+                        @auth
+                            <form action="{{ route('topic-requests.store') }}" method="POST" id="topicRequestForm">
+                                @csrf
+                                <input type="hidden" name="submission_token" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
+
+                                <div class="form-group">
+                                    <label class="float-label" for="topicRequestName">Topic Name</label>
+                                    <input
+                                        type="text"
+                                        class="form-input"
+                                        id="topicRequestName"
+                                        name="topic_name"
+                                        value="{{ old('topic_name') }}"
+                                        maxlength="255"
+                                        required
+                                        placeholder="e.g. Gait Analysis"
+                                    >
+                                    @error('topic_name', 'topicRequest')
+                                    <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="float-label" for="topicRequestSubject">Subject</label>
+                                    <select class="form-select" id="topicRequestSubject" name="subject_id" required>
+                                        <option value="">Select Subject</option>
+                                        @foreach($requestSubjects as $subject)
+                                            <option value="{{ $subject->id }}" @selected(old('subject_id') == $subject->id)>
+                                                {{ $subject->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('subject_id', 'topicRequest')
+                                    <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="float-label" for="topicRequestYear">Academic Year</label>
+                                    <select class="form-select" id="topicRequestYear" name="academic_year_id">
+                                        <option value="">Select Year (optional)</option>
+                                        @foreach($years as $year)
+                                            <option value="{{ $year->id }}" @selected(old('academic_year_id') == $year->id)>
+                                                {{ $year->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('academic_year_id', 'topicRequest')
+                                    <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="float-label" for="topicRequestSemester">Semester</label>
+                                    <select class="form-select" id="topicRequestSemester" name="semester_id">
+                                        <option value="">Select Semester (optional)</option>
+                                        @foreach($years as $year)
+                                            @foreach($year->semesters as $semester)
+                                                <option
+                                                    value="{{ $semester->id }}"
+                                                    data-academic-year="{{ $year->id }}"
+                                                    @selected(old('semester_id') == $semester->id)
+                                                >
+                                                    {{ $year->name }} — {{ $semester->name }}
+                                                </option>
+                                            @endforeach
+                                        @endforeach
+                                    </select>
+                                    @error('semester_id', 'topicRequest')
+                                    <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="float-label" for="topicRequestDescription">Description / What I Want to Learn</label>
+                                    <textarea
+                                        class="form-textarea"
+                                        id="topicRequestDescription"
+                                        name="description"
+                                        maxlength="5000"
+                                        required
+                                        placeholder="Tell us what content, explanation, or clinical connection you need..."
+                                    >{{ old('description') }}</textarea>
+                                    @error('description', 'topicRequest')
+                                    <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="float-label" for="topicRequestPriority">Priority</label>
+                                    <select class="form-select" id="topicRequestPriority" name="priority">
+                                        <option value="normal" @selected(old('priority', 'normal') === 'normal')>Normal</option>
+                                        <option value="high" @selected(old('priority') === 'high')>High</option>
+                                    </select>
+                                    @error('priority', 'topicRequest')
+                                    <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-form-primary" id="submitTopicRequest">
+                                        <i class="bi bi-send me-2" aria-hidden="true"></i>
+                                        Submit Topic Request
+                                    </button>
+                                    <a href="{{ route('topic-requests.mine') }}" class="btn-form-secondary text-decoration-none">
+                                        <i class="bi bi-list-check me-2" aria-hidden="true"></i>
+                                        My Requests
+                                    </a>
+                                </div>
+                            </form>
+                        @else
+                            <p class="text-secondary">Please log in to submit and track a topic request.</p>
+                            <a href="{{ route('login', ['redirect' => url('/').'#request-topic']) }}" class="btn-form-primary text-decoration-none">
+                                Log in to Request a Topic
+                            </a>
+                        @endauth
                     </div>
                 </div>
             </div>
@@ -1058,7 +1259,11 @@
 
                             @forelse($activities as $activity)
 
-                                <div class="feed-item">
+                                @if($activity->destination_url)
+                                    <a href="{{ $activity->destination_url }}" class="feed-item">
+                                @else
+                                    <div class="feed-item">
+                                @endif
 
                                     <div class="feed-item-icon new-upload">
 
@@ -1080,7 +1285,11 @@
 
                                     </div>
 
-                                </div>
+                                @if($activity->destination_url)
+                                    </a>
+                                @else
+                                    </div>
+                                @endif
 
                             @empty
 
@@ -1136,9 +1345,13 @@
 
                                 @forelse($announcements as $announcement)
 
-                                    <div class="ann-item">
+                                        @if($announcement->destination_url)
+                                            <a href="{{ $announcement->destination_url }}" class="ann-item">
+                                        @else
+                                            <div class="ann-item">
+                                        @endif
 
-                                        <div class="ann-dot"
+                                            <div class="ann-dot"
                                             style="--dot:#004AAD">
                                         </div>
 
@@ -1158,7 +1371,11 @@
 
                                         </div>
 
-                                    </div>
+                                    @if($announcement->destination_url)
+                                        </a>
+                                    @else
+                                        </div>
+                                    @endif
 
                                 @empty
 
@@ -1201,11 +1418,19 @@
 
                                 @forelse($trendings as $trending)
 
-                                    <span>
-                                        {{ $trending->title }}
-                                    </span>
+                                        @if($trending->destination_url)
+                                            <a href="{{ $trending->destination_url }}">
+                                        @else
+                                            <span>
+                                        @endif
+                                            {{ $trending->title }}
+                                        @if($trending->destination_url)
+                                            </a>
+                                        @else
+                                            </span>
+                                        @endif
 
-                                @empty
+                                    @empty
 
                                     <span>
                                         No trending topics available.
@@ -1932,8 +2157,8 @@
                 gap: 9px;
                 padding: 0 18px;
                 border: 0;
-                border-radius: 12px;
-                background: #004AAD;
+                border-radius: 10px;
+                background: linear-gradient(135deg, #2563eb, #38bdf8);
                 color: #FFFFFF;
                 font-size: 0.88rem;
                 font-weight: 800;
@@ -1941,20 +2166,65 @@
                 cursor: pointer;
                 transition:
                     transform 0.2s ease,
-                    background 0.2s ease;
+                    box-shadow 0.2s ease,
+                    filter 0.2s ease;
             }
 
-            .home-page .dsp-book-button:hover {
-                background: #003B8A;
+            .home-page .dsp-book-button:hover,
+            .home-page .btn-form-secondary:hover {
                 color: #FFFFFF;
                 transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
             }
 
-            .home-page .dsp-book-button.disabled {
+            .home-page .dsp-book-button:focus-visible,
+            .home-page .btn-form-primary:focus-visible,
+            .home-page .btn-form-secondary:focus-visible {
+                outline: 3px solid rgba(56, 189, 248, 0.45);
+                outline-offset: 3px;
+            }
+
+            .home-page .dsp-book-button:active,
+            .home-page .btn-form-primary:active,
+            .home-page .btn-form-secondary:active {
+                transform: translateY(0);
+                box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+            }
+
+            .home-page .dsp-book-button.disabled,
+            .home-page .dsp-book-button:disabled,
+            .home-page .btn-form-secondary:disabled {
                 background: #94A3B8;
+                border-color: transparent;
+                color: #FFFFFF;
                 cursor: not-allowed;
                 transform: none;
                 opacity: 0.75;
+                box-shadow: none;
+            }
+
+            .home-page .btn-form-secondary {
+                background: linear-gradient(135deg, #2563eb, #38bdf8);
+                border-color: transparent;
+                color: #FFFFFF;
+                font-weight: 600;
+                transition: var(--transition);
+            }
+
+            .home-page .btn-form-secondary:hover {
+                background: linear-gradient(135deg, #2563eb, #38bdf8);
+            }
+
+            .home-page .btn-form-secondary:disabled:hover,
+            .home-page .dsp-book-button.disabled:hover,
+            .home-page .dsp-book-button:disabled:hover {
+                background: #94A3B8;
+                transform: none;
+                box-shadow: none;
+            }
+
+            .home-page .btn-form-primary:hover {
+                color: #FFFFFF;
             }
 
             .home-page .dsp-note {
@@ -2013,6 +2283,39 @@
                         selectedPanel.classList.remove('d-none');
                     }
                 });
+
+                const topicRequestForm = document.getElementById('topicRequestForm');
+                const topicRequestYear = document.getElementById('topicRequestYear');
+                const topicRequestSemester = document.getElementById('topicRequestSemester');
+
+                if (topicRequestForm && topicRequestYear && topicRequestSemester) {
+                    const updateSemesterOptions = function () {
+                        const yearId = topicRequestYear.value;
+
+                        topicRequestSemester.querySelectorAll('option[data-academic-year]').forEach(function (option) {
+                            option.hidden = Boolean(yearId && option.dataset.academicYear !== yearId);
+                        });
+
+                        const selected = topicRequestSemester.selectedOptions[0];
+                        if (selected && selected.hidden) {
+                            topicRequestSemester.value = '';
+                        }
+                    };
+
+                    topicRequestYear.addEventListener('change', updateSemesterOptions);
+                    updateSemesterOptions();
+                }
+
+                if (topicRequestForm) {
+                    topicRequestForm.addEventListener('submit', function () {
+                        const submitButton = document.getElementById('submitTopicRequest');
+
+                        if (submitButton) {
+                            submitButton.disabled = true;
+                            submitButton.innerHTML = '<i class="bi bi-hourglass-split me-2" aria-hidden="true"></i>Submitting...';
+                        }
+                    });
+                }
             });
         });
         function toggleBookmark(id, type, btn) {

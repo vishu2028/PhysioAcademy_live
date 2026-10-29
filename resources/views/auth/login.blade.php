@@ -84,10 +84,16 @@
 
             <div class="pauth-divider"><span>or</span></div>
 
-            <!-- <button class="pauth-google" type="button" data-google-action>
-              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.78-.07-1.53-.2-2.23H12v4.22h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.52Z"/><path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.43l-3.24-2.51c-.9.6-2.04.95-3.38.95-2.6 0-4.8-1.76-5.59-4.12H3.06v2.59A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.41 13.89A6 6 0 0 1 6.1 12c0-.65.11-1.29.31-1.89V7.52H3.06A10 10 0 0 0 2 12c0 1.61.39 3.14 1.06 4.48l3.35-2.59Z"/><path fill="#EA4335" d="M12 5.99c1.47 0 2.78.5 3.82 1.5l2.87-2.87C16.95 3 14.69 2 12 2a10 10 0 0 0-8.94 5.52l3.35 2.59C7.2 7.75 9.4 5.99 12 5.99Z"/></svg>
-              Continue with Google
-            </button> -->
+            <button class="pauth-google" type="button" data-google-action>
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M21.6 12.23c0-.78-.07-1.53-.2-2.23H12v4.22h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.52Z"/>
+                <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.43l-3.24-2.51c-.9.6-2.04.95-3.38.95-2.6 0-4.8-1.76-5.59-4.12H3.06v2.59A10 10 0 0 0 12 22Z"/>
+                <path fill="#FBBC05" d="M6.41 13.89A6 6 0 0 1 6.1 12c0-.65.11-1.29.31-1.89V7.52H3.06A10 10 0 0 0 2 12c0 1.61.39 3.14 1.06 4.48l3.35-2.59Z"/>
+                <path fill="#EA4335" d="M12 5.99c1.47 0 2.78.5 3.82 1.5l2.87-2.87C16.95 3 14.69 2 12 2a10 10 0 0 0-8.94 5.52l3.35 2.59C7.2 7.75 9.4 5.99 12 5.99Z"/>
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+            <p class="pauth-error" data-google-error role="alert"></p>
           </form>
 
           <p class="pauth-switch">New to Physio Academy? <a class="pauth-link" href="{{ route('register') }}">Create an
@@ -99,6 +105,87 @@
 
   <script src="{{ asset('ui-physio/footer.js') }}"></script>
   <script src="{{ asset('ui-physio/auth.js') }}"></script>
+  @php
+    $firebaseWebConfig = config('services.firebase.web', []);
+    $firebaseWebConfigured = collect(['apiKey', 'authDomain', 'projectId', 'appId'])
+        ->every(fn ($key) => filled($firebaseWebConfig[$key] ?? null));
+  @endphp
+  <script>
+    window.physioFirebaseConfig = @json($firebaseWebConfig);
+    window.physioFirebaseConfigured = @json($firebaseWebConfigured);
+    window.physioFirebaseLoginUrl = @json(route('login.firebase'));
+    window.physioFirebaseCsrf = @json(csrf_token());
+  </script>
+  <script type="module">
+    import { getApps, initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
+
+    const button = document.querySelector('[data-google-action]');
+    const error = document.querySelector('[data-google-error]');
+    let firebaseAuth = null;
+    let firebaseInitializationError = null;
+
+    if (window.physioFirebaseConfigured) {
+      try {
+        const firebaseApp = getApps()[0] || initializeApp(window.physioFirebaseConfig);
+        firebaseAuth = getAuth(firebaseApp);
+      } catch (initializationError) {
+        firebaseInitializationError = initializationError;
+      }
+    }
+
+    button?.addEventListener('click', async () => {
+      if (!window.physioFirebaseConfigured || !firebaseAuth) {
+        error.textContent = 'Google sign-in is not configured yet. Please use email and password or contact support.';
+        error.style.display = 'block';
+        return;
+      }
+
+      button.disabled = true;
+      button.classList.add('loading');
+      button.querySelector('span').textContent = 'Connecting securely...';
+      error.textContent = '';
+      error.style.display = 'none';
+
+      try {
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        const credential = await signInWithPopup(firebaseAuth, provider);
+        const idToken = await credential.user.getIdToken();
+        const response = await fetch(window.physioFirebaseLoginUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': window.physioFirebaseCsrf
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({ id_token: idToken })
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok || !data.success) {
+          await signOut(firebaseAuth).catch(() => {});
+          throw new Error(data.message || 'Google sign-in could not be completed.');
+        }
+
+        window.location.assign(data.redirect);
+      } catch (authError) {
+        const code = authError?.code || '';
+        error.textContent = code === 'auth/popup-closed-by-user'
+          ? 'Google sign-in was cancelled.'
+          : code === 'auth/popup-blocked'
+            ? 'Your browser blocked the Google sign-in popup. Allow popups and try again.'
+            : firebaseInitializationError
+              ? 'Google sign-in could not be initialized. Please use email and password or contact support.'
+            : 'Google sign-in could not be completed. Please try again.';
+        error.style.display = 'block';
+        button.disabled = false;
+        button.classList.remove('loading');
+        button.querySelector('span').textContent = 'Continue with Google';
+      }
+    });
+  </script>
 </body>
 
 </html>

@@ -39,6 +39,9 @@
             @else
                 <span class="badge bg-danger-subtle text-danger px-3">Inactive</span>
             @endif
+            @if($topic->is_trending)
+                <span class="badge bg-warning-subtle text-warning-emphasis px-3">Trending</span>
+            @endif
         </td>
         <td>
             <div class="d-flex gap-2">

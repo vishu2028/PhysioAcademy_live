@@ -38,5 +38,16 @@ return [
         'key_id' => env('RAZORPAY_KEY_ID'),
         'key_secret' => env('RAZORPAY_KEY_SECRET'),
     ],
+    'firebase' => [
+        'credentials' => env('FIREBASE_CREDENTIALS'),
+        'web' => [
+            'apiKey' => env('FIREBASE_WEB_API_KEY', env('VITE_FIREBASE_API_KEY')),
+            'authDomain' => env('FIREBASE_WEB_AUTH_DOMAIN', env('VITE_FIREBASE_AUTH_DOMAIN')),
+            'projectId' => env('FIREBASE_WEB_PROJECT_ID', env('VITE_FIREBASE_PROJECT_ID')),
+            'storageBucket' => env('FIREBASE_WEB_STORAGE_BUCKET', env('VITE_FIREBASE_STORAGE_BUCKET')),
+            'messagingSenderId' => env('FIREBASE_WEB_MESSAGING_SENDER_ID', env('VITE_FIREBASE_MESSAGING_SENDER_ID')),
+            'appId' => env('FIREBASE_WEB_APP_ID', env('VITE_FIREBASE_APP_ID')),
+        ],
+    ],
 
 ];

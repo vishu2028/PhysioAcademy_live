@@ -377,11 +377,11 @@
                             >
 
                             <label class="form-check-label fw-bold" for="is_trending">
-                                Show in Trending Topics
+                                Mark as Trending
                             </label>
 
                             <div class="small text-muted">
-                                Include this topic in the homepage trending section.
+                                Include this topic once in the homepage Trending Topics section.
                             </div>
                         </div>
                     </div>

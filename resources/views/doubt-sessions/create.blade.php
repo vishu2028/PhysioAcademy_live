@@ -449,6 +449,17 @@
     @push('styles')
         <style>
             .doubt-booking-page {
+                --home-brand-blue: #004AAD;
+                --home-brand-white: #FFFFFF;
+                --home-brand-grey: #D9D9D9;
+                --home-surface: #F7F9FC;
+                --home-surface-soft: #EEF5FF;
+                --home-text: #0F172A;
+                --home-text-soft: #64748B;
+                --home-text-muted: #94A3B8;
+                --home-border: rgba(0, 74, 173, 0.10);
+                --home-shadow: 0 18px 40px rgba(0, 74, 173, 0.08);
+
                 min-height: 100vh;
                 background:
                     radial-gradient(
@@ -456,8 +467,8 @@
                         rgba(0, 74, 173, 0.08),
                         transparent 32%
                     ),
-                    #F7F9FC;
-                color: #0F172A;
+                    var(--home-surface);
+                color: var(--home-text);
             }
 
             .doubt-booking-container {
@@ -470,10 +481,11 @@
                 background:
                     linear-gradient(
                         135deg,
-                        rgba(0, 74, 173, 0.98),
-                        #003B8A
-                    );
-                color: #FFFFFF;
+                        rgba(0, 74, 173, 0.08),
+                        rgba(217, 217, 217, 0.18)
+                    ),
+                    var(--home-brand-white);
+                color: var(--home-text);
             }
 
             .booking-back-link {
@@ -481,14 +493,14 @@
                 align-items: center;
                 gap: 8px;
                 margin-bottom: 36px;
-                color: rgba(255, 255, 255, 0.84);
+                color: var(--home-brand-blue);
                 font-size: 0.9rem;
                 font-weight: 700;
                 text-decoration: none;
             }
 
             .booking-back-link:hover {
-                color: #FFFFFF;
+                color: var(--home-brand-blue);
             }
 
             .booking-heading {
@@ -501,10 +513,10 @@
                 gap: 8px;
                 margin-bottom: 18px;
                 padding: 8px 15px;
-                border: 1px solid rgba(255, 255, 255, 0.22);
+                border: 1px solid rgba(0, 74, 173, 0.16);
                 border-radius: 999px;
-                background: rgba(255, 255, 255, 0.12);
-                color: #FFFFFF;
+                background: rgba(0, 74, 173, 0.08);
+                color: var(--home-brand-blue);
                 font-size: 0.78rem;
                 font-weight: 800;
                 letter-spacing: 0.04em;
@@ -513,7 +525,7 @@
 
             .booking-heading h1 {
                 margin: 0 0 16px;
-                color: #FFFFFF;
+                color: var(--home-text);
                 font-size: clamp(2.2rem, 5vw, 4rem);
                 font-weight: 850;
                 letter-spacing: -0.04em;
@@ -522,7 +534,7 @@
             .booking-heading p {
                 max-width: 650px;
                 margin: 0;
-                color: rgba(255, 255, 255, 0.80);
+                color: var(--home-text-soft);
                 font-size: 1.06rem;
                 line-height: 1.8;
             }
@@ -542,9 +554,9 @@
             .booking-form-card,
             .booking-summary-card,
             .booking-info-card {
-                border: 1px solid rgba(0, 74, 173, 0.10);
-                background: #FFFFFF;
-                box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+                border: 1px solid var(--home-border);
+                background: var(--home-brand-white);
+                box-shadow: var(--home-shadow);
             }
 
             .booking-form-card {
@@ -560,13 +572,13 @@
                 gap: 20px;
                 margin-bottom: 30px;
                 padding-bottom: 25px;
-                border-bottom: 1px solid #D9D9D9;
+                border-bottom: 1px solid var(--home-brand-grey);
             }
 
             .booking-card-eyebrow {
                 display: block;
                 margin-bottom: 6px;
-                color: #004AAD;
+                color: var(--home-brand-blue);
                 font-size: 0.74rem;
                 font-weight: 800;
                 letter-spacing: 0.08em;
@@ -575,7 +587,7 @@
 
             .booking-card-header h2 {
                 margin: 0;
-                color: #0F172A;
+                color: var(--home-text);
                 font-size: 1.65rem;
                 font-weight: 800;
             }
@@ -587,15 +599,12 @@
                 padding: 8px 12px;
                 border-radius: 999px;
                 background: rgba(0, 74, 173, 0.08);
-                color: #004AAD;
+                color: var(--home-brand-blue);
                 font-size: 0.78rem;
                 font-weight: 700;
                 white-space: nowrap;
             }
 
-            /*
-             * Flash and validation alerts
-             */
             .booking-alert {
                 display: flex;
                 align-items: flex-start;
@@ -685,10 +694,10 @@
             .booking-field select,
             .booking-field textarea {
                 width: 100%;
-                border: 1px solid #D9D9D9;
+                border: 1px solid var(--home-brand-grey);
                 border-radius: 13px;
-                background: #FFFFFF;
-                color: #0F172A;
+                background: var(--home-brand-white);
+                color: var(--home-text);
                 font: inherit;
                 outline: none;
                 transition:
@@ -710,13 +719,13 @@
             .booking-field input:focus,
             .booking-field select:focus,
             .booking-field textarea:focus {
-                border-color: #004AAD;
+                border-color: var(--home-brand-blue);
                 box-shadow: 0 0 0 4px rgba(0, 74, 173, 0.10);
             }
 
             .booking-field input[readonly] {
                 background: rgba(217, 217, 217, 0.20);
-                color: #64748B;
+                color: var(--home-text-soft);
                 cursor: not-allowed;
             }
 
@@ -728,7 +737,7 @@
             .booking-field small {
                 display: block;
                 margin-top: 7px;
-                color: #94A3B8;
+                color: var(--home-text-muted);
                 font-size: 0.76rem;
             }
 

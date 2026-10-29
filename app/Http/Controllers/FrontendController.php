@@ -14,6 +14,7 @@ use App\Models\TrendingTopic;
 use App\Models\AboutContent;
 use App\Models\AboutTimeline;
 use App\Models\ExamAidBanner;
+use App\Models\Webinar;
 use Illuminate\Support\Facades\DB;
 class FrontendController extends Controller
 {
@@ -36,11 +37,16 @@ class FrontendController extends Controller
         $features = \App\Models\Feature::active()->ordered()->get();
         // Curriculum data: Active years with topics count
         $years = \App\Models\AcademicYear::active()
+            ->with('semesters')
             ->withCurriculumCounts()
             ->orderBy('order')
             ->get();
         // Doubt form subjects
         $subjects = \App\Models\Subject::query()
+            ->orderBy('name')
+            ->get();
+
+        $requestSubjects = \App\Models\Subject::active()
             ->orderBy('name')
             ->get();
 
@@ -101,9 +107,59 @@ class FrontendController extends Controller
 
         $trendings = TrendingTopic::latest()->get();
 
+        $liveTopics = \App\Models\Topic::active()
+            ->whereNull('parent_id')
+            ->with('academicYear')
+            ->get();
+
+        $activities->each(function (CommunityActivity $activity) use ($liveTopics, $years) {
+            $activity->setAttribute(
+                'destination_url',
+                $this->liveActivityDestination($activity->title, $liveTopics, $years)
+            );
+        });
+
+        $announcements->each(function (Announcement $announcement) use ($liveTopics, $years) {
+            $announcement->setAttribute(
+                'destination_url',
+                $this->liveActivityDestination($announcement->title, $liveTopics, $years)
+            );
+        });
+
+        $trendings->each(function (TrendingTopic $trending) use ($liveTopics, $years) {
+            $trending->setAttribute(
+                'destination_url',
+                $this->liveActivityDestination($trending->title, $liveTopics, $years)
+            );
+        });
+
         $aboutContent = AboutContent::first();
 
         $aboutTimelines = AboutTimeline::orderBy('id', 'asc')->get();
+
+        $doubtSessionEnabled = (string) get_setting(
+            'doubt_session_enabled',
+            '0'
+        ) === '1';
+
+        $doubtSessionIsFree = (string) get_setting(
+            'doubt_session_is_free',
+            '0'
+        ) === '1';
+
+        $doubtSessionPrice = max(
+            (float) get_setting('doubt_session_price', 0),
+            0
+        );
+
+        $doubtSessionDuration = max(
+            (int) get_setting(
+                'doubt_session_duration_minutes',
+                60
+            ),
+            15
+        );
+        $webinars = Webinar::registrationOpen()->orderBy('starts_at')->limit(3)->get();
 
         return view('welcome', compact(
             'hero',
@@ -111,6 +167,7 @@ class FrontendController extends Controller
             'examTopicsCount',
             'examSubjectsCount',
             'subjects',
+            'requestSubjects',
             'sectionEnabled',
             'visibleFeatures',
             'testimonialSectionEnabled',
@@ -131,9 +188,53 @@ class FrontendController extends Controller
             'announcements',
             'trendings',
             'aboutContent',
-            'aboutTimelines'
+            'aboutTimelines',
+            'doubtSessionEnabled',
+            'doubtSessionIsFree',
+            'doubtSessionPrice',
+            'doubtSessionDuration',
+            'webinars'
 
         ));
+    }
+
+    private function liveActivityDestination(string $text, $topics, $years): ?string
+    {
+        $normalizedText = mb_strtolower(strip_tags(trim($text)));
+
+        if ($normalizedText === '') {
+            return null;
+        }
+
+        $topic = $topics
+            ->filter(function ($candidate) use ($normalizedText) {
+                $title = mb_strtolower(trim((string) $candidate->title));
+
+                return $title !== '' && str_contains($normalizedText, $title);
+            })
+            ->sortByDesc(function ($candidate) {
+                return mb_strlen((string) $candidate->title);
+            })
+            ->first();
+
+        if ($topic) {
+            return route('topics.show', ['slug' => $topic->slug]);
+        }
+
+        $academicYear = $years
+            ->filter(function ($candidate) use ($normalizedText) {
+                $name = mb_strtolower(trim((string) $candidate->name));
+
+                return $name !== '' && str_contains($normalizedText, $name);
+            })
+            ->sortByDesc(function ($candidate) {
+                return mb_strlen((string) $candidate->name);
+            })
+            ->first();
+
+        return $academicYear
+            ? route('topics.year', ['year' => $academicYear->slug])
+            : null;
     }
 
     public function about()

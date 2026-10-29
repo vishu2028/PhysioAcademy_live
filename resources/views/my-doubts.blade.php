@@ -163,7 +163,7 @@
             @endif
 
             @forelse($doubts as $doubt)
-                <div class="glass-card doubt-card">
+                <div class="glass-card doubt-card" id="doubt-{{ $doubt->id }}">
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
                         <div>
                             <h4 class="doubt-card-title">
@@ -187,7 +187,7 @@
 
                                 <span>
                                 <i class="bi bi-clock"></i>
-                                Submitted {{ $doubt->created_at?->format('d M Y h:i A') }}
+                                    Submitted on {{ $doubt->created_at?->copy()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A') }}
                             </span>
                             </div>
                         </div>
@@ -225,9 +225,9 @@
                                 <span>Admin Answer</span>
                             </div>
 
-                            <p class="admin-answer-text">
-                                {{ $doubt->answer }}
-                            </p>
+                            <div class="admin-answer-text">
+                                {!! \App\Models\Doubt::sanitizeHtml($doubt->answer) !!}
+                            </div>
 
                             @if($doubt->answeredBy || $doubt->answered_at)
                                 <small class="text-muted">
@@ -237,7 +237,7 @@
                                     @endif
 
                                     @if($doubt->answered_at)
-                                        on {{ $doubt->answered_at->format('d M Y h:i A') }}
+                                        on {{ $doubt->answered_at->copy()->setTimezone('Asia/Kolkata')->format('d M Y \a\t h:i A') }}
                                     @endif
                                 </small>
                             @endif

@@ -925,8 +925,101 @@
         }
     );
 </script>
+@auth
+    @if(auth()->user()->hasAnyRole(['super_admin', 'admin']) === false)
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const menu = document.querySelector('[data-notification-menu]');
+                if (!menu) return;
+
+                const list = menu.querySelector('.student-notification-list');
+                const header = menu.querySelector('.student-notification-header span');
+                const toggle = menu.querySelector('[data-notification-toggle]');
+                const pollUrl = @json(route('notifications.poll'));
+
+                const escapeHtml = (value) => {
+                    const element = document.createElement('span');
+                    element.textContent = value || '';
+                    return element.innerHTML;
+                };
+
+                const renderNotifications = (notifications) => {
+                    if (!notifications.length) {
+                        list.innerHTML = '<div class="student-notification-empty"><i class="bi bi-bell-slash"></i><strong>No notifications</strong><span>Updates will appear here.</span></div>';
+                        return;
+                    }
+
+                    list.innerHTML = notifications.map((notification) => `
+                        <form action="${escapeHtml(notification.url)}" method="POST" class="student-notification-form">
+                            <input type="hidden" name="_token" value="${escapeHtml(document.querySelector('meta[name="csrf-token"]').content)}">
+                            <button type="submit" class="student-notification-item ${notification.unread ? 'is-unread' : ''}">
+                                <span class="notification-item-icon"><i class="bi bi-chat-dots"></i></span>
+                                <span class="notification-item-content">
+                                    <strong>${escapeHtml(notification.title)}</strong>
+                                    <span class="notification-item-message">${escapeHtml(notification.message)}</span>
+                                    <span class="notification-item-time">${escapeHtml(notification.created_at)}</span>
+                                </span>
+                                ${notification.unread ? '<span class="notification-unread-dot" aria-label="Unread"></span>' : ''}
+                            </button>
+                        </form>
+                    `).join('');
+                };
+
+                const updateNotifications = async () => {
+                    try {
+                        const response = await fetch(pollUrl, {
+                            headers: { 'Accept': 'application/json' },
+                            credentials: 'same-origin'
+                        });
+                        if (!response.ok) return;
+                        const data = await response.json();
+                        const count = Number(data.unread_count || 0);
+                        const existingBadge = menu.querySelector('.student-notification-count');
+
+                        if (count > 0) {
+                            const badge = existingBadge || document.createElement('span');
+                            badge.className = 'student-notification-count';
+                            badge.textContent = count > 99 ? '99+' : String(count);
+                            if (!existingBadge) toggle.appendChild(badge);
+                        } else {
+                            existingBadge?.remove();
+                        }
+
+                        if (header) header.textContent = `${count} unread`;
+                        renderNotifications(data.notifications || []);
+                    } catch (error) {
+                        console.warn('Notification polling failed.', error);
+                    }
+                };
+
+                updateNotifications();
+                window.setInterval(updateNotifications, 15000);
+            });
+        </script>
+    @endif
+@endauth
 @stack('scripts')
 
+@if (filled(config('services.firebase.web.apiKey')))
+    <script>
+        window.physioFirebaseLogoutConfig = @json(config('services.firebase.web'));
+    </script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
+        import { getAuth, signOut } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
+
+        document.querySelectorAll('form[action$="/logout"]').forEach((form) => {
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                try {
+                    await signOut(getAuth(initializeApp(window.physioFirebaseLogoutConfig)));
+                } finally {
+                    form.submit();
+                }
+            });
+        });
+    </script>
+@endif
 </body>
 </html>
 <style>

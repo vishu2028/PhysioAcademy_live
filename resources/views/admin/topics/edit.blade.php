@@ -329,8 +329,8 @@
                     </div>
                     <div class="form-check form-switch mb-3">
                         <input class="form-check-input" type="checkbox" name="is_trending" id="is_trending" value="1" {{ $topic->is_trending ? 'checked' : '' }}>
-                        <label class="form-check-label fw-bold" for="is_trending">Show in Trending Topics</label>
-                        <div class="small text-muted">Include this topic in the homepage trending section.</div>
+                        <label class="form-check-label fw-bold" for="is_trending">Mark as Trending</label>
+                        <div class="small text-muted">Include this topic once in the homepage Trending Topics section.</div>
                     </div>
                  </div>
                  <div class="card-footer bg-light p-3 d-grid">

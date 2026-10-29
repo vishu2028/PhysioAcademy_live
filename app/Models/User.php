@@ -80,4 +80,14 @@ class User extends Authenticatable
             'confirmed_by'
         );
     }
+
+    public function topicRequests(): HasMany
+    {
+        return $this->hasMany(TopicRequest::class);
+    }
+
+    public function webinarRegistrations(): HasMany
+    {
+        return $this->hasMany(WebinarRegistration::class);
+    }
 }

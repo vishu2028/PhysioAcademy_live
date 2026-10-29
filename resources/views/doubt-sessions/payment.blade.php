@@ -136,7 +136,7 @@
                 background:
                     radial-gradient(
                         circle at top,
-                        rgba(0, 74, 173, 0.12),
+                        rgba(0, 74, 173, 0.08),
                         transparent 38%
                     ),
                     #F7F9FC;
@@ -148,10 +148,10 @@
 
             .session-payment-card {
                 padding: 46px;
-                border: 1px solid rgba(0, 74, 173, 0.12);
+                border: 1px solid rgba(0, 74, 173, 0.10);
                 border-radius: 30px;
                 background: #FFFFFF;
-                box-shadow: 0 30px 70px rgba(15, 23, 42, 0.10);
+                box-shadow: 0 18px 40px rgba(0, 74, 173, 0.08);
                 text-align: center;
             }
 
@@ -355,8 +355,6 @@
     @endpush
 
     @push('scripts')
-        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 const payButton = document.getElementById(
@@ -371,6 +369,12 @@
                     'paymentVerificationForm'
                 );
 
+                const checkoutScriptUrl =
+                    'https://checkout.razorpay.com/v1/checkout.js';
+
+                let checkoutScriptPromise = null;
+                let checkoutOpened = false;
+
                 function showMessage(message, type = 'error') {
                     messageBox.textContent = message;
                     messageBox.className =
@@ -384,108 +388,219 @@
                         ' Pay ₹{{ number_format($booking->amount, 2) }}';
                 }
 
-                function openCheckout() {
-                    if (typeof Razorpay === 'undefined') {
-                        showMessage(
-                            'Razorpay Checkout could not be loaded. Please refresh the page.'
+                function loadCheckoutScript() {
+                    if (typeof window.Razorpay === 'function') {
+                        return Promise.resolve();
+                    }
+
+                    if (checkoutScriptPromise) {
+                        return checkoutScriptPromise;
+                    }
+
+                    checkoutScriptPromise = new Promise(function (
+                        resolve,
+                        reject
+                    ) {
+                        const existingScript = document.querySelector(
+                            'script[src="' + checkoutScriptUrl + '"]'
                         );
 
+                        const script = existingScript
+                            || document.createElement('script');
+
+                        let settled = false;
+
+                        const finish = function (error) {
+                            if (settled) {
+                                return;
+                            }
+
+                            settled = true;
+                            window.clearTimeout(timeoutId);
+
+                            if (error) {
+                                if (
+                                    script.parentNode
+                                    && typeof window.Razorpay
+                                        !== 'function'
+                                ) {
+                                    script.parentNode.removeChild(script);
+                                }
+
+                                reject(error);
+                            } else {
+                                resolve();
+                            }
+                        };
+
+                        const timeoutId = window.setTimeout(function () {
+                            finish(
+                                new Error(
+                                    'Razorpay Checkout script timed out.'
+                                )
+                            );
+                        }, 15000);
+
+                        script.addEventListener('load', function () {
+                            if (typeof window.Razorpay !== 'function') {
+                                finish(
+                                    new Error(
+                                        'Razorpay Checkout loaded without its API.'
+                                    )
+                                );
+
+                                return;
+                            }
+
+                            finish();
+                        }, { once: true });
+
+                        script.addEventListener('error', function () {
+                            finish(
+                                new Error(
+                                    'Razorpay Checkout script failed to load.'
+                                )
+                            );
+                        }, { once: true });
+
+                        if (! existingScript) {
+                            script.src = checkoutScriptUrl;
+                            script.async = true;
+                            script.crossOrigin = 'anonymous';
+                            document.head.appendChild(script);
+                        }
+                    });
+
+                    return checkoutScriptPromise;
+                }
+
+                function handleCheckoutLoadFailure() {
+                    checkoutScriptPromise = null;
+                    resetButton();
+                    showMessage(
+                        'Razorpay Checkout could not be loaded. Check your internet connection or browser extensions, then use Retry Checkout.',
+                        'error'
+                    );
+                    payButton.textContent = 'Retry Checkout';
+                }
+
+                function openCheckout() {
+                    if (checkoutOpened) {
                         return;
                     }
 
+                    checkoutOpened = true;
                     payButton.disabled = true;
-                    payButton.textContent = 'Opening Secure Checkout...';
+                    payButton.textContent = 'Loading Secure Checkout...';
 
-                    const options = {
-                        key: @json($razorpayKeyId),
-                        amount: @json($amountSubunits),
-                        currency: @json($booking->currency),
-                        name: @json($siteName),
-                        description: @json($paymentDescription),
-                        order_id: @json(
-                    $booking->razorpay_order_id
-                ),
-
-                        prefill: {
-                            name: @json($booking->student_name),
-                            email: @json($booking->student_email),
-                            contact: @json($booking->phone)
-                        },
-
-                        readonly: {
-                            name: true,
-                            email: true
-                        },
-
-                        notes: {
-                            booking_reference: @json(
-                        $booking->booking_reference
-                    )
-                        },
-
-                        theme: {
-                            color: '#004AAD'
-                        },
-
-                        retry: {
-                            enabled: true
-                        },
-
-                        modal: {
-                            confirm_close: true,
-
-                            ondismiss: function () {
-                                resetButton();
-
-                                showMessage(
-                                    'Payment was not completed. You may try again.',
-                                    'error'
+                    loadCheckoutScript()
+                        .then(function () {
+                            if (typeof window.Razorpay !== 'function') {
+                                throw new Error(
+                                    'Razorpay Checkout API is unavailable.'
                                 );
                             }
-                        },
 
-                        handler: function (response) {
-                            document.getElementById(
-                                'razorpayPaymentId'
-                            ).value =
-                                response.razorpay_payment_id || '';
-
-                            document.getElementById(
-                                'razorpayOrderId'
-                            ).value =
-                                response.razorpay_order_id || '';
-
-                            document.getElementById(
-                                'razorpaySignature'
-                            ).value =
-                                response.razorpay_signature || '';
-
-                            payButton.disabled = true;
                             payButton.textContent =
-                                'Verifying Payment...';
+                                'Opening Secure Checkout...';
 
-                            verificationForm.submit();
-                        }
-                    };
+                            const options = {
+                                key: @json($razorpayKeyId),
+                                amount: @json($amountSubunits),
+                                currency: @json($booking->currency),
+                                name: @json($siteName),
+                                description: @json($paymentDescription),
+                                order_id: @json(
+                            $booking->razorpay_order_id
+                        ),
 
-                    const checkout = new Razorpay(options);
+                                prefill: {
+                                    name: @json($booking->student_name),
+                                    email: @json($booking->student_email),
+                                    contact: @json($booking->phone)
+                                },
 
-                    checkout.on(
-                        'payment.failed',
-                        function (response) {
-                            resetButton();
+                                readonly: {
+                                    name: true,
+                                    email: true
+                                },
 
-                            const description =
-                                response.error
-                                && response.error.description
-                                    ? response.error.description
-                                    : 'The payment failed. Please try again.';
+                                notes: {
+                                    booking_reference: @json(
+                                $booking->booking_reference
+                            )
+                                },
 
-                            showMessage(description, 'error');
-                        }
-                    );
+                                theme: {
+                                    color: '#004AAD'
+                                },
 
-                    checkout.open();
+                                retry: {
+                                    enabled: true
+                                },
+
+                                modal: {
+                                    confirm_close: true,
+
+                                    ondismiss: function () {
+                                        checkoutOpened = false;
+                                        resetButton();
+
+                                        showMessage(
+                                            'Payment was not completed. You may try again.',
+                                            'error'
+                                        );
+                                    }
+                                },
+
+                                handler: function (response) {
+                                    document.getElementById(
+                                        'razorpayPaymentId'
+                                    ).value =
+                                        response.razorpay_payment_id || '';
+
+                                    document.getElementById(
+                                        'razorpayOrderId'
+                                    ).value =
+                                        response.razorpay_order_id || '';
+
+                                    document.getElementById(
+                                        'razorpaySignature'
+                                    ).value =
+                                        response.razorpay_signature || '';
+
+                                    payButton.disabled = true;
+                                    payButton.textContent =
+                                        'Verifying Payment...';
+
+                                    verificationForm.submit();
+                                }
+                            };
+
+                            const checkout = new window.Razorpay(options);
+
+                            checkout.on(
+                                'payment.failed',
+                                function (response) {
+                                    checkoutOpened = false;
+                                    resetButton();
+
+                                    const description =
+                                        response.error
+                                        && response.error.description
+                                            ? response.error.description
+                                            : 'The payment failed. Please try again.';
+
+                                    showMessage(description, 'error');
+                                }
+                            );
+
+                            checkout.open();
+                        })
+                        .catch(function () {
+                            checkoutOpened = false;
+                            handleCheckoutLoadFailure();
+                        });
                 }
 
                 payButton.addEventListener(
@@ -494,10 +609,10 @@
                 );
 
                 /*
-                 * Automatically open Checkout after the page loads.
-                 * The Pay button remains available for retry.
+                 * Load Checkout after the page is ready, but keep the
+                 * explicit Pay button available when a browser blocks it.
                  */
-                window.setTimeout(openCheckout, 500);
+                loadCheckoutScript().catch(handleCheckoutLoadFailure);
             });
         </script>
     @endpush

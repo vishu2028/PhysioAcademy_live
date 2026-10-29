@@ -1,0 +1,1 @@
+@extends('layouts.admin') @section('content')<div class="container-fluid py-4"><h1>Edit webinar</h1><form method="post" action="{{ route('admin.webinars.update',$webinar) }}">@method('PUT')@include('admin.webinars.form')</form></div>@endsection

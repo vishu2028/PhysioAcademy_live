@@ -139,7 +139,7 @@
                 background:
                     radial-gradient(
                         circle at top,
-                        rgba(0, 74, 173, 0.10),
+                        rgba(0, 74, 173, 0.08),
                         transparent 38%
                     ),
                     #F7F9FC;
@@ -151,10 +151,10 @@
 
             .booking-success-card {
                 padding: 46px;
-                border: 1px solid rgba(0, 74, 173, 0.12);
+                border: 1px solid rgba(0, 74, 173, 0.10);
                 border-radius: 30px;
                 background: #FFFFFF;
-                box-shadow: 0 30px 70px rgba(15, 23, 42, 0.10);
+                box-shadow: 0 18px 40px rgba(0, 74, 173, 0.08);
                 text-align: center;
             }
 

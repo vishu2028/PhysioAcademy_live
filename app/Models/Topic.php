@@ -28,6 +28,12 @@ class Topic extends Model
         'is_protected',
     ];
 
+    protected $casts = [
+        'status' => 'boolean',
+        'is_trending' => 'boolean',
+        'is_protected' => 'boolean',
+    ];
+
     public function parentTopic()
     {
         return $this->belongsTo(Topic::class, 'parent_id');

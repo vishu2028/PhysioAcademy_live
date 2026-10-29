@@ -114,17 +114,6 @@
     });
   });
 
-  qsa('[data-google-action]').forEach((button) => {
-    button.addEventListener('click', () => {
-      button.textContent = 'Connecting securely...';
-      button.disabled = true;
-      setTimeout(() => {
-        button.textContent = 'Google authentication simulated';
-        button.disabled = false;
-      }, 1000);
-    });
-  });
-
   const loginForm = qs('#loginForm');
   if (loginForm) {
     const email = qs('#loginEmail');
