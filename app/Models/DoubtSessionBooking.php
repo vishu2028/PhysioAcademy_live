@@ -40,6 +40,10 @@ class DoubtSessionBooking extends Model
         'doubt',
         'duration_minutes',
         'amount',
+        'coupon_id',
+        'coupon_code',
+        'original_amount',
+        'discount_amount',
         'currency',
         'is_free',
         'payment_status',
@@ -64,6 +68,8 @@ class DoubtSessionBooking extends Model
         return [
             'duration_minutes' => 'integer',
             'amount' => 'decimal:2',
+            'original_amount' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'is_free' => 'boolean',
             'paid_at' => 'datetime',
             'scheduled_at' => 'datetime',
@@ -100,6 +106,11 @@ class DoubtSessionBooking extends Model
     public function confirmedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'confirmed_by');
+    }
+
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     /**

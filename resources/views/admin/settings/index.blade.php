@@ -30,6 +30,14 @@
                     <i class="bi bi-camera-video me-2"></i>
                     Doubt Sessions
                 </a>
+                <a class="list-group-item list-group-item-action py-3 border-0"
+                   id="webinar-group-tab"
+                   data-bs-toggle="list"
+                   href="#webinar-group"
+                   role="tab">
+                    <i class="bi bi-people me-2"></i>
+                    Group Webinars
+                </a>
                 <a class="list-group-item list-group-item-action py-3 border-0" id="social-tab" data-bs-toggle="list" href="#social" role="tab">
                     <i class="bi bi-share me-2"></i> Social Links
                 </a>
@@ -407,6 +415,94 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="webinar-group" role="tabpanel">
+                        <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-1">Group Webinar Settings</h5>
+                                <p class="text-secondary small mb-0">Manage group requests, individual participant pricing and secure invitation expiry.</p>
+                            </div>
+                            <span class="badge rounded-pill px-3 py-2 align-self-start {{ get_setting('webinar_group_enabled', '0') == '1' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' }}">
+                                {{ get_setting('webinar_group_enabled', '0') == '1' ? 'Bookings Enabled' : 'Bookings Disabled' }}
+                            </span>
+                        </div>
+
+                        <div class="row g-4">
+                            @foreach([
+                                'webinar_group_enabled' => ['Enable Group Webinar bookings', 'Students can submit a new group request.'],
+                                'webinar_group_allow_requests' => ['Allow new requests', 'Turn this off to pause new requests while retaining existing bookings.'],
+                                'webinar_group_is_free' => ['Offer group webinars for free', 'Free participant invitations do not create Razorpay orders.'],
+                            ] as $key => [$label, $help])
+                                <div class="col-12">
+                                    <div class="p-3 rounded-4 border bg-light">
+                                        <input type="hidden" name="settings[{{ $key }}]" value="0">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="{{ $key }}" name="settings[{{ $key }}]" value="1"
+                                                   @checked(old('settings.'.$key, get_setting($key, $key === 'webinar_group_allow_requests' ? '1' : '0')) == '1')>
+                                            <label class="form-check-label fw-bold" for="{{ $key }}">{{ $label }}</label>
+                                        </div>
+                                        <div class="small text-muted mt-1">{{ $help }}</div>
+                                        @error('settings.'.$key)<div class="text-danger small mt-2">{{ $message }}</div>@enderror
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted" for="webinarGroupPrice">Price per participant (₹)</label>
+                                <input class="form-control rounded-3 @error('settings.webinar_group_price_per_person') is-invalid @enderror"
+                                       type="number" step="0.01" min="1" max="100000"
+                                       id="webinarGroupPrice" name="settings[webinar_group_price_per_person]"
+                                       value="{{ old('settings.webinar_group_price_per_person', get_setting('webinar_group_price_per_person', '500')) }}">
+                                @error('settings.webinar_group_price_per_person')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                <div class="form-text">Each participant receives an individual payment link and pays this amount.</div>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-muted" for="webinarGroupMinimum">Minimum participants</label>
+                                <input class="form-control rounded-3 @error('settings.webinar_group_min_participants') is-invalid @enderror"
+                                       type="number" min="1" max="100" id="webinarGroupMinimum"
+                                       name="settings[webinar_group_min_participants]"
+                                       value="{{ old('settings.webinar_group_min_participants', get_setting('webinar_group_min_participants', '2')) }}">
+                                @error('settings.webinar_group_min_participants')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-muted" for="webinarGroupMaximum">Maximum participants</label>
+                                <input class="form-control rounded-3 @error('settings.webinar_group_max_participants') is-invalid @enderror"
+                                       type="number" min="1" max="100" id="webinarGroupMaximum"
+                                       name="settings[webinar_group_max_participants]"
+                                       value="{{ old('settings.webinar_group_max_participants', get_setting('webinar_group_max_participants', '10')) }}">
+                                @error('settings.webinar_group_max_participants')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                <div class="form-text">Includes the organizer. This maximum is enforced by the server.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted" for="webinarGroupDuration">Default duration</label>
+                                <div class="input-group">
+                                    <input class="form-control rounded-start-3 @error('settings.webinar_group_duration_minutes') is-invalid @enderror"
+                                           type="number" min="15" max="480" id="webinarGroupDuration"
+                                           name="settings[webinar_group_duration_minutes]"
+                                           value="{{ old('settings.webinar_group_duration_minutes', get_setting('webinar_group_duration_minutes', '60')) }}">
+                                    <span class="input-group-text">Minutes</span>
+                                    @error('settings.webinar_group_duration_minutes')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted" for="webinarGroupExpiry">Invitation expiry</label>
+                                <div class="input-group">
+                                    <input class="form-control rounded-start-3 @error('settings.webinar_group_invitation_expiry_hours') is-invalid @enderror"
+                                           type="number" min="1" max="720" id="webinarGroupExpiry"
+                                           name="settings[webinar_group_invitation_expiry_hours]"
+                                           value="{{ old('settings.webinar_group_invitation_expiry_hours', get_setting('webinar_group_invitation_expiry_hours', '72')) }}">
+                                    <span class="input-group-text">Hours</span>
+                                    @error('settings.webinar_group_invitation_expiry_hours')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="form-text">An expired participant can request a replacement invitation using the booking reference and email.</div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="alert alert-primary border-0 rounded-4 mb-0">
+                                    <strong>Individual payments:</strong> Every participant, including the organizer, gets a separate secure invitation and payment link. Existing requests keep their saved price and capacity limits when these settings change.
                                 </div>
                             </div>
                         </div>

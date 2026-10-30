@@ -5,20 +5,17 @@ namespace App\Notifications;
 use App\Models\Webinar;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
+use App\Traits\EmailNotification;
 
 class WebinarUpdated extends Notification
 {
     use Queueable;
+    use EmailNotification;
 
     public function __construct(
         public readonly Webinar $webinar,
         public readonly string $message
     ) {}
-
-    public function via(object $notifiable): array
-    {
-        return ['database'];
-    }
 
     public function toDatabase(object $notifiable): array
     {

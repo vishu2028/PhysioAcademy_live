@@ -15,10 +15,11 @@ use App\Models\AboutContent;
 use App\Models\AboutTimeline;
 use App\Models\ExamAidBanner;
 use App\Models\Webinar;
+use App\Services\CouponService;
 use Illuminate\Support\Facades\DB;
 class FrontendController extends Controller
 {
-    public function home()
+    public function home(CouponService $couponService)
     {
 
         
@@ -160,6 +161,36 @@ class FrontendController extends Controller
             15
         );
         $webinars = Webinar::registrationOpen()->orderBy('starts_at')->limit(3)->get();
+        $couponServiceAmounts = [];
+        if ($doubtSessionEnabled && ! $doubtSessionIsFree && $doubtSessionPrice > 0) {
+            $couponServiceAmounts['doubt_session'] = [$doubtSessionPrice];
+        }
+        if (
+            (string) get_setting('webinar_group_enabled', '0') === '1'
+            && (string) get_setting('webinar_group_allow_requests', '1') === '1'
+            && (string) get_setting('webinar_group_is_free', '0') !== '1'
+        ) {
+            $groupWebinarPrice = max((float) get_setting('webinar_group_price_per_person', 0), 0);
+            if ($groupWebinarPrice > 0) {
+                $couponServiceAmounts['webinar'][] = $groupWebinarPrice;
+            }
+        }
+        $paidWebinarPrices = Webinar::registrationOpen()
+            ->where('is_free', false)
+            ->where('price', '>', 0)
+            ->pluck('price')
+            ->map(static fn ($price): float => (float) $price)
+            ->all();
+        if ($paidWebinarPrices !== []) {
+            $couponServiceAmounts['webinar'] = array_merge(
+                $couponServiceAmounts['webinar'] ?? [],
+                $paidWebinarPrices
+            );
+        }
+        $promotionalCoupons = $couponService->publicCoupons($couponServiceAmounts);
+        $hasOpenWebinars = $webinars->isNotEmpty();
+        $hasPromotionalCoupons = $promotionalCoupons->isNotEmpty();
+        $featuredWebinar = $webinars->first();
 
         return view('welcome', compact(
             'hero',
@@ -193,7 +224,11 @@ class FrontendController extends Controller
             'doubtSessionIsFree',
             'doubtSessionPrice',
             'doubtSessionDuration',
-            'webinars'
+            'webinars',
+            'promotionalCoupons',
+            'hasOpenWebinars',
+            'hasPromotionalCoupons',
+            'featuredWebinar'
 
         ));
     }

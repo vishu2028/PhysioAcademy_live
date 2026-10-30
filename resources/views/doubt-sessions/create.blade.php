@@ -27,6 +27,12 @@
                         The admin will confirm your session date and time
                         after your booking is completed.
                     </p>
+                    @if(get_setting('webinar_group_enabled', '0') == '1' && get_setting('webinar_group_allow_requests', '1') == '1')
+                        <a href="{{ route('group-webinars.create') }}" class="btn btn-outline-primary rounded-pill mt-2">
+                            <i class="bi bi-people me-1"></i>
+                            Need a group session? Request a Webinar
+                        </a>
+                    @endif
                 </div>
             </div>
         </section>
@@ -322,6 +328,24 @@
                                 </div>
                             </div>
 
+                            @unless($isFree)
+                                <section class="coupon-entry-card" aria-labelledby="sessionCouponTitle">
+                                    <h3 id="sessionCouponTitle">Apply Coupon</h3>
+                                    <div class="input-group">
+                                        <input id="sessionCouponInput" class="form-control" type="text" maxlength="64" placeholder="Enter coupon code" autocomplete="off">
+                                        <button id="sessionCouponApply" class="btn btn-outline-primary" type="button">Apply</button>
+                                    </div>
+                                    <input type="hidden" name="coupon_code" id="sessionCouponCode" value="{{ old('coupon_code') }}">
+                                    <p id="sessionCouponMessage" class="small mt-2 mb-0" role="status" aria-live="polite"></p>
+                                    <div id="sessionCouponBreakdown" class="coupon-breakdown mt-2" hidden>
+                                        <div><span>Original price</span><strong id="sessionCouponOriginal"></strong></div>
+                                        <div><span>Discount</span><strong id="sessionCouponDiscount"></strong></div>
+                                        <div><span>Payable</span><strong id="sessionCouponFinal"></strong></div>
+                                        <button id="sessionCouponRemove" type="button" class="btn btn-link btn-sm px-0">Remove coupon</button>
+                                    </div>
+                                </section>
+                            @endunless
+
                             <div class="booking-submit-area">
                                 <div class="booking-submit-summary">
                                     @if($isFree)
@@ -329,7 +353,7 @@
                                             Free Session
                                         </span>
                                     @else
-                                        <span class="summary-price">
+                                        <span class="summary-price" id="sessionPayableSummary" data-base-amount="{{ number_format((float) $price, 2, '.', '') }}">
                                             ₹{{ number_format((float) $price, 2) }}
                                         </span>
                                     @endif
@@ -789,6 +813,19 @@
                 color: #15803D;
             }
 
+            .coupon-entry-card {
+                margin: 22px 0;
+                padding: 18px;
+                border: 1px solid rgba(0, 74, 173, .16);
+                border-radius: 16px;
+                background: #f7faff;
+            }
+            .coupon-entry-card h3 { margin: 0 0 12px; color: #0f172a; font-size: 1rem; font-weight: 800; }
+            .coupon-entry-card .form-control { min-height: 46px; text-transform: uppercase; }
+            .coupon-breakdown { padding-top: 10px; border-top: 1px solid #d9e3f1; }
+            .coupon-breakdown > div { display:flex; justify-content:space-between; gap:12px; padding:4px 0; }
+            .coupon-breakdown strong { color:#004AAD; }
+
             .summary-duration {
                 background: rgba(217, 217, 217, 0.34);
                 color: #475569;
@@ -1061,6 +1098,72 @@
                 const doubtCharacterCount = document.getElementById(
                     'doubtCharacterCount'
                 );
+                const couponInput = document.getElementById('sessionCouponInput');
+                const couponCode = document.getElementById('sessionCouponCode');
+                const couponApply = document.getElementById('sessionCouponApply');
+                const couponRemove = document.getElementById('sessionCouponRemove');
+                const couponMessage = document.getElementById('sessionCouponMessage');
+                const couponBreakdown = document.getElementById('sessionCouponBreakdown');
+                const baseAmount = Number(document.getElementById('sessionPayableSummary')?.dataset.baseAmount || 0);
+
+                const money = (value) => `₹${Number(value).toFixed(2)}`;
+                const showCouponQuote = (quote) => {
+                    document.getElementById('sessionCouponOriginal').textContent = money(quote.original_amount);
+                    document.getElementById('sessionCouponDiscount').textContent = `−${money(quote.discount_amount)}`;
+                    document.getElementById('sessionCouponFinal').textContent = money(quote.final_amount);
+                    couponBreakdown.hidden = false;
+                    const summary = document.getElementById('sessionPayableSummary');
+                    if (summary) summary.textContent = money(quote.final_amount);
+                    couponCode.value = quote.code;
+                    couponInput.value = quote.code;
+                    couponMessage.textContent = quote.message;
+                    couponMessage.className = 'small mt-2 mb-0 text-success';
+                };
+                couponApply?.addEventListener('click', async () => {
+                    couponApply.disabled = true;
+                    couponMessage.textContent = 'Validating coupon…';
+                    couponMessage.className = 'small mt-2 mb-0 text-muted';
+                    try {
+                        const response = await fetch(@json(route('coupons.validate')), {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},
+                            body: JSON.stringify({code:couponInput.value,service:'doubt_session',amount:baseAmount})
+                        });
+                        const quote = await response.json();
+                        if (!response.ok) throw new Error(quote.message || 'Invalid coupon code.');
+                        showCouponQuote(quote);
+                    } catch (error) {
+                        couponCode.value = '';
+                        couponBreakdown.hidden = true;
+                        couponMessage.textContent = error.message || 'Unable to validate coupon.';
+                        couponMessage.className = 'small mt-2 mb-0 text-danger';
+                    } finally {
+                        couponApply.disabled = false;
+                    }
+                });
+                couponRemove?.addEventListener('click', () => {
+                    couponCode.value = '';
+                    couponInput.value = '';
+                    couponBreakdown.hidden = true;
+                    couponMessage.textContent = 'Coupon removed.';
+                    couponMessage.className = 'small mt-2 mb-0 text-muted';
+                    const summary = document.getElementById('sessionPayableSummary');
+                    if (summary) summary.textContent = money(baseAmount);
+                });
+                couponInput?.addEventListener('input', () => {
+                    if (couponInput.value.toUpperCase() !== couponCode.value) {
+                        couponCode.value = '';
+                        couponBreakdown.hidden = true;
+                        couponMessage.textContent = 'Apply the edited code to recalculate your price.';
+                        couponMessage.className = 'small mt-2 mb-0 text-muted';
+                        const summary = document.getElementById('sessionPayableSummary');
+                        if (summary) summary.textContent = money(baseAmount);
+                    }
+                });
+                if (couponCode?.value) {
+                    couponApply?.click();
+                }
 
                 /*
                  * Scroll to the booking form whenever the backend

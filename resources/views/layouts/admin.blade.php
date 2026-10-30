@@ -441,8 +441,11 @@
         </span>
                     @endif
                 </a>
-                <a href="{{ route('admin.webinars.index') }}" class="nav-link-admin @if(request()->routeIs('admin.webinars.*','admin.webinar-registrations.*')) active @endif">
-                    <i class="bi bi-broadcast-pin"></i> Webinars
+                <a href="{{ route('admin.group-webinars.index') }}" class="nav-link-admin @if(request()->routeIs('admin.group-webinars.*')) active @endif">
+                    <i class="bi bi-people"></i> Group Webinar Requests
+                </a>
+                <a href="{{ route('admin.coupons.index') }}" class="nav-link-admin @if(request()->routeIs('admin.coupons.*')) active @endif">
+                    <i class="bi bi-ticket-perforated"></i> Coupon Management
                 </a>
                 <a href="{{ route('admin.users.index') }}" class="nav-link-admin @if(request()->routeIs('admin.users.*')) active @endif">
                     <i class="bi bi-people"></i> User Management

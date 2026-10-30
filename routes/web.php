@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\FeatureController;
 use App\Http\Controllers\DoubtController;
 use App\Http\Controllers\DoubtSessionBookingController;
 use App\Http\Controllers\WebinarController;
+use App\Http\Controllers\GroupWebinarBookingController;
+use App\Http\Controllers\CouponController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -93,6 +95,30 @@ Route::get(
 
 Route::get('/webinars', [WebinarController::class, 'index'])->name('webinars.index');
 Route::get('/webinars/{webinar:slug}', [WebinarController::class, 'show'])->name('webinars.show');
+Route::get('/group-webinars/invitations/{token}', [GroupWebinarBookingController::class, 'invitation'])
+    ->middleware('throttle:30,1')
+    ->name('group-webinars.invitation');
+Route::post('/group-webinars/invitations/{token}/payment', [GroupWebinarBookingController::class, 'startPayment'])
+    ->middleware('throttle:10,1')
+    ->name('group-webinars.payment.start');
+Route::post('/group-webinars/invitations/{token}/coupon', [GroupWebinarBookingController::class, 'quoteCoupon'])
+    ->middleware('throttle:10,1')
+    ->name('group-webinars.coupon.quote');
+Route::get('/group-webinars/invitations/{token}/payment/{payment}', [GroupWebinarBookingController::class, 'payment'])
+    ->middleware('throttle:30,1')
+    ->name('group-webinars.payment');
+Route::post('/group-webinars/invitations/{token}/payment/{payment}/verify', [GroupWebinarBookingController::class, 'verifyPayment'])
+    ->middleware('throttle:10,1')
+    ->name('group-webinars.payment.verify');
+Route::post('/group-webinars/invitations/{token}/payment/{payment}/failure', [GroupWebinarBookingController::class, 'reportPaymentFailure'])
+    ->middleware('throttle:10,1')
+    ->name('group-webinars.payment.failure');
+Route::post('/group-webinars/invitations/{token}/payment/{payment}/abandon', [GroupWebinarBookingController::class, 'abandonPayment'])
+    ->middleware('throttle:10,1')
+    ->name('group-webinars.payment.abandon');
+Route::post('/group-webinars/invitations/resend', [GroupWebinarBookingController::class, 'resendInvitation'])
+    ->middleware('throttle:5,1')
+    ->name('group-webinars.invitation.resend');
 
 /*
 |--------------------------------------------------------------------------
@@ -164,11 +190,20 @@ Route::middleware('auth')->group(function () {
         [DoubtSessionBookingController::class, 'history']
     )->name('doubt-sessions.history');
 
+    Route::post('/coupons/validate', [CouponController::class, 'validateCoupon'])
+        ->middleware('throttle:20,1')
+        ->name('coupons.validate');
+
     Route::get(
         '/doubt-sessions/book',
         [DoubtSessionBookingController::class, 'create']
     )->name('doubt-sessions.create');
 
+    Route::get('/group-webinars/request', [GroupWebinarBookingController::class, 'create'])
+        ->name('group-webinars.create');
+    Route::post('/group-webinars/request', [GroupWebinarBookingController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('group-webinars.store');
 
     Route::post(
         '/doubt-sessions',
@@ -468,6 +503,19 @@ Route::middleware([
 
         Route::resource('webinars', \App\Http\Controllers\Admin\WebinarController::class)->except(['destroy']);
         Route::patch('webinar-registrations/{registration}', [\App\Http\Controllers\Admin\WebinarController::class, 'updateRegistration'])->name('webinar-registrations.update');
+        Route::get('group-webinars', [\App\Http\Controllers\Admin\GroupWebinarRequestController::class, 'index'])
+            ->name('group-webinars.index');
+        Route::get('group-webinars/{groupWebinar}', [\App\Http\Controllers\Admin\GroupWebinarRequestController::class, 'show'])
+            ->name('group-webinars.show');
+        Route::patch('group-webinars/{groupWebinar}', [\App\Http\Controllers\Admin\GroupWebinarRequestController::class, 'update'])
+            ->name('group-webinars.update');
+        Route::post('group-webinar-participants/{participant}/resend', [\App\Http\Controllers\Admin\GroupWebinarRequestController::class, 'resendInvitation'])
+            ->name('group-webinars.participants.resend');
+
+        Route::resource('coupons', \App\Http\Controllers\Admin\CouponController::class)
+            ->except(['show']);
+        Route::patch('coupons/{coupon}/toggle', [\App\Http\Controllers\Admin\CouponController::class, 'toggle'])
+            ->name('coupons.toggle');
 
         /*
          * Media and Layout

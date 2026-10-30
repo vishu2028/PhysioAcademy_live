@@ -732,7 +732,7 @@
                                 The admin will confirm your session date and time afterward.
                             </small>
                         </div>
-                        @if(isset($webinars) && $webinars->isNotEmpty())
+                        @if($hasOpenWebinars)
                             <div class="doubt-session-promo mt-4">
                                 <div class="dsp-header">
                                     <div class="dsp-icon"><i class="bi bi-broadcast-pin"></i></div>
@@ -741,13 +741,12 @@
                                         <h3>Attend a Webinar</h3>
                                     </div>
                                 </div>
-                                @php($webinar = $webinars->first())
-                                <p class="dsp-description">{{ $webinar->title }}</p>
+                                <p class="dsp-description">{{ $featuredWebinar->title }}</p>
                                 <div class="dsp-meta">
-                                    <span><i class="bi bi-calendar-event"></i>{{ $webinar->starts_at->timezone($webinar->timezone)->format('d M Y, h:i A') }}</span>
-                                    <span class="dsp-price {{ $webinar->isPaid() ? '' : 'free' }}">{{ $webinar->isPaid() ? '₹'.number_format($webinar->price, 2) : 'Free Webinar' }}</span>
+                                    <span><i class="bi bi-calendar-event"></i>{{ $featuredWebinar->starts_at->timezone($featuredWebinar->timezone)->format('d M Y, h:i A') }}</span>
+                                    <span class="dsp-price {{ $featuredWebinar->isPaid() ? '' : 'free' }}">{{ $featuredWebinar->isPaid() ? '₹'.number_format($featuredWebinar->price, 2) : 'Free Webinar' }}</span>
                                 </div>
-                                <a href="{{ route('webinars.show', $webinar) }}" class="dsp-book-button">
+                                <a href="{{ route('webinars.show', $featuredWebinar) }}" class="dsp-book-button">
                                     <span>{{ auth()->check() ? 'Register for Webinar' : 'View Webinar' }}</span>
                                     <i class="bi bi-arrow-right"></i>
                                 </a>
@@ -882,7 +881,7 @@
             </div>
         </section>
 
-        @if(isset($webinars) && $webinars->isNotEmpty())
+        @if($hasOpenWebinars)
         <section class="section" id="webinars">
             <div class="section-container">
                 <span class="section-tag">Live Learning</span>
@@ -898,6 +897,103 @@
                 </div>
             </div>
         </section>
+        @endif
+
+        @if($hasPromotionalCoupons)
+            <section class="section coupon-promo-section" aria-labelledby="coupon-promo-title">
+                <div class="section-container">
+                    <div class="coupon-promo-heading">
+                        <span class="section-tag">Exclusive Savings</span>
+                        <h2 class="section-title" id="coupon-promo-title">A little more <span class="text-gradient">for less</span></h2>
+                        <p class="section-subtitle">Use an available coupon when booking an eligible paid session or webinar.</p>
+                    </div>
+                    <div class="coupon-promo-grid">
+                        @foreach($promotionalCoupons as $coupon)
+                            @php
+                                $couponServices = collect($coupon->public_services)
+                                    ->map(fn ($service) => $service === 'doubt_session' ? 'One-on-One Doubt Sessions' : 'Webinars')
+                                    ->unique()
+                                    ->implode(', ');
+                                $discountValue = rtrim(rtrim(number_format((float) $coupon->discount_value, 2, '.', ''), '0'), '.');
+                            @endphp
+                            <article class="coupon-promo-card">
+                                <div class="coupon-promo-content">
+                                    <span class="coupon-promo-label">Coupon offer</span>
+                                    <h3>
+                                        @if($coupon->discount_type === \App\Models\Coupon::TYPE_PERCENTAGE)
+                                            {{ $discountValue }}% OFF
+                                        @else
+                                            ₹{{ $discountValue }} OFF
+                                        @endif
+                                    </h3>
+                                    <p class="coupon-promo-prompt">Use coupon code</p>
+                                    <div class="coupon-code-row">
+                                        <code>{{ $coupon->code }}</code>
+                                        <button type="button" class="coupon-copy-button" data-coupon-code="{{ $coupon->code }}" aria-label="Copy coupon {{ $coupon->code }}">
+                                            <span aria-hidden="true">▢</span>
+                                            <span>Copy</span>
+                                        </button>
+                                    </div>
+                                    <p class="coupon-copy-status" role="status" aria-live="polite"></p>
+                                    <div class="coupon-promo-details">
+                                        <span>For {{ $couponServices }}</span>
+                                        @if($coupon->minimum_amount !== null)
+                                            <span>Minimum booking ₹{{ number_format((float) $coupon->minimum_amount, 2) }}</span>
+                                        @endif
+                                        @if($coupon->maximum_discount !== null)
+                                            <span>Maximum discount ₹{{ number_format((float) $coupon->maximum_discount, 2) }}</span>
+                                        @endif
+                                        @if($coupon->expires_at)
+                                            <span>Valid until {{ $coupon->expires_at->timezone('Asia/Kolkata')->format('d M Y') }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </article>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+        @endif
+        @if($hasPromotionalCoupons)
+                <script>
+                    document.querySelectorAll('.coupon-copy-button').forEach(button => {
+                        button.addEventListener('click', async event => {
+                            event.preventDefault();
+                            const code = button.dataset.couponCode;
+                            const status = button.closest('.coupon-promo-card').querySelector('.coupon-copy-status');
+                            try {
+                                let copied = false;
+                                let clipboardError = null;
+                                if (navigator.clipboard && window.isSecureContext) {
+                                    try {
+                                        await navigator.clipboard.writeText(code);
+                                        copied = true;
+                                    } catch (error) {
+                                        clipboardError = error;
+                                    }
+                                }
+                                if (!copied) {
+                                    const fallback = document.createElement('textarea');
+                                    fallback.value = code;
+                                    fallback.setAttribute('readonly', '');
+                                    fallback.style.position = 'fixed';
+                                    fallback.style.opacity = '0';
+                                    document.body.appendChild(fallback);
+                                    try {
+                                        fallback.select();
+                                        copied = document.execCommand('copy');
+                                    } finally {
+                                        fallback.remove();
+                                    }
+                                }
+                                if (!copied) throw clipboardError || new Error('Clipboard access is unavailable.');
+                                status.textContent = 'Coupon copied successfully!';
+                            } catch (error) {
+                                status.textContent = 'Could not copy coupon. Please select and copy the code.';
+                            }
+                        });
+                    });
+                </script>
         @endif
 
         <section class="section request-topic-section" id="request-topic">
@@ -1830,6 +1926,170 @@
 
     @push('styles')
         <style>
+            .coupon-promo-section {
+                padding: 72px 0;
+                background: linear-gradient(135deg, #f8fbff 0%, #edf5ff 52%, #f8fbff 100%);
+            }
+
+            .coupon-promo-heading {
+                max-width: 720px;
+                margin: 0 auto 34px;
+                text-align: center;
+            }
+
+            .coupon-promo-heading .section-subtitle {
+                margin: 0 auto;
+            }
+
+            .coupon-promo-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+                gap: 20px;
+            }
+
+            .coupon-promo-card {
+                position: relative;
+                min-width: 0;
+                overflow: hidden;
+                border: 1px solid #b9d6ff;
+                border-radius: 22px;
+                background:
+                    radial-gradient(circle at 100% 0%, rgba(80, 153, 255, .13), transparent 38%),
+                    #fff;
+                box-shadow: 0 12px 32px rgba(17, 74, 145, .08);
+            }
+
+            .coupon-promo-card::before,
+            .coupon-promo-card::after {
+                position: absolute;
+                top: 50%;
+                width: 22px;
+                height: 22px;
+                border: 1px solid #b9d6ff;
+                border-radius: 50%;
+                background: #f2f7ff;
+                content: "";
+                transform: translateY(-50%);
+            }
+
+            .coupon-promo-card::before {
+                left: -12px;
+            }
+
+            .coupon-promo-card::after {
+                right: -12px;
+            }
+
+            .coupon-promo-content {
+                padding: 26px 30px;
+                border-right: 1px dashed #b9d6ff;
+                border-left: 1px dashed #b9d6ff;
+                margin: 0 10px;
+            }
+
+            .coupon-promo-label {
+                color: #4774aa;
+                font-size: 12px;
+                font-weight: 700;
+                letter-spacing: .1em;
+                text-transform: uppercase;
+            }
+
+            .coupon-promo-content h3 {
+                margin: 8px 0 10px;
+                color: #0649a6;
+                font-size: clamp(26px, 4vw, 36px);
+                font-weight: 800;
+                line-height: 1.15;
+            }
+
+            .coupon-promo-prompt {
+                margin: 0 0 8px;
+                color: #53677f;
+                font-size: 14px;
+            }
+
+            .coupon-code-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                min-width: 0;
+                padding: 8px 9px 8px 14px;
+                border: 1px solid #d6e5f8;
+                border-radius: 12px;
+                background: #f6faff;
+            }
+
+            .coupon-code-row code {
+                overflow: hidden;
+                color: #123b70;
+                font-size: 15px;
+                font-weight: 800;
+                letter-spacing: .06em;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .coupon-copy-button {
+                display: inline-flex;
+                flex: 0 0 auto;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                min-height: 40px;
+                padding: 8px 12px;
+                border: 0;
+                border-radius: 9px;
+                background: #0756b5;
+                color: #fff;
+                font: inherit;
+                font-size: 13px;
+                font-weight: 700;
+                cursor: pointer;
+            }
+
+            .coupon-copy-button:hover,
+            .coupon-copy-button:focus-visible {
+                background: #063f87;
+            }
+
+            .coupon-copy-status {
+                min-height: 20px;
+                margin: 6px 0 10px;
+                color: #087343;
+                font-size: 12px;
+            }
+
+            .coupon-promo-details {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 7px;
+            }
+
+            .coupon-promo-details span {
+                padding: 5px 9px;
+                border-radius: 999px;
+                background: #edf5ff;
+                color: #405c7e;
+                font-size: 11px;
+                line-height: 1.4;
+            }
+
+            @media (max-width: 575px) {
+                .coupon-promo-section {
+                    padding: 48px 0;
+                }
+
+                .coupon-promo-content {
+                    padding: 22px 18px;
+                }
+
+                .coupon-promo-grid {
+                    grid-template-columns: minmax(0, 1fr);
+                }
+            }
+
             .pf-section-head {
                 max-width: 760px;
                 margin: 0 auto 45px;

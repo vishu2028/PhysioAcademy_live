@@ -64,10 +64,24 @@
                     </div>
 
                     <div class="payment-detail">
-                        <span>Amount</span>
+                        <span>Original Amount</span>
                         <strong class="payment-amount">
-                            ₹{{ number_format($booking->amount, 2) }}
+                            ₹{{ number_format($booking->original_amount ?? $booking->amount, 2) }}
                         </strong>
+                    </div>
+                    @if($booking->coupon_code)
+                        <div class="payment-detail">
+                            <span>Coupon</span>
+                            <strong>{{ $booking->coupon_code }}</strong>
+                        </div>
+                        <div class="payment-detail">
+                            <span>Discount</span>
+                            <strong class="payment-amount">− ₹{{ number_format($booking->discount_amount, 2) }}</strong>
+                        </div>
+                    @endif
+                    <div class="payment-detail">
+                        <span>Final Payable</span>
+                        <strong class="payment-amount">₹{{ number_format($booking->amount, 2) }}</strong>
                     </div>
                 </div>
 

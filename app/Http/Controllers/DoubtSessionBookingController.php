@@ -6,6 +6,7 @@ use App\Models\AcademicYear;
 use App\Models\DoubtSessionBooking;
 use App\Models\Subject;
 use App\Services\RazorpayService;
+use App\Services\CouponService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,7 +19,8 @@ use UnexpectedValueException;
 class DoubtSessionBookingController extends Controller
 {
     public function __construct(
-        private readonly RazorpayService $razorpay
+        private readonly RazorpayService $razorpay,
+        private readonly CouponService $coupons
     ) {
     }
 
@@ -133,6 +135,7 @@ class DoubtSessionBookingController extends Controller
                 'min:10',
                 'max:5000',
             ],
+            'coupon_code' => ['nullable', 'string', 'max:64'],
         ], [
             'phone.regex' =>
                 'Please enter a valid phone number.',
@@ -165,11 +168,15 @@ class DoubtSessionBookingController extends Controller
 
         $durationMinutes = $this->sessionDuration();
         $user = $request->user();
+        $couponCode = trim((string) ($validated['coupon_code'] ?? ''));
 
         /*
          * Free booking flow.
          */
         if ($isFree) {
+            if ($couponCode !== '') {
+                return back()->withInput()->with('session_error', 'Coupons are available only for paid sessions.');
+            }
             $booking = DB::transaction(function () use (
                 $validated,
                 $user,
@@ -217,7 +224,7 @@ class DoubtSessionBookingController extends Controller
         /*
          * Paid booking validation.
          */
-        if ($amount <= 0) {
+        if ($amount <= 0 && $couponCode === '') {
             return redirect()
                 ->to(
                     route('doubt-sessions.create')
@@ -230,7 +237,16 @@ class DoubtSessionBookingController extends Controller
                 );
         }
 
-        if (! $this->razorpay->isConfigured()) {
+        $preview = $couponCode !== ''
+            ? $this->coupons->quote($couponCode, (int) $user->id, 'doubt_session', $amount)
+            : [
+                'coupon' => null,
+                'original_amount' => round($amount, 2),
+                'discount_amount' => 0,
+                'final_amount' => round($amount, 2),
+            ];
+
+        if ($preview['final_amount'] > 0 && ! $this->razorpay->isConfigured()) {
             return redirect()
                 ->to(
                     route('doubt-sessions.create')
@@ -251,9 +267,19 @@ class DoubtSessionBookingController extends Controller
             $validated,
             $user,
             $durationMinutes,
-            $amount
+            $amount,
+            $couponCode
         ) {
-            return DoubtSessionBooking::create([
+            $quote = $couponCode !== ''
+                ? $this->coupons->quote($couponCode, (int) $user->id, 'doubt_session', $amount, true)
+                : [
+                    'coupon' => null,
+                    'original_amount' => round($amount, 2),
+                    'discount_amount' => 0,
+                    'final_amount' => round($amount, 2),
+                ];
+
+            $booking = DoubtSessionBooking::create([
                 'booking_reference' =>
                     $this->generateBookingReference(),
 
@@ -274,17 +300,36 @@ class DoubtSessionBookingController extends Controller
                 'duration_minutes' =>
                     $durationMinutes,
 
-                'amount' => $amount,
+                'amount' => $quote['final_amount'],
+                'original_amount' => $quote['original_amount'],
+                'discount_amount' => $quote['discount_amount'],
+                'coupon_id' => $quote['coupon']?->id,
+                'coupon_code' => $quote['coupon']?->code,
                 'currency' => 'INR',
                 'is_free' => false,
 
                 'payment_status' =>
-                    DoubtSessionBooking::PAYMENT_PENDING,
+                    $quote['final_amount'] <= 0
+                        ? DoubtSessionBooking::PAYMENT_NOT_REQUIRED
+                        : DoubtSessionBooking::PAYMENT_PENDING,
 
                 'booking_status' =>
-                    DoubtSessionBooking::STATUS_PENDING_PAYMENT,
+                    $quote['final_amount'] <= 0
+                        ? DoubtSessionBooking::STATUS_PENDING_SCHEDULE
+                        : DoubtSessionBooking::STATUS_PENDING_PAYMENT,
             ]);
+
+            if ($quote['coupon']) {
+                $this->coupons->reserve($quote, (int) $user->id, $booking);
+            }
+
+            return $booking;
         });
+
+        if ($booking->amount <= 0) {
+            return redirect()->route('doubt-sessions.success', $booking)
+                ->with('success', 'Your coupon covered the full session amount. Your booking is confirmed for scheduling.');
+        }
 
         /*
          * Create the matching Razorpay order.
@@ -299,6 +344,7 @@ class DoubtSessionBookingController extends Controller
                 'payment_error' => null,
             ]);
         } catch (ServerError $exception) {
+            $this->coupons->release($booking);
             $httpStatus = (int) $exception->getHttpStatusCode();
 
             Log::error('Razorpay order creation failed.', [
@@ -332,6 +378,7 @@ class DoubtSessionBookingController extends Controller
                 ->withInput()
                 ->with('session_error', $publicMessage);
         } catch (Throwable $exception) {
+            $this->coupons->release($booking);
             report($exception);
 
             $booking->update([
@@ -377,6 +424,14 @@ class DoubtSessionBookingController extends Controller
                 'doubt-sessions.success',
                 $booking
             );
+        }
+
+        if (
+            $booking->coupon_id
+            && (float) $booking->amount <= 0
+            && $booking->payment_status === DoubtSessionBooking::PAYMENT_NOT_REQUIRED
+        ) {
+            return redirect()->route('doubt-sessions.success', $booking);
         }
 
         if ($booking->isPaid()) {
@@ -620,6 +675,7 @@ class DoubtSessionBookingController extends Controller
                     'paid_at' => now(),
                     'payment_error' => null,
                 ]);
+                $this->coupons->redeem($lockedBooking);
 
                 return $lockedBooking;
             });
@@ -660,7 +716,13 @@ class DoubtSessionBookingController extends Controller
          * the success URL.
          */
         abort_unless(
-            $booking->is_free || $booking->isPaid(),
+            $booking->is_free
+                || $booking->isPaid()
+                || (
+                    $booking->coupon_id
+                    && (float) $booking->amount <= 0
+                    && $booking->payment_status === DoubtSessionBooking::PAYMENT_NOT_REQUIRED
+                ),
             404
         );
 

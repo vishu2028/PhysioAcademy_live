@@ -20,6 +20,10 @@
                     @if($booking->is_free)
                         Your free one-on-one doubt session booking has been
                         submitted successfully.
+                    @elseif((float) $booking->amount <= 0 && $booking->coupon_id)
+                        Your coupon covered the full session amount. Your
+                        one-on-one doubt session booking has been submitted
+                        successfully without a payment.
                     @else
                         Your Razorpay payment has been verified and your
                         one-on-one doubt session booking has been submitted
@@ -74,13 +78,19 @@
                         <span>Payment</span>
 
                         <strong class="success-free">
-                            @if($booking->is_free)
+                            @if($booking->is_free || $booking->payment_status === \App\Models\DoubtSessionBooking::PAYMENT_NOT_REQUIRED)
                                 Not Required
                             @else
                                 Paid — ₹{{ number_format($booking->amount, 2) }}
                             @endif
                         </strong>
                     </div>
+                    @if($booking->coupon_code)
+                        <div class="success-detail">
+                            <span>Coupon</span>
+                            <strong>{{ $booking->coupon_code }} · − ₹{{ number_format($booking->discount_amount, 2) }}</strong>
+                        </div>
+                    @endif
 
                     <div class="success-detail">
                         <span>Booking Status</span>

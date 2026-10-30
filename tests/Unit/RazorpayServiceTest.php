@@ -17,6 +17,11 @@ class RazorpayServiceTest extends TestCase
             10000,
             $service->amountToSubunits(100)
         );
+
+        $this->assertSame(
+            90000,
+            $service->amountToSubunits(900)
+        );
     }
 
     public function test_payment_must_match_booking_order_amount_and_currency(): void

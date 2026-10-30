@@ -5,18 +5,15 @@ namespace App\Notifications;
 use App\Models\Doubt;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
+use App\Traits\EmailNotification;
 
 class DoubtAnswered extends Notification
 {
     use Queueable;
+    use EmailNotification;
 
     public function __construct(public readonly Doubt $doubt)
     {
-    }
-
-    public function via(object $notifiable): array
-    {
-        return ['database'];
     }
 
     public function toDatabase(object $notifiable): array

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\DoubtSessionBooking;
+use App\Models\GroupWebinarParticipantPayment;
 use App\Models\WebinarRegistration;
 use Razorpay\Api\Api;
 use RuntimeException;
@@ -160,6 +161,62 @@ class RazorpayService
             || (int)($payment['amount'] ?? 0) !== $this->amountToSubunits($registration->amount)
             || strtoupper((string)($payment['currency'] ?? '')) !== strtoupper($registration->currency ?: 'INR')) {
             throw new UnexpectedValueException('The Razorpay payment does not match the registration.');
+        }
+    }
+
+    public function createGroupWebinarParticipantOrder(GroupWebinarParticipantPayment $payment): array
+    {
+        $amount = $this->amountToSubunits($payment->amount);
+        $currency = strtoupper($payment->currency ?: 'INR');
+        $order = $this->api()->order->create([
+            'amount' => $amount,
+            'currency' => $currency,
+            'receipt' => substr($payment->public_reference, 0, 40),
+            'notes' => [
+                'participant_payment' => $payment->public_reference,
+                'participant_id' => (string) $payment->participant_id,
+            ],
+        ]);
+
+        if (empty($order['id']) || (int) $order['amount'] !== $amount || strtoupper((string) $order['currency']) !== $currency) {
+            throw new UnexpectedValueException('Razorpay order does not match the group webinar participant payment.');
+        }
+
+        return [
+            'id' => (string) $order['id'],
+            'amount' => (int) $order['amount'],
+            'currency' => $currency,
+            'status' => (string) $order['status'],
+        ];
+    }
+
+    public function verifyGroupWebinarParticipantSignature(
+        GroupWebinarParticipantPayment $payment,
+        string $paymentId,
+        string $signature
+    ): void {
+        if (blank($payment->razorpay_order_id)) {
+            throw new RuntimeException('The participant payment does not have a Razorpay order ID.');
+        }
+
+        $this->api()->utility->verifyPaymentSignature([
+            'razorpay_order_id' => $payment->razorpay_order_id,
+            'razorpay_payment_id' => $paymentId,
+            'razorpay_signature' => $signature,
+        ]);
+    }
+
+    public function assertPaymentMatchesGroupWebinarParticipant(
+        GroupWebinarParticipantPayment $payment,
+        array $receivedPayment
+    ): void {
+        if (
+            blank($payment->razorpay_order_id)
+            || ! hash_equals((string) $payment->razorpay_order_id, (string) ($receivedPayment['order_id'] ?? ''))
+            || (int) ($receivedPayment['amount'] ?? 0) !== $this->amountToSubunits($payment->amount)
+            || strtoupper((string) ($receivedPayment['currency'] ?? '')) !== strtoupper($payment->currency ?: 'INR')
+        ) {
+            throw new UnexpectedValueException('The Razorpay payment does not match the participant payment.');
         }
     }
 

@@ -5,10 +5,12 @@ namespace App\Notifications;
 use App\Models\DoubtSessionBooking;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
+use App\Traits\EmailNotification;
 
 class DoubtSessionStatusUpdated extends Notification
 {
     use Queueable;
+    use EmailNotification;
 
     public function __construct(
         public readonly DoubtSessionBooking $booking,
@@ -20,13 +22,6 @@ class DoubtSessionStatusUpdated extends Notification
     /**
      * Store the notification in the database.
      */
-    public function via(object $notifiable): array
-    {
-        return [
-            'database',
-        ];
-    }
-
     /**
      * Notification data stored in the notifications table.
      */
