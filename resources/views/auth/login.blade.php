@@ -136,7 +136,7 @@
 
     button?.addEventListener('click', async () => {
       if (!window.physioFirebaseConfigured || !firebaseAuth) {
-        error.textContent = 'Google sign-in is not configured yet. Please use email and password or contact support.';
+        error.textContent = 'Google sign-in is unavailable because Firebase web configuration is missing on this site. Please contact support.';
         error.style.display = 'block';
         return;
       }
@@ -172,13 +172,18 @@
         window.location.assign(data.redirect);
       } catch (authError) {
         const code = authError?.code || '';
-        error.textContent = code === 'auth/popup-closed-by-user'
-          ? 'Google sign-in was cancelled.'
-          : code === 'auth/popup-blocked'
-            ? 'Your browser blocked the Google sign-in popup. Allow popups and try again.'
-            : firebaseInitializationError
-              ? 'Google sign-in could not be initialized. Please use email and password or contact support.'
-            : 'Google sign-in could not be completed. Please try again.';
+        const messages = {
+          'auth/popup-closed-by-user': 'Google sign-in was cancelled.',
+          'auth/popup-blocked': 'Your browser blocked the Google sign-in popup. Allow popups and try again.',
+          'auth/unauthorized-domain': 'This website is not authorized for Google sign-in. Please contact support.',
+          'auth/operation-not-allowed': 'Google sign-in is disabled for this Firebase project. Please contact support.',
+          'auth/invalid-api-key': 'Google sign-in is misconfigured on this website. Please contact support.',
+          'auth/network-request-failed': 'A network error interrupted Google sign-in. Check your connection and try again.'
+        };
+        error.textContent = messages[code]
+          || (firebaseInitializationError
+            ? 'Google sign-in could not be initialized. Please use email and password or contact support.'
+            : authError?.message || 'Google sign-in could not be completed. Please try again.');
         error.style.display = 'block';
         button.disabled = false;
         button.classList.remove('loading');
