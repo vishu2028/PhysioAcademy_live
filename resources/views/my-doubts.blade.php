@@ -102,6 +102,32 @@
             color: #14532d;
         }
 
+        .admin-answer-text img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .admin-answer-text table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .admin-answer-text th,
+        .admin-answer-text td {
+            border: 1px solid #a7cbb7;
+            padding: .5rem;
+        }
+
+        .admin-answer-text iframe {
+            display: block;
+            width: min(100%, 640px);
+            aspect-ratio: 16 / 9;
+            height: auto;
+            border: 0;
+            margin: 1rem auto;
+        }
+
         .waiting-answer-box {
             padding: 22px 24px;
             border-radius: 20px;

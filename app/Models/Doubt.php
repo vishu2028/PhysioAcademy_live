@@ -33,62 +33,231 @@ class Doubt extends Model
             return '';
         }
 
-        $html = preg_replace(
-            '/<(script|style|iframe|object|embed|form)\b[^>]*>.*?<\/\1>/is',
-            '',
-            $html
-        ) ?? '';
-        $html = strip_tags(
-            $html,
-            '<p><br><strong><b><em><i><u><s><del><span><div><h1><h2><h3><h4><h5><h6><ul><ol><li><blockquote><a>'
-        );
-        $html = preg_replace('/\s+on[a-z]+\s*=\s*(["\']).*?\1/is', '', $html) ?? '';
-        $html = preg_replace_callback(
-            '/\s+style\s*=\s*(["\'])(.*?)\1/is',
-            static function (array $match): string {
-                $declarations = [];
+        $document = new \DOMDocument('1.0', 'UTF-8');
+        $previousErrorHandling = libxml_use_internal_errors(true);
 
-                foreach (explode(';', $match[2]) as $declaration) {
-                    [$property, $value] = array_pad(explode(':', $declaration, 2), 2, '');
-                    $property = strtolower(trim($property));
-                    $value = trim($value);
+        try {
+            $loaded = $document->loadHTML(
+                '<div id="doubt-html-root">' . $html . '</div>',
+                LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET
+            );
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previousErrorHandling);
+        }
 
-                    if (
-                        in_array($property, [
-                            'color',
-                            'background-color',
-                            'font-size',
-                            'font-family',
-                            'text-align',
-                        ], true)
-                        && $value !== ''
-                        && ! preg_match('/(expression|javascript|vbscript|url\s*\()/i', $value)
-                    ) {
-                        $declarations[] = $property . ':' . e($value);
-                    }
+        if (! $loaded) {
+            throw new \RuntimeException('Unable to parse doubt response HTML.');
+        }
+
+        $root = $document->getElementsByTagName('div')->item(0);
+
+        if (! $root) {
+            throw new \RuntimeException('Unable to locate parsed doubt response HTML.');
+        }
+
+        self::sanitizeChildren($root, $document);
+
+        $safeHtml = '';
+        foreach ($root->childNodes as $child) {
+            $safeHtml .= $document->saveHTML($child);
+        }
+
+        return $safeHtml;
+    }
+
+    private static function sanitizeChildren(\DOMNode $parent, \DOMDocument $document): void
+    {
+        $allowedTags = [
+            'a', 'b', 'blockquote', 'br', 'caption', 'col', 'colgroup', 'del', 'div',
+            'em', 'figcaption', 'figure', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            'hr', 'i', 'img', 'iframe', 'li', 'ol', 'p', 's', 'span', 'strong',
+            'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'u', 'ul',
+        ];
+        $voidTags = ['br', 'col', 'hr', 'img'];
+
+        foreach (iterator_to_array($parent->childNodes) as $child) {
+            if (! $child instanceof \DOMElement) {
+                continue;
+            }
+
+            $tag = strtolower($child->tagName);
+
+            if ($tag === 'iframe' && ! self::isAllowedMediaUrl($child->getAttribute('src'))) {
+                $parent->removeChild($child);
+                continue;
+            }
+
+            if (! in_array($tag, $allowedTags, true)) {
+                if (in_array($tag, ['script', 'style', 'object', 'embed', 'form', 'svg', 'math'], true)) {
+                    $parent->removeChild($child);
+                    continue;
                 }
 
-                return $declarations
-                    ? ' style="' . implode(';', $declarations) . '"'
-                    : '';
-            },
-            $html
-        ) ?? '';
-        $html = preg_replace_callback(
-            '/\s+(href|src)\s*=\s*(["\'])(.*?)\2/is',
-            static function (array $match): string {
-                $value = trim($match[3]);
-
-                if (preg_match('/^(javascript|data|vbscript):/i', $value)) {
-                    return '';
+                while ($child->firstChild) {
+                    $parent->insertBefore($child->firstChild, $child);
                 }
+                $parent->removeChild($child);
+                continue;
+            }
 
-                return ' ' . $match[1] . '=' . $match[2] . e($value) . $match[2];
-            },
-            $html
-        ) ?? '';
+            self::sanitizeAttributes($child, $tag);
 
-        return $html;
+            if ($tag === 'iframe') {
+                while ($child->firstChild) {
+                    $child->removeChild($child->firstChild);
+                }
+                $child->setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation');
+                $child->setAttribute('loading', 'lazy');
+                $child->setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+                $child->setAttribute('allowfullscreen', '');
+            } elseif (! in_array($tag, $voidTags, true)) {
+                self::sanitizeChildren($child, $document);
+            }
+        }
+    }
+
+    private static function sanitizeAttributes(\DOMElement $element, string $tag): void
+    {
+        $attributes = iterator_to_array($element->attributes);
+
+        foreach ($attributes as $attribute) {
+            $name = strtolower($attribute->name);
+            $value = trim($attribute->value);
+            $keep = match ($name) {
+                'style' => self::sanitizeStyle($value) !== '',
+                'class' => self::sanitizeClassNames($value) !== '',
+                'href' => $tag === 'a' && self::isAllowedLinkUrl($value),
+                'src' => in_array($tag, ['img', 'iframe'], true)
+                    && ($tag === 'img' ? self::isAllowedImageUrl($value) : self::isAllowedMediaUrl($value)),
+                'alt', 'title' => in_array($tag, ['a', 'img', 'iframe'], true),
+                'target' => $tag === 'a' && $value === '_blank',
+                'width', 'height' => in_array($tag, ['img', 'iframe', 'table', 'td', 'th'], true)
+                    && preg_match('/^\d{1,4}%?$/', $value),
+                'colspan', 'rowspan' => in_array($tag, ['td', 'th'], true)
+                    && preg_match('/^\d{1,2}$/', $value),
+                'scope' => $tag === 'th' && in_array($value, ['row', 'col', 'rowgroup', 'colgroup'], true),
+                default => false,
+            };
+
+            if (! $keep) {
+                $element->removeAttributeNode($attribute);
+                continue;
+            }
+
+            if ($name === 'style') {
+                $element->setAttribute('style', self::sanitizeStyle($value));
+            } elseif ($name === 'class') {
+                $classNames = self::sanitizeClassNames($value);
+                if ($classNames === '') {
+                    $element->removeAttribute('class');
+                } else {
+                    $element->setAttribute('class', $classNames);
+                }
+            } elseif ($name === 'href' && $value !== '') {
+                $element->setAttribute('href', $value);
+                if ($value[0] !== '#') {
+                    $element->setAttribute('rel', 'noopener noreferrer');
+                }
+            } elseif ($name === 'src') {
+                $element->setAttribute('src', $value);
+            }
+        }
+
+        if ($tag === 'img' && $element->hasAttribute('src')) {
+            $element->setAttribute('loading', 'lazy');
+        }
+    }
+
+    private static function sanitizeStyle(string $style): string
+    {
+        $safeStyles = [];
+
+        foreach (explode(';', $style) as $declaration) {
+            if (! str_contains($declaration, ':')) {
+                continue;
+            }
+
+            [$property, $value] = array_map('trim', explode(':', $declaration, 2));
+            $property = strtolower($property);
+            $value = strtolower($value);
+
+            $isValid = match ($property) {
+                'color', 'background-color' => (bool) preg_match(
+                    '/^(#[0-9a-f]{3,8}|[a-z]{3,20}|rgba?\([\d.%\s,]+\)|hsla?\([\d.%\s,deg]+\))$/i',
+                    $value
+                ),
+                'font-size', 'width', 'height', 'margin-left', 'margin-right', 'margin-top', 'margin-bottom' => (bool) preg_match(
+                    '/^(auto|[-+]?\d*\.?\d+(px|em|rem|%|vw|vh))$/',
+                    $value
+                ),
+                'font-family' => (bool) preg_match('/^[a-z0-9 ,"\'-]{1,100}$/i', $value),
+                'text-align' => in_array($value, ['left', 'right', 'center', 'justify', 'start', 'end'], true),
+                default => false,
+            };
+
+            if ($isValid) {
+                $safeStyles[] = $property . ':' . e($value);
+            }
+        }
+
+        return implode(';', $safeStyles);
+    }
+
+    private static function sanitizeClassNames(string $classNames): string
+    {
+        $allowedClasses = [
+            'image',
+            'image-style-align-center',
+            'image-style-align-left',
+            'image-style-align-right',
+            'image-style-side',
+            'image_resized',
+            'media',
+            'table',
+        ];
+
+        return implode(' ', array_intersect(
+            preg_split('/\s+/', trim($classNames), -1, PREG_SPLIT_NO_EMPTY) ?: [],
+            $allowedClasses
+        ));
+    }
+
+    private static function isAllowedLinkUrl(string $url): bool
+    {
+        return $url !== ''
+            && ! preg_match('/[\x00-\x20]/', $url)
+            && (str_starts_with($url, '/') && ! str_starts_with($url, '//')
+                || str_starts_with($url, '#')
+                || preg_match('/^(https?:|mailto:)/i', $url));
+    }
+
+    private static function isAllowedImageUrl(string $url): bool
+    {
+        return $url !== ''
+            && ! preg_match('/[\x00-\x20]/', $url)
+            && (str_starts_with($url, '/') && ! str_starts_with($url, '//')
+                || preg_match('/^https?:/i', $url));
+    }
+
+    private static function isAllowedMediaUrl(string $url): bool
+    {
+        $parts = parse_url($url);
+
+        if (! is_array($parts) || strtolower($parts['scheme'] ?? '') !== 'https') {
+            return false;
+        }
+
+        $host = strtolower($parts['host'] ?? '');
+        $path = $parts['path'] ?? '';
+
+        return in_array($host, [
+            'youtube.com',
+            'www.youtube.com',
+            'youtube-nocookie.com',
+            'www.youtube-nocookie.com',
+            'player.vimeo.com',
+        ], true) && preg_match('~^/(embed|video)/[a-zA-Z0-9_-]+/?$~', $path);
     }
 
     public function user()

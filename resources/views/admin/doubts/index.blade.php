@@ -8,12 +8,27 @@
         .doubt-context { background: #f8fafc; border-radius: 14px; padding: 18px; }
         .doubt-context .label { color: #64748b; font-size: .75rem; font-weight: 700; text-transform: uppercase; }
         .doubt-context .value { color: #1e293b; white-space: pre-wrap; }
-        .modal-response-toolbar { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px; background: #f8fafc; border: 1px solid #dbe3ee; border-bottom: 0; border-radius: 10px 10px 0 0; }
-        .modal-response-toolbar button { min-width: 32px; padding: 4px 8px; }
-        .modal-response-toolbar select { width: auto; min-width: 92px; }
-        .modal-response-content { min-height: 260px; max-height: 420px; overflow-y: auto; padding: 14px; background: #fff; border: 1px solid #dbe3ee; border-radius: 0 0 10px 10px; outline: none; }
-        .modal-response-content:focus { border-color: #86b7fe; box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .12); }
-        .modal-response-content ul, .modal-response-content ol { padding-left: 1.5rem; }
+        .doubt-response-modal .response-editor-container,
+        .doubt-response-modal .ck-editor,
+        .doubt-response-modal .ck-editor__top,
+        .doubt-response-modal .ck-toolbar,
+        .doubt-response-modal .ck-toolbar__items {
+            box-sizing: border-box;
+            min-width: 0;
+            max-width: 100%;
+        }
+        .doubt-response-modal .ck-editor { width: 100%; }
+        .doubt-response-modal .ck-editor__editable_inline { min-height: 300px; max-height: 65vh; overflow-y: auto; }
+        .doubt-response-modal .ck-toolbar__items {
+            width: 100%;
+            flex-wrap: wrap !important;
+            overflow: visible !important;
+        }
+        .response-editor-readonly .ck-toolbar { display: none; }
+        @media (max-width: 575.98px) {
+            .doubt-response-modal .modal-dialog { margin: .5rem; }
+            .doubt-response-modal .ck-editor__editable_inline { min-height: 240px; max-height: 55vh; }
+        }
     </style>
 
     <div class="mb-4">
@@ -234,25 +249,9 @@
                         </select>
                         <label class="form-label fw-semibold" for="modalResponseContent">Response</label>
                         <input type="hidden" name="answer" id="responseAnswer">
-                        <div class="modal-response-toolbar" aria-label="Response formatting toolbar">
-                            <button type="button" data-command="bold" title="Bold"><strong>B</strong></button>
-                            <button type="button" data-command="italic" title="Italic"><em>I</em></button>
-                            <button type="button" data-command="underline" title="Underline"><u>U</u></button>
-                            <button type="button" data-command="strikeThrough" title="Strikethrough"><s>S</s></button>
-                            <select data-command="fontSize" title="Font size" aria-label="Font size">
-                                <option value="">Size</option><option value="2">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option>
-                            </select>
-                            <input type="color" data-command="foreColor" title="Text color" aria-label="Text color" value="#1e293b">
-                            <button type="button" data-command="justifyLeft" title="Align left">Left</button>
-                            <button type="button" data-command="justifyCenter" title="Align center">Center</button>
-                            <button type="button" data-command="justifyRight" title="Align right">Right</button>
-                            <button type="button" data-command="insertUnorderedList" title="Bulleted list">• List</button>
-                            <button type="button" data-command="insertOrderedList" title="Numbered list">1. List</button>
-                            <button type="button" data-command="undo" title="Undo">↶</button>
-                            <button type="button" data-command="redo" title="Redo">↷</button>
+                        <div class="response-editor-container" id="responseEditorContainer">
+                            <textarea class="form-control" id="modalResponseContent" rows="10" aria-label="Response editor"></textarea>
                         </div>
-                        <div class="modal-response-content" id="modalResponseContent" contenteditable="true"
-                             role="textbox" aria-label="Response editor"></div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -265,6 +264,7 @@
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/super-build/ckeditor.js"></script>
     <script>
         (() => {
             const modalElement = document.getElementById('doubtResponseModal');
@@ -285,14 +285,107 @@
                     }
                 };
             const modalContent = document.getElementById('modalResponseContent');
+            const editorContainer = document.getElementById('responseEditorContainer');
             const responseForm = document.getElementById('responseModalForm');
             const responseAnswer = document.getElementById('responseAnswer');
             const saveButton = document.getElementById('saveResponseButton');
             let currentMode = 'add';
+            let pendingResponseHtml = '';
+            let responseEditor;
+            let responseEditorPromise;
+            let responseEditorIsReadOnly = false;
 
             const decode = (value) => value ? atob(value) : '';
             const setText = (id, value) => {
                 document.getElementById(id).textContent = value || '-';
+            };
+
+            const ensureEditor = () => {
+                if (responseEditor) return Promise.resolve(responseEditor);
+                if (responseEditorPromise) return responseEditorPromise;
+
+                const Editor = window.CKEDITOR?.ClassicEditor;
+                if (!Editor) {
+                    console.error('Doubt response editor initialization failed: CKEditor 5 super-build did not load.');
+                    return Promise.resolve(null);
+                }
+
+                const config = {
+                    removePlugins: [
+                        'RealTimeCollaborativeComments',
+                        'RealTimeCollaborativeTrackChanges',
+                        'RealTimeCollaborativeRevisionHistory',
+                        'PresenceList',
+                        'Comments',
+                        'TrackChanges',
+                        'TrackChangesData',
+                        'RevisionHistory',
+                        'Users',
+                        'CommentsRepository',
+                        'WProofreader',
+                        'Pagination',
+                        'DocumentOutline',
+                        'AIAssistant',
+                        'AIAssistantUI',
+                        'AIAssistantEditing',
+                        'AIAdapter',
+                        'TableOfContents',
+                        'FormatPainter',
+                        'Template',
+                        'SlashCommand',
+                        'PasteFromOfficeEnhanced',
+                        'CaseChange',
+                        'MathType'
+                    ],
+                    ckfinder: {
+                        uploadUrl: '{{ route("admin.topics.upload_image") }}?_token={{ csrf_token() }}'
+                    },
+                    toolbar: {
+                        items: [
+                            'heading', '|',
+                            'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
+                            'bold', 'italic', 'underline', 'strikethrough', 'removeFormat', '|',
+                            'link', 'bulletedList', 'numberedList', 'outdent', 'indent', '|',
+                            'blockQuote', 'imageUpload', 'insertTable', 'mediaEmbed', '|',
+                            'undo', 'redo'
+                        ]
+                    }
+                };
+
+                responseEditorPromise = Editor.create(modalContent, config)
+                    .then((editor) => {
+                        responseEditor = editor;
+                        return editor;
+                    })
+                    .catch((error) => {
+                        responseEditorPromise = null;
+                        console.error('Doubt response editor initialization failed:', error);
+                        return null;
+                    });
+
+                return responseEditorPromise;
+            };
+
+            const loadEditorContent = () => {
+                ensureEditor().then((editor) => {
+                    if (!editor) {
+                        modalContent.value = pendingResponseHtml;
+                        return;
+                    }
+
+                    editor.setData(pendingResponseHtml);
+                    if (currentMode === 'view' && !responseEditorIsReadOnly) {
+                        editor.enableReadOnlyMode('doubt-response-view');
+                        responseEditorIsReadOnly = true;
+                    } else if (currentMode !== 'view' && responseEditorIsReadOnly) {
+                        editor.disableReadOnlyMode('doubt-response-view');
+                        responseEditorIsReadOnly = false;
+                    }
+
+                    if (currentMode !== 'view') {
+                        editor.editing.view.focus();
+                    }
+                });
             };
 
             const closeModal = () => {
@@ -314,27 +407,16 @@
                     setText('responseTopic', button.dataset.topic);
                     setText('responseSubmission', button.dataset.submission);
                     setText('responseMessage', decode(button.dataset.message));
-                    modalContent.innerHTML = decode(button.dataset.answer);
-                    modalContent.contentEditable = currentMode === 'view' ? 'false' : 'true';
-                    modalContent.setAttribute('aria-readonly', currentMode === 'view' ? 'true' : 'false');
+                    pendingResponseHtml = decode(button.dataset.answer);
+                    modalContent.value = pendingResponseHtml;
+                    editorContainer.classList.toggle('response-editor-readonly', currentMode === 'view');
                     responseForm.action = `{{ url('/admin/doubts') }}/${button.dataset.id}`;
                     document.getElementById('responseStatus').value =
                         currentMode === 'add' ? 'answered' : (button.dataset.status || 'answered');
+                    document.getElementById('responseStatus').disabled = currentMode === 'view';
                     saveButton.classList.toggle('d-none', currentMode === 'view');
-                    modalElement.querySelectorAll('[data-command]').forEach((control) => {
-                        control.disabled = currentMode === 'view';
-                    });
                     modal.show();
-                    if (currentMode !== 'view') modalContent.focus();
-                });
-            });
-
-            modalElement.querySelectorAll('[data-command]').forEach((control) => {
-                control.addEventListener('mousedown', (event) => event.preventDefault());
-                control.addEventListener('click', () => {
-                    if (currentMode === 'view') return;
-                    modalContent.focus();
-                    document.execCommand(control.dataset.command, false, control.value || null);
+                    loadEditorContent();
                 });
             });
 
@@ -343,12 +425,20 @@
                     event.preventDefault();
                     return;
                 }
-                if (!modalContent.textContent.trim()) {
+
+                const responseHtml = responseEditor ? responseEditor.getData().trim() : modalContent.value.trim();
+                const responseText = new DOMParser()
+                    .parseFromString(responseHtml, 'text/html')
+                    .body.textContent.trim();
+
+                if (!responseText) {
                     event.preventDefault();
-                    modalContent.focus();
+                    if (responseEditor) responseEditor.editing.view.focus();
+                    else modalContent.focus();
                     return;
                 }
-                responseAnswer.value = modalContent.innerHTML.trim();
+
+                responseAnswer.value = responseHtml;
                 saveButton.disabled = true;
                 saveButton.textContent = 'Saving...';
             });
