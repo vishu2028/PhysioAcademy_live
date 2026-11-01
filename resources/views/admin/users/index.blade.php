@@ -13,7 +13,7 @@
 
 <x-admin.data-table 
     title="All Users" 
-    :headers="['User', 'Email', 'Role', 'Joined At', 'Actions']" 
+    :headers="['User', 'Actions', 'Email', 'Role', 'Joined At']"
     :createRoute="route('admin.users.create')"
 >
     @foreach($users as $user)
@@ -24,13 +24,6 @@
                 <span class="fw-semibold">{{ $user->name }}</span>
             </div>
         </td>
-        <td>{{ $user->email }}</td>
-        <td>
-            @foreach($user->roles as $role)
-                <span class="badge bg-primary-subtle text-primary rounded-pill px-3">{{ ucfirst($role->name) }}</span>
-            @endforeach
-        </td>
-        <td class="small text-muted">{{ $user->created_at->format('M d, Y') }}</td>
         <td>
             <div class="dropdown">
                 <button class="btn btn-light btn-sm rounded-circle p-2" data-bs-toggle="dropdown">
@@ -48,6 +41,13 @@
                 </ul>
             </div>
         </td>
+        <td>{{ $user->email }}</td>
+        <td>
+            @foreach($user->roles as $role)
+                <span class="badge bg-primary-subtle text-primary rounded-pill px-3">{{ ucfirst($role->name) }}</span>
+            @endforeach
+        </td>
+        <td class="small text-muted">{{ $user->created_at->format('M d, Y') }}</td>
     </tr>
     @endforeach
 </x-admin.data-table>

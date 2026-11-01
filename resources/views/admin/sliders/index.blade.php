@@ -12,7 +12,7 @@
 
 <x-admin.data-table 
     title="Slider List" 
-    :headers="['Image', 'Title', 'Subtitle', 'Status', 'Actions']" 
+    :headers="['Image', 'Title', 'Actions', 'Subtitle', 'Status']"
     :createRoute="route('admin.sliders.create')"
 >
     @foreach($sliders as $slider)
@@ -25,14 +25,6 @@
             @endif
         </td>
         <td class="fw-bold">{{ $slider->title }}</td>
-        <td class="small">{{ Str::limit($slider->subtitle, 40) }}</td>
-        <td>
-            @if($slider->status)
-                <span class="badge bg-success-subtle text-success px-3">Active</span>
-            @else
-                <span class="badge bg-danger-subtle text-danger px-3">Inactive</span>
-            @endif
-        </td>
         <td>
             <div class="d-flex gap-2">
                 <a href="{{ route('admin.sliders.edit', $slider) }}" class="btn btn-primary btn-sm rounded-3"><i class="bi bi-pencil"></i></a>
@@ -41,6 +33,14 @@
                     <button type="submit" class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
                 </form>
             </div>
+        </td>
+        <td class="small">{{ Str::limit($slider->subtitle, 40) }}</td>
+        <td>
+            @if($slider->status)
+                <span class="badge bg-success-subtle text-success px-3">Active</span>
+            @else
+                <span class="badge bg-danger-subtle text-danger px-3">Inactive</span>
+            @endif
         </td>
     </tr>
     @endforeach

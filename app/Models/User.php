@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -51,6 +53,19 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function avatarUrl(): ?string
+    {
+        if (! filled($this->avatar)) {
+            return null;
+        }
+
+        if (Str::startsWith($this->avatar, ['https://', 'http://'])) {
+            return $this->avatar;
+        }
+
+        return Storage::disk('public')->url($this->avatar);
     }
 
     /**

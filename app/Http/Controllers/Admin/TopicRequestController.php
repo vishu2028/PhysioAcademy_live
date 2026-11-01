@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\PreservesListingContext;
 use App\Http\Controllers\Controller;
 use App\Models\Topic;
 use App\Models\TopicRequest;
@@ -11,6 +12,8 @@ use Illuminate\Validation\Rule;
 
 class TopicRequestController extends Controller
 {
+    use PreservesListingContext;
+
     public function index(Request $request)
     {
         $validated = $request->validate([
@@ -105,6 +108,6 @@ class TopicRequestController extends Controller
             $topicRequest->user->notify(new TopicRequestStatusUpdated($topicRequest->fresh('topic')));
         }
 
-        return back()->with('success', 'Topic request updated successfully.');
+        return $this->redirectToListing($request, 'admin.topic-requests.index')->with('success', 'Topic request updated successfully.');
     }
 }

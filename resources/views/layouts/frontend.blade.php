@@ -521,15 +521,24 @@
                     <button
                         type="button"
                         class="nav-user-avatar"
+                        aria-label="Open profile menu"
                     >
-                        {{ $initials }}
+                        @if($user->avatarUrl())
+                            <img src="{{ $user->avatarUrl() }}" alt="{{ $displayName }} profile picture">
+                        @else
+                            {{ $initials }}
+                        @endif
                     </button>
 
                     <div class="nav-user-dropdown">
                         <div class="nav-user-dropdown-card">
                             <div class="nav-user-info">
                                 <div class="nav-user-info-avatar">
-                                    {{ $initials }}
+                                    @if($user->avatarUrl())
+                                        <img src="{{ $user->avatarUrl() }}" alt="{{ $displayName }} profile picture">
+                                    @else
+                                        {{ $initials }}
+                                    @endif
                                 </div>
 
                                 <div class="nav-user-info-text">
@@ -589,6 +598,64 @@
                                     <span>
                                 Doubt Session History
                             </span>
+                                </a>
+
+                                <div class="nav-user-divider"></div>
+
+                                <a
+                                    href="{{ route('doubts.mine') }}"
+                                    class="nav-user-menu-link
+                                {{ request()->routeIs('doubts.mine') ? 'active' : '' }}"
+                                >
+                                    <svg
+                                        width="17"
+                                        height="17"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H7l-4 2v-5.5A7.5 7.5 0 1 1 20 11.5Z"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linejoin="round"
+                                        />
+
+                                        <path
+                                            d="M9.5 9.5a2.5 2.5 0 1 1 4.2 1.8c-1 .9-1.7 1.2-1.7 2.7M12 17h.01"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                        />
+                                    </svg>
+
+                                    <span>My Doubts</span>
+                                </a>
+
+                                <div class="nav-user-divider"></div>
+
+                                <a
+                                    href="{{ route('topic-requests.mine') }}"
+                                    class="nav-user-menu-link
+                                {{ request()->routeIs('topic-requests.mine') ? 'active' : '' }}"
+                                >
+                                    <svg
+                                        width="17"
+                                        height="17"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        />
+                                    </svg>
+
+                                    <span>My Topic Requests</span>
                                 </a>
 
                                 <div class="nav-user-divider"></div>
@@ -1310,6 +1377,15 @@
     .nav-user-avatar:hover {
         transform: translateY(-2px);
         box-shadow: 0 14px 32px rgba(37, 99, 235, 0.30);
+    }
+
+    .nav-user-avatar img,
+    .nav-user-info-avatar img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
     }
 
     /* Dropdown Wrapper */

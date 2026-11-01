@@ -12,21 +12,12 @@
 
 <x-admin.data-table 
     title="Main Menus" 
-    :headers="['Name', 'Location Slug', 'Items Count', 'Status', 'Actions']" 
+    :headers="['Name', 'Actions', 'Location Slug', 'Items Count', 'Status']"
     :createRoute="route('admin.menus.create')"
 >
     @foreach($menus as $menu)
     <tr>
         <td class="ps-4 fw-bold">{{ $menu->name }}</td>
-        <td><code>{{ $menu->location }}</code></td>
-        <td><span class="badge bg-light text-dark border">{{ $menu->items->count() }} Items</span></td>
-        <td>
-            @if($menu->status)
-                <span class="badge bg-success-subtle text-success px-3">Active</span>
-            @else
-                <span class="badge bg-danger-subtle text-danger px-3">Inactive</span>
-            @endif
-        </td>
         <td>
             <div class="d-flex gap-2">
                 <a href="{{ route('admin.menus.edit', $menu) }}" class="btn btn-primary btn-sm rounded-3"><i class="bi bi-pencil"></i></a>
@@ -35,6 +26,15 @@
                     <button type="submit" class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
                 </form>
             </div>
+        </td>
+        <td><code>{{ $menu->location }}</code></td>
+        <td><span class="badge bg-light text-dark border">{{ $menu->items->count() }} Items</span></td>
+        <td>
+            @if($menu->status)
+                <span class="badge bg-success-subtle text-success px-3">Active</span>
+            @else
+                <span class="badge bg-danger-subtle text-danger px-3">Inactive</span>
+            @endif
         </td>
     </tr>
     @endforeach

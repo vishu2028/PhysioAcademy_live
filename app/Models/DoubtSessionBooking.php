@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\Loggable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DoubtSessionBooking extends Model
 {
@@ -111,6 +112,16 @@ class DoubtSessionBooking extends Model
     public function coupon(): BelongsTo
     {
         return $this->belongsTo(Coupon::class);
+    }
+
+    public function likes(): HasMany
+    {
+        return $this->hasMany(DoubtSessionLike::class);
+    }
+
+    public function followUps(): HasMany
+    {
+        return $this->hasMany(DoubtSessionFollowUp::class);
     }
 
     /**

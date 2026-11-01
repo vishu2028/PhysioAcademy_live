@@ -3,14 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\AcademicYear;
+use App\Models\DoubtSessionBooking;
+use App\Models\ExamAid;
+use App\Models\GroupWebinarRequest;
+use App\Models\Media;
+use App\Models\Message;
 use App\Models\Page;
 use App\Models\Subject;
 use App\Models\Topic;
-use App\Models\Feature;
-use App\Models\Message;
-use App\Models\Testimonial;
-use App\Models\Media;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -28,11 +30,19 @@ class DashboardController extends Controller
             'users'      => User::count(),
             'pages'      => Page::count(),
             'subjects'   => Subject::count(),
-            'topics'     => Topic::count(),
-            'services'   => Topic::count(), // Change to Service::count() if Service model exists
-            'features'   => Feature::count(),
-            'messages'   => Message::count(),
+            'academic_years' => AcademicYear::count(),
+            'exam_aids' => ExamAid::count(),
+            'doubt_sessions' => DoubtSessionBooking::count(),
+            'group_webinars' => GroupWebinarRequest::count(),
         ];
+
+        $topicStatusCounts = Topic::query()
+            ->selectRaw(
+                'COALESCE(SUM(CASE WHEN status = ? THEN 1 ELSE 0 END), 0) as active_count,
+                COALESCE(SUM(CASE WHEN status = ? THEN 1 ELSE 0 END), 0) as inactive_count',
+                [true, false]
+            )
+            ->first();
 
         /*
         |--------------------------------------------------------------------------
@@ -66,10 +76,8 @@ class DashboardController extends Controller
             'users' => $userData,
 
             'distribution' => [
-                'Pages'        => $stats['pages'],
-                'Topics'       => $stats['topics'],
-                'Subjects'     => $stats['subjects'],
-                'Testimonials' => Testimonial::count(),
+                'Active Topics' => (int) $topicStatusCounts->active_count,
+                'Inactive Topics' => (int) $topicStatusCounts->inactive_count,
             ],
         ];
 

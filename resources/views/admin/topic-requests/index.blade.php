@@ -60,12 +60,12 @@
                         <th>Request ID</th>
                         <th>Topic Name</th>
                         <th>Subject</th>
+                        <th>Actions</th>
                         <th>Academic Year / Semester</th>
                         <th>Requested By</th>
                         <th>Description</th>
                         <th>Submitted Date &amp; Time</th>
                         <th>Status</th>
-                        <th>Actions</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -92,33 +92,8 @@
                                 @endif
                             </td>
                             <td>{{ $topicRequest->subject?->name ?? '-' }}</td>
-                            <td>
-                                {{ $topicRequest->academicYear?->name ?? '-' }}
-                                @if($topicRequest->semester)
-                                    <small class="d-block text-muted">{{ $topicRequest->semester->name }}</small>
-                                @endif
-                            </td>
-                            <td>
-                                <strong>{{ $topicRequest->user?->name ?? 'N/A' }}</strong>
-                                <small class="d-block text-muted">{{ $topicRequest->user?->email ?? '-' }}</small>
-                            </td>
-                            <td style="min-width: 240px; max-width: 320px;">
-                                <details>
-                                    <summary class="text-primary">View details</summary>
-                                    <div class="small text-muted mt-2" style="white-space: pre-wrap;">{{ $topicRequest->description }}</div>
-                                </details>
-                            </td>
-                            <td class="text-nowrap">
-                                {{ $topicRequest->created_at?->copy()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A') ?? '-' }}
-                                @if($topicRequest->resolved_at)
-                                    <small class="d-block text-muted">
-                                        Resolved {{ $topicRequest->resolved_at->copy()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A') }}
-                                    </small>
-                                @endif
-                            </td>
-                            <td><span class="badge bg-{{ $badgeClass }}">{{ ucfirst(str_replace('_', ' ', $topicRequest->status)) }}</span></td>
                             <td style="min-width: 280px;">
-                                <form action="{{ route('admin.topic-requests.update', $topicRequest) }}" method="POST">
+                                <form action="{{ route('admin.topic-requests.update', [$topicRequest, '_listing' => request()->query()]) }}" method="POST">
                                     @csrf
                                     @method('PATCH')
                                     <label class="visually-hidden" for="status-{{ $topicRequest->id }}">Status</label>
@@ -159,12 +134,37 @@
                                     </select>
                                     <button type="submit" class="btn btn-primary btn-sm">Save Update</button>
                                 </form>
-                                @if($topicRequest->topic)
-                                    <a class="btn btn-link btn-sm px-0" href="{{ route('topics.show', $topicRequest->topic->slug) }}" target="_blank" rel="noopener">
-                                        View published topic
-                                    </a>
+                                    @if($topicRequest->topic)
+                                        <a class="btn btn-link btn-sm px-0" href="{{ route('topics.show', $topicRequest->topic->slug) }}" target="_blank" rel="noopener">
+                                            View published topic
+                                        </a>
+                                    @endif
+                            </td>
+                            <td>
+                                {{ $topicRequest->academicYear?->name ?? '-' }}
+                                @if($topicRequest->semester)
+                                    <small class="d-block text-muted">{{ $topicRequest->semester->name }}</small>
                                 @endif
                             </td>
+                            <td>
+                                <strong>{{ $topicRequest->user?->name ?? 'N/A' }}</strong>
+                                <small class="d-block text-muted">{{ $topicRequest->user?->email ?? '-' }}</small>
+                            </td>
+                            <td style="min-width: 240px; max-width: 320px;">
+                                <details>
+                                    <summary class="text-primary">View details</summary>
+                                    <div class="small text-muted mt-2" style="white-space: pre-wrap;">{{ $topicRequest->description }}</div>
+                                </details>
+                            </td>
+                            <td class="text-nowrap">
+                                {{ $topicRequest->created_at?->copy()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A') ?? '-' }}
+                                @if($topicRequest->resolved_at)
+                                    <small class="d-block text-muted">
+                                        Resolved {{ $topicRequest->resolved_at->copy()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A') }}
+                                    </small>
+                                @endif
+                            </td>
+                            <td><span class="badge bg-{{ $badgeClass }}">{{ ucfirst(str_replace('_', ' ', $topicRequest->status)) }}</span></td>
                         </tr>
                     @empty
                         <tr><td colspan="9" class="text-center text-muted py-5">No topic requests found.</td></tr>

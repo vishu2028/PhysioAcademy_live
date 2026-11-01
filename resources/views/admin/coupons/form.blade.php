@@ -2,10 +2,10 @@
 
 @section('content')
 <div class="container-fluid py-4">
-    <a href="{{ route('admin.coupons.index') }}" class="text-decoration-none"><i class="bi bi-arrow-left"></i> Coupons</a>
+    <a href="{{ route('admin.coupons.index', request()->query('_listing', [])) }}" class="text-decoration-none"><i class="bi bi-arrow-left"></i> Coupons</a>
     <h1 class="h3 mt-3 mb-4">{{ $coupon->exists ? 'Edit Coupon' : 'Create Coupon' }}</h1>
     @if($errors->any())<div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-    <form method="post" action="{{ $coupon->exists ? route('admin.coupons.update', $coupon) : route('admin.coupons.store') }}" class="card border-0 shadow-sm p-4">
+    <form method="post" action="{{ $coupon->exists ? route('admin.coupons.update', [$coupon, '_listing' => request()->query('_listing', [])]) : route('admin.coupons.store', ['_listing' => request()->query('_listing', [])]) }}" class="card border-0 shadow-sm p-4">
         @csrf @if($coupon->exists) @method('PUT') @endif
         <div class="row g-3">
             <div class="col-md-6"><label class="form-label" for="code">Coupon code</label><input id="code" name="code" class="form-control text-uppercase" value="{{ old('code', $coupon->code) }}" required maxlength="64"></div>

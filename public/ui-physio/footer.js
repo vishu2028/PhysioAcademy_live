@@ -2,7 +2,11 @@
 
 (function initPhysioSphereFooter() {
   const renderFooter = () => {
-    if (document.getElementById('globalFooter')) return;
+    const existingFooter = document.getElementById('globalFooter');
+    if (existingFooter) {
+      initFooterSubscribe(existingFooter);
+      return;
+    }
 
     const footer = document.createElement('footer');
     footer.className = 'global-footer reveal-up';
@@ -75,13 +79,13 @@
         <div class="footer-newsletter">
           <h3>Subscribe Now</h3>
           <p>Get updates about important topics, exam resources, and new learning materials.</p>
-          <form class="footer-subscribe-form" id="footerSubscribeForm">
+          <form class="footer-subscribe-form" id="footerSubscribeForm" method="POST" action="/newsletter/subscribe">
             <label for="footerEmail" class="sr-only">Email address</label>
-            <input id="footerEmail" type="email" placeholder="Enter your email" required>
+            <input id="footerEmail" name="email" type="email" placeholder="Enter your email" autocomplete="email" required>
             <button type="submit"><span>Subscribe</span></button>
           </form>
           <small>Join our YouTube & academic community.</small>
-          <div class="footer-subscribe-message" id="footerSubscribeMessage" role="status" aria-live="polite"></div>
+          <div class="footer-subscribe-message" id="footerSubscribeMessage" role="status" aria-live="polite" aria-atomic="true"></div>
         </div>
       </div>
       <div class="footer-bottom">
@@ -98,26 +102,53 @@
   const initFooterSubscribe = footer => {
     const form = footer.querySelector('#footerSubscribeForm');
     const message = footer.querySelector('#footerSubscribeMessage');
-    if (!form || !message) return;
+    if (!form || !message || form.dataset.subscriptionHandler === 'attached') return;
 
-    form.addEventListener('submit', event => {
+    form.dataset.subscriptionHandler = 'attached';
+    form.addEventListener('submit', async event => {
       event.preventDefault();
       const button = form.querySelector('button');
-      const input = form.querySelector('input');
-      if (!input.value.trim()) return;
+      const input = form.querySelector('input[type="email"]');
+      if (!input || !button || !input.value.trim()) return;
 
       button.classList.add('is-loading');
       button.disabled = true;
       message.textContent = '';
+      message.removeAttribute('data-state');
 
-      setTimeout(() => {
+      try {
+        const token = document.querySelector('meta[name="csrf-token"]')?.content
+          || form.querySelector('input[name="_token"]')?.value
+          || document.querySelector('form input[name="_token"]')?.value;
+        const response = await fetch(form.action || '/newsletter/subscribe', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            ...(token ? { 'X-CSRF-TOKEN': token } : {})
+          },
+          body: new FormData(form),
+          credentials: 'same-origin'
+        });
+        const result = await response.json();
+        const responseMessage = response.ok
+          ? result.message || "Thank you for subscribing! You'll receive updates from PhysioSource."
+          : result.errors?.email?.[0] || result.message || 'Unable to subscribe right now. Please try again.';
+
+        message.textContent = responseMessage;
+        message.dataset.state = response.ok ? 'success' : 'error';
+        if (response.ok) {
+          button.classList.add('is-success');
+          input.value = '';
+        }
+      } catch {
+        message.textContent = 'Unable to subscribe right now. Please try again.';
+        message.dataset.state = 'error';
+      } finally {
         button.classList.remove('is-loading');
-        button.classList.add('is-success');
         button.disabled = false;
-        message.textContent = 'Subscribed successfully. Welcome to Physio Academy updates.';
-        input.value = '';
-        setTimeout(() => button.classList.remove('is-success'), 1500);
-      }, 850);
+        window.setTimeout(() => button.classList.remove('is-success'), 1500);
+      }
     });
   };
 

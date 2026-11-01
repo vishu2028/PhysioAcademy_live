@@ -12,7 +12,7 @@
 
 <x-admin.data-table
     title="Subject List"
-    :headers="['Icon', 'Name', 'Code', 'Topics', 'Order', 'Status', 'Actions']"
+    :headers="['Icon', 'Name', 'Actions', 'Code', 'Topics', 'Order', 'Status']"
     :createRoute="route('admin.subjects.create')"
 >
     @foreach($subjects as $subject)
@@ -27,6 +27,15 @@
             @endif
         </td>
         <td class="fw-bold">{{ $subject->name }}</td>
+        <td>
+            <div class="d-flex gap-2">
+                <a href="{{ route('admin.subjects.edit', $subject) }}" class="btn btn-primary btn-sm rounded-3"><i class="bi bi-pencil"></i></a>
+                <form action="{{ route('admin.subjects.destroy', $subject) }}" method="POST" onsubmit="return confirm('Delete this Subject? This will also delete all topics under it.')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
+        </td>
         <td>{{ $subject->code ?? '-' }}</td>
         <td>{{ $subject->topics_count ?? $subject->topics()->count() }}</td>
         <td>{{ $subject->order }}</td>
@@ -36,15 +45,6 @@
             @else
                 <span class="badge bg-danger-subtle text-danger px-3">Inactive</span>
             @endif
-        </td>
-        <td>
-            <div class="d-flex gap-2">
-                <a href="{{ route('admin.subjects.edit', $subject) }}" class="btn btn-primary btn-sm rounded-3"><i class="bi bi-pencil"></i></a>
-                <form action="{{ route('admin.subjects.destroy', $subject) }}" method="POST" onsubmit="return confirm('Delete this Subject? This will also delete all topics under it.')">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
-                </form>
-            </div>
         </td>
     </tr>
     @endforeach

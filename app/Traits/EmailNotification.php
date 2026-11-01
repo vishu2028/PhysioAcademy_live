@@ -35,6 +35,7 @@ trait EmailNotification
         return match ($data['type'] ?? null) {
             'doubt_answered' => route('doubts.mine'),
             'doubt_session_status_updated' => route('doubt-sessions.history'),
+            'doubt_session_follow_up_answered' => route('doubt-sessions.history') . '#session-booking-' . $data['booking_id'],
             'topic_request_status_updated' => $data['topic_link'] ?? route('topic-requests.mine'),
             'webinar_registration', 'webinar_updated' => route('webinars.my'),
             default => route('home'),

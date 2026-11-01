@@ -480,12 +480,12 @@
                                         Timeline Title
                                     </th>
 
-                                    <th>
-                                        Description
-                                    </th>
-
                                     <th width="150">
                                         Actions
+                                    </th>
+
+                                    <th>
+                                        Description
                                     </th>
 
                                 </tr>
@@ -532,7 +532,16 @@
 
                                         </td>
 
-
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                <a href="{{ route('admin.about_timelines.edit', $timeline->id) }}" class="btn btn-sm btn-light border" title="Edit"><i class="bi bi-pencil"></i></a>
+                                                <form action="{{ route('admin.about_timelines.destroy', $timeline->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this timeline?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-light border text-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                                </form>
+                                            </div>
+                                        </td>
 
                                         {{-- Description --}}
                                         <td class="text-secondary">
@@ -542,48 +551,6 @@
                                         </td>
 
 
-
-                                        {{-- Actions --}}
-                                        <td>
-
-                                            <div class="d-flex gap-1">
-
-
-                                                {{-- Edit --}}
-                                                <a href="{{ route('admin.about_timelines.edit', $timeline->id) }}"
-                                                   class="btn btn-sm btn-light border"
-                                                   title="Edit">
-
-                                                    <i class="bi bi-pencil"></i>
-
-                                                </a>
-
-
-
-                                                {{-- Delete --}}
-                                                <form action="{{ route('admin.about_timelines.destroy', $timeline->id) }}"
-                                                      method="POST"
-                                                      class="d-inline"
-                                                      onsubmit="return confirm('Are you sure you want to delete this timeline?');">
-
-                                                    @csrf
-
-                                                    @method('DELETE')
-
-                                                    <button type="submit"
-                                                            class="btn btn-sm btn-light border text-danger"
-                                                            title="Delete">
-
-                                                        <i class="bi bi-trash"></i>
-
-                                                    </button>
-
-                                                </form>
-
-
-                                            </div>
-
-                                        </td>
 
 
                                     </tr>

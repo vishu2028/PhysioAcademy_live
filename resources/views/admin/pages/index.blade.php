@@ -12,21 +12,12 @@
 
 <x-admin.data-table 
     title="Static & Dynamic Pages" 
-    :headers="['Title', 'Slug', 'Visibility', 'Last Updated', 'Actions']" 
+    :headers="['Title', 'Actions', 'Slug', 'Visibility', 'Last Updated']"
     :createRoute="route('admin.pages.create')"
 >
     @foreach($pages as $page)
     <tr>
         <td class="ps-4 fw-bold">{{ $page->title }}</td>
-        <td><code>{{ $page->url }}</code></td>
-        <td>
-            @if($page->status)
-                <span class="badge bg-success-subtle text-success px-3">Public</span>
-            @else
-                <span class="badge bg-warning-subtle text-warning px-3">Draft</span>
-            @endif
-        </td>
-        <td>{{ $page->updated_at->diffForHumans() }}</td>
         <td>
             <div class="d-flex gap-2">
                 <a href="{{ $page->url }}" target="_blank" class="btn btn-light btn-sm rounded-3" title="View Page"><i class="bi bi-eye"></i></a>
@@ -38,6 +29,15 @@
                 </form>
             </div>
         </td>
+        <td><code>{{ $page->url }}</code></td>
+        <td>
+            @if($page->status)
+                <span class="badge bg-success-subtle text-success px-3">Public</span>
+            @else
+                <span class="badge bg-warning-subtle text-warning px-3">Draft</span>
+            @endif
+        </td>
+        <td>{{ $page->updated_at->diffForHumans() }}</td>
     </tr>
     @endforeach
 </x-admin.data-table>

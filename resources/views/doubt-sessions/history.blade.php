@@ -26,6 +26,20 @@
 
         <section class="doubt-history-content">
             <div class="doubt-history-container">
+                @if(session('success'))
+                    <div class="alert alert-success rounded-3 mb-4" role="status">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="alert alert-danger rounded-3 mb-4" role="alert">
+                        @foreach($errors->all() as $error)
+                            <div>{{ $error }}</div>
+                        @endforeach
+                    </div>
+                @endif
+
                 @if($bookings->isEmpty())
                     <div class="doubt-history-empty">
                         <div class="doubt-history-empty-icon">
@@ -84,7 +98,7 @@
                                 );
                             @endphp
 
-                            <article class="doubt-history-card">
+                            <article class="doubt-history-card" id="session-booking-{{ $booking->id }}">
                                 {{-- Booking Status --}}
                                 <div class="doubt-history-row">
                                     <div class="doubt-history-label">
@@ -187,6 +201,106 @@
                                         @endif
                                     </div>
                                 </div>
+
+                                <section class="session-conversation" aria-label="Session conversation">
+                                    <div class="session-conversation-actions">
+                                        @if(filled($booking->admin_notes) || $booking->liked_by_current_user)
+                                            @if($booking->liked_by_current_user)
+                                                <form action="{{ route('doubt-sessions.likes.destroy', $booking) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="session-action-button is-liked" aria-pressed="true">
+                                                        <i class="bi bi-hand-thumbs-up-fill" aria-hidden="true"></i>
+                                                        Unlike
+                                                        <span class="session-like-count">{{ $booking->likes_count }}</span>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('doubt-sessions.likes.store', $booking) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="session-action-button" aria-pressed="false">
+                                                        <i class="bi bi-hand-thumbs-up" aria-hidden="true"></i>
+                                                        Like
+                                                        <span class="session-like-count">{{ $booking->likes_count }}</span>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endif
+
+                                        <button
+                                            type="button"
+                                            class="session-action-button session-follow-up-trigger"
+                                            data-follow-up-dialog="follow-up-dialog-{{ $booking->id }}"
+                                        >
+                                            <i class="bi bi-chat-left-dots" aria-hidden="true"></i>
+                                            Ask Follow-up Question
+                                        </button>
+                                    </div>
+
+                                    @if($booking->followUps->isNotEmpty())
+                                        <div class="session-follow-up-list">
+                                            <h3>Follow-up conversation</h3>
+                                            @foreach($booking->followUps as $followUp)
+                                                <article class="session-follow-up">
+                                                    <div class="session-follow-up-heading">
+                                                        <strong>Your question</strong>
+                                                        <time datetime="{{ $followUp->created_at?->toIso8601String() }}">
+                                                            {{ $followUp->created_at?->copy()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A') }}
+                                                        </time>
+                                                        <span class="session-follow-up-status {{ $followUp->status === \App\Models\DoubtSessionFollowUp::STATUS_ANSWERED ? 'is-answered' : '' }}">
+                                                            {{ ucfirst($followUp->status) }}
+                                                        </span>
+                                                    </div>
+                                                    <p class="mb-2">{{ $followUp->question }}</p>
+
+                                                    @if($followUp->answer)
+                                                        <div class="session-follow-up-answer">
+                                                            <strong>Admin response</strong>
+                                                            <p class="mb-1">{{ $followUp->answer }}</p>
+                                                            <small>
+                                                                @if($followUp->answeredBy)
+                                                                    {{ $followUp->answeredBy->name }} ·
+                                                                @endif
+                                                                {{ $followUp->answered_at?->copy()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A') }}
+                                                            </small>
+                                                        </div>
+                                                    @else
+                                                        <span class="session-follow-up-pending">Waiting for an admin response</span>
+                                                    @endif
+                                                </article>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </section>
+
+                                <dialog class="session-follow-up-dialog" id="follow-up-dialog-{{ $booking->id }}" aria-labelledby="follow-up-title-{{ $booking->id }}">
+                                    <form action="{{ route('doubt-sessions.follow-ups.store', $booking) }}" method="POST" class="session-follow-up-form">
+                                        @csrf
+                                        <div class="session-follow-up-dialog-heading">
+                                            <div>
+                                                <span class="doubt-history-eyebrow">Session {{ $booking->booking_reference }}</span>
+                                                <h2 id="follow-up-title-{{ $booking->id }}">Ask a follow-up question</h2>
+                                            </div>
+                                            <button type="button" class="session-follow-up-close" data-follow-up-close aria-label="Close dialog">&times;</button>
+                                        </div>
+                                        <label for="follow-up-question-{{ $booking->id }}">Your question</label>
+                                        <textarea
+                                            id="follow-up-question-{{ $booking->id }}"
+                                            name="question"
+                                            rows="6"
+                                            maxlength="5000"
+                                            required
+                                            placeholder="Add more details about what you would like to ask..."
+                                        >{{ old('question') }}</textarea>
+                                        <div class="session-follow-up-dialog-actions">
+                                            <button type="button" class="session-action-button" data-follow-up-close>Cancel</button>
+                                            <button type="submit" class="session-action-button session-follow-up-submit">
+                                                <i class="bi bi-send" aria-hidden="true"></i>
+                                                Submit question
+                                            </button>
+                                        </div>
+                                    </form>
+                                </dialog>
                             </article>
                         @endforeach
                     </div>
@@ -201,6 +315,26 @@
         </section>
     </main>
 @endsection
+
+@push('scripts')
+    <script>
+        document.querySelectorAll('[data-follow-up-dialog]').forEach((button) => {
+            button.addEventListener('click', () => {
+                document.getElementById(button.dataset.followUpDialog)?.showModal();
+            });
+        });
+
+        document.querySelectorAll('.session-follow-up-dialog').forEach((dialog) => {
+            dialog.querySelectorAll('[data-follow-up-close]').forEach((button) => {
+                button.addEventListener('click', () => dialog.close());
+            });
+
+            dialog.addEventListener('click', (event) => {
+                if (event.target === dialog) dialog.close();
+            });
+        });
+    </script>
+@endpush
 
 @push('styles')
     <style>
@@ -577,6 +711,223 @@
             justify-content: center;
         }
 
+        .session-conversation {
+            padding: 24px 32px 30px;
+            border-top: 1px solid var(--history-border);
+            background: #FCFDFF;
+        }
+
+        .session-conversation-actions,
+        .session-follow-up-dialog-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .session-conversation-actions form {
+            margin: 0;
+        }
+
+        .session-action-button {
+            display: inline-flex;
+            min-height: 44px;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            padding: 0 16px;
+            border: 1px solid rgba(0, 74, 173, 0.18);
+            border-radius: 12px;
+            background: #FFFFFF;
+            color: var(--history-primary-dark);
+            font: inherit;
+            font-size: 0.86rem;
+            font-weight: 750;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .session-action-button:hover {
+            background: var(--history-primary-soft);
+            transform: translateY(-1px);
+        }
+
+        .session-action-button.is-liked,
+        .session-follow-up-submit {
+            background: var(--history-primary);
+            color: #FFFFFF;
+        }
+
+        .session-action-button.is-liked:hover,
+        .session-follow-up-submit:hover {
+            background: var(--history-primary-dark);
+            color: #FFFFFF;
+        }
+
+        .session-like-count {
+            display: inline-grid;
+            min-width: 24px;
+            height: 24px;
+            place-items: center;
+            padding: 0 6px;
+            border-radius: 999px;
+            background: rgba(0, 74, 173, 0.10);
+            font-size: 0.78rem;
+        }
+
+        .session-action-button.is-liked .session-like-count {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .session-follow-up-list {
+            display: grid;
+            gap: 14px;
+            margin-top: 24px;
+        }
+
+        .session-follow-up-list h3 {
+            margin: 0;
+            color: var(--history-heading);
+            font-size: 1rem;
+            font-weight: 850;
+        }
+
+        .session-follow-up {
+            padding: 16px;
+            border: 1px solid #E2E8F0;
+            border-radius: 14px;
+            background: #FFFFFF;
+            color: var(--history-text);
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .session-follow-up-heading {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 12px;
+            margin-bottom: 10px;
+        }
+
+        .session-follow-up-heading time,
+        .session-follow-up-answer small {
+            color: var(--history-muted);
+            font-size: 0.78rem;
+        }
+
+        .session-follow-up-status {
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: #FFF7ED;
+            color: #9A3412;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        .session-follow-up-status.is-answered {
+            background: #E9F8EF;
+            color: #16803D;
+        }
+
+        .session-follow-up-answer {
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 12px;
+            background: #F0F7FF;
+            color: var(--history-heading);
+        }
+
+        .session-follow-up-answer p {
+            margin-top: 8px;
+        }
+
+        .session-follow-up-pending {
+            color: #9A3412;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .session-follow-up-dialog {
+            width: min(560px, calc(100% - 28px));
+            max-height: min(90vh, 760px);
+            padding: 0;
+            border: 0;
+            border-radius: 20px;
+            color: var(--history-heading);
+            box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+        }
+
+        .session-follow-up-dialog::backdrop {
+            background: rgba(15, 23, 42, 0.58);
+            backdrop-filter: blur(3px);
+        }
+
+        .session-follow-up-form {
+            display: grid;
+            gap: 12px;
+            padding: 26px;
+        }
+
+        .session-follow-up-dialog-heading {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 8px;
+        }
+
+        .session-follow-up-dialog-heading .doubt-history-eyebrow {
+            margin-bottom: 12px;
+            font-size: 0.68rem;
+        }
+
+        .session-follow-up-dialog-heading h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 850;
+        }
+
+        .session-follow-up-close {
+            display: grid;
+            width: 38px;
+            height: 38px;
+            flex: 0 0 38px;
+            place-items: center;
+            border: 0;
+            border-radius: 50%;
+            background: #F1F5F9;
+            color: #334155;
+            font-size: 1.6rem;
+            cursor: pointer;
+        }
+
+        .session-follow-up-form label {
+            font-weight: 750;
+        }
+
+        .session-follow-up-form textarea {
+            width: 100%;
+            resize: vertical;
+            padding: 13px 14px;
+            border: 1px solid #CBD5E1;
+            border-radius: 12px;
+            color: var(--history-heading);
+            font: inherit;
+            line-height: 1.6;
+        }
+
+        .session-follow-up-form textarea:focus {
+            outline: 3px solid rgba(0, 74, 173, 0.15);
+            border-color: var(--history-primary);
+        }
+
+        .session-follow-up-dialog-actions {
+            justify-content: flex-end;
+            margin-top: 6px;
+        }
+
         @media (max-width: 991.98px) {
             .doubt-history-hero {
                 min-height: 470px;
@@ -627,6 +978,10 @@
                 padding: 22px 20px;
             }
 
+            .session-conversation {
+                padding: 20px;
+            }
+
             .doubt-history-label {
                 font-size: 0.86rem;
             }
@@ -654,6 +1009,20 @@
 
             .doubt-history-row {
                 padding: 20px 17px;
+            }
+
+            .session-conversation {
+                padding: 18px 17px;
+            }
+
+            .session-conversation-actions,
+            .session-conversation-actions form,
+            .session-conversation-actions .session-action-button {
+                width: 100%;
+            }
+
+            .session-follow-up-form {
+                padding: 20px;
             }
 
             .doubt-history-empty {

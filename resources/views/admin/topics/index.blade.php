@@ -12,7 +12,7 @@
 
 <x-admin.data-table
     title="Topic List"
-    :headers="['Title', 'Subject', 'Unit', 'Year/Semester', 'Module', 'Materials', 'Status', 'Actions']"
+    :headers="['Title', 'Subject', 'Actions', 'Year/Semester', 'Module', 'Materials', 'Status']"
     :createRoute="route('admin.topics.create')"
 >
     @foreach($topics as $topic)
@@ -23,9 +23,13 @@
         </td>
         <td><span class="badge bg-primary-subtle text-primary">{{ $topic->subject->name ?? 'N/A' }}</span></td>
         <td>
-    <span class="badge bg-secondary-subtle text-secondary">
-        {{ $topic->unit->name ?? 'N/A' }}
-    </span>
+            <div class="d-flex gap-2">
+                <a href="{{ route('admin.topics.edit', $topic) }}" class="btn btn-primary btn-sm rounded-3"><i class="bi bi-pencil"></i></a>
+                <form action="{{ route('admin.topics.destroy', $topic) }}" method="POST" onsubmit="return confirm('Delete this Topic?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
         </td>
         <td>
             <div class="small fw-bold">{{ $topic->academicYear->name ?? 'N/A' }}</div>
@@ -42,15 +46,6 @@
             @if($topic->is_trending)
                 <span class="badge bg-warning-subtle text-warning-emphasis px-3">Trending</span>
             @endif
-        </td>
-        <td>
-            <div class="d-flex gap-2">
-                <a href="{{ route('admin.topics.edit', $topic) }}" class="btn btn-primary btn-sm rounded-3"><i class="bi bi-pencil"></i></a>
-                <form action="{{ route('admin.topics.destroy', $topic) }}" method="POST" onsubmit="return confirm('Delete this Topic?')">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
-                </form>
-            </div>
         </td>
     </tr>
     @endforeach

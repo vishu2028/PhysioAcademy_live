@@ -37,7 +37,7 @@
 
     <x-admin.data-table
         title="Testimonial List"
-        :headers="['Student', 'Review', 'Rating', 'Status', 'Actions']"
+        :headers="['Student', 'Actions', 'Review', 'Rating', 'Status']"
         :createRoute="route('admin.testimonials.create')"
     >
         @foreach($testimonials as $testimonial)
@@ -49,6 +49,21 @@
                             <div class="fw-bold">{{ $testimonial->name }}</div>
                             <div class="small text-muted">{{ $testimonial->designation ?? 'Student' }}</div>
                         </div>
+                    </div>
+                </td>
+
+                <td>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('admin.testimonials.edit', $testimonial) }}" class="btn btn-primary btn-sm rounded-3">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="{{ route('admin.testimonials.destroy', $testimonial) }}" method="POST" onsubmit="return confirm('Delete this testimonial?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm rounded-3">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
                     </div>
                 </td>
 
@@ -68,22 +83,6 @@
                     @endif
                 </td>
 
-                <td>
-                    <div class="d-flex gap-2">
-                        <a href="{{ route('admin.testimonials.edit', $testimonial) }}" class="btn btn-primary btn-sm rounded-3">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-
-                        <form action="{{ route('admin.testimonials.destroy', $testimonial) }}" method="POST" onsubmit="return confirm('Delete this testimonial?')">
-                            @csrf
-                            @method('DELETE')
-
-                            <button type="submit" class="btn btn-danger btn-sm rounded-3">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
-                    </div>
-                </td>
             </tr>
         @endforeach
     </x-admin.data-table>

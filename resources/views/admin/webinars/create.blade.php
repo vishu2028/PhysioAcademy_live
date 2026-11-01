@@ -1,1 +1,1 @@
-@extends('layouts.admin') @section('content')<div class="container-fluid py-4"><h1>Create webinar</h1><form method="post" action="{{ route('admin.webinars.store') }}">@include('admin.webinars.form')</form></div>@endsection
+@extends('layouts.admin') @section('content')<div class="container-fluid py-4"><h1>Create webinar</h1><form method="post" action="{{ route('admin.webinars.store', ['_listing' => request()->query('_listing', [])]) }}">@include('admin.webinars.form')</form></div>@endsection

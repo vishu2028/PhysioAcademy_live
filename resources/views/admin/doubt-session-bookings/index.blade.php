@@ -432,27 +432,27 @@
                         <table class="table booking-table mb-0">
                             <colgroup>
                                 <col class="column-reference">
+                                <col class="column-action">
                                 <col class="column-student">
                                 <col class="column-session">
                                 <col class="column-payment">
                                 <col class="column-status">
                                 <col class="column-schedule">
                                 <col class="column-submitted">
-                                <col class="column-action">
                             </colgroup>
 
                             <thead>
                             <tr>
                                 <th>Reference</th>
+                                <th class="action-column text-end">
+                                    Action
+                                </th>
                                 <th>Student</th>
                                 <th>Session</th>
                                 <th>Payment</th>
                                 <th>Booking Status</th>
                                 <th>Schedule</th>
                                 <th>Submitted</th>
-                                <th class="action-column text-end">
-                                    Action
-                                </th>
                             </tr>
                             </thead>
 
@@ -485,7 +485,7 @@
                                         <a
                                             href="{{ route(
                                                     'admin.doubt-session-bookings.show',
-                                                    $booking
+                                                    [$booking, '_listing' => request()->query()]
                                                 ) }}"
                                             class="booking-reference-link"
                                         >
@@ -495,6 +495,19 @@
                                         <div class="small text-muted mt-1">
                                             Booking ID: {{ $booking->id }}
                                         </div>
+                                    </td>
+
+                                    <td class="action-column text-end">
+                                        <a
+                                            href="{{ route(
+                                                    'admin.doubt-session-bookings.show',
+                                                    [$booking, '_listing' => request()->query()]
+                                                ) }}"
+                                            class="btn btn-primary btn-sm booking-view-button"
+                                        >
+                                            <i class="bi bi-eye me-1"></i>
+                                            View
+                                        </a>
                                     </td>
 
                                     <td>
@@ -614,18 +627,6 @@
                                         </div>
                                     </td>
 
-                                    <td class="action-column text-end">
-                                        <a
-                                            href="{{ route(
-                                                    'admin.doubt-session-bookings.show',
-                                                    $booking
-                                                ) }}"
-                                            class="btn btn-primary btn-sm booking-view-button"
-                                        >
-                                            <i class="bi bi-eye me-1"></i>
-                                            View
-                                        </a>
-                                    </td>
                                 </tr>
                             @empty
                                 <tr>
@@ -685,7 +686,7 @@
                                     <a
                                         href="{{ route(
                                             'admin.doubt-session-bookings.show',
-                                            $booking
+                                            [$booking, '_listing' => request()->query()]
                                         ) }}"
                                         class="booking-reference-link"
                                     >
@@ -816,7 +817,7 @@
                             <a
                                 href="{{ route(
                                     'admin.doubt-session-bookings.show',
-                                    $booking
+                                    [$booking, '_listing' => request()->query()]
                                 ) }}"
                                 class="btn btn-primary w-100"
                             >

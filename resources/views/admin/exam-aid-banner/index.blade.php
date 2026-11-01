@@ -46,12 +46,12 @@
                         <tr>
                             <th class="px-4">#</th>
                             <th>Main Title</th>
+                            <th class="text-end px-4">Actions</th>
                             <th>Title 1</th>
                             <th>Title 2</th>
                             <th>Heading 1</th>
                             <th>Percentage</th>
                             <th>Created</th>
-                            <th class="text-end px-4">Actions</th>
                         </tr>
                     </thead>
 
@@ -73,6 +73,17 @@
                                     <small class="text-muted">
                                         {{ Str::limit($banner->description, 50) }}
                                     </small>
+                                </td>
+
+                                <td class="text-end px-4">
+                                    <div class="d-inline-flex gap-1">
+                                        <a href="{{ route('admin.exam-aid-banner.edit', $banner->id) }}" class="btn btn-sm btn-light border" title="Edit"><i class="bi bi-pencil"></i></a>
+                                        <form action="{{ route('admin.exam-aid-banner.destroy', $banner->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this banner?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-light border text-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </div>
                                 </td>
 
                                 <td>
@@ -97,37 +108,6 @@
                                     {{ $banner->created_at->format('d M Y') }}
                                 </td>
 
-                                <td class="text-end px-4">
-
-                                    <div class="d-inline-flex gap-1">
-                                       
-                                        {{-- Edit --}}
-                                        <a href="{{ route('admin.exam-aid-banner.edit', $banner->id) }}"
-                                           class="btn btn-sm btn-light border"
-                                           title="Edit">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-
-                                        {{-- Delete --}}
-                                        <form action="{{ route('admin.exam-aid-banner.destroy', $banner->id) }}"
-                                              method="POST"
-                                              class="d-inline"
-                                              onsubmit="return confirm('Are you sure you want to delete this banner?');">
-
-                                            @csrf
-                                            @method('DELETE')
-
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-light border text-danger"
-                                                    title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-
-                                        </form>
-
-                                    </div>
-
-                                </td>
 
                             </tr>
 

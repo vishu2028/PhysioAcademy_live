@@ -61,7 +61,7 @@
 
     <x-admin.data-table
         title="Cards"
-        :headers="['Card', 'Links To', 'Size', 'Order', 'Status', 'Actions']"
+        :headers="['Card', 'Actions', 'Links To', 'Size', 'Order', 'Status']"
         :createRoute="route('admin.exam-prep-cards.create')"
         createText="Add Card"
     >
@@ -70,6 +70,19 @@
                 <td class="ps-4">
                     <div class="fw-bold">{{ $card->title }}</div>
                     <div class="small text-muted">{{ \Illuminate\Support\Str::limit($card->description, 70) }}</div>
+                </td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('admin.exam-prep-cards.edit', $card) }}" class="btn btn-primary btn-sm rounded-3">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="{{ route('admin.exam-prep-cards.destroy', $card) }}" method="POST"
+                              onsubmit="return confirm('Delete this card?')">
+                            @csrf
+                            @method('DELETE')
+                            <button class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
                 </td>
                 <td class="small">
                     @if($card->custom_url)
@@ -91,19 +104,6 @@
                     @else
                         <span class="badge bg-danger-subtle text-danger px-3">Hidden</span>
                     @endif
-                </td>
-                <td>
-                    <div class="d-flex gap-2">
-                        <a href="{{ route('admin.exam-prep-cards.edit', $card) }}" class="btn btn-primary btn-sm rounded-3">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <form action="{{ route('admin.exam-prep-cards.destroy', $card) }}" method="POST"
-                              onsubmit="return confirm('Delete this card?')">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
-                        </form>
-                    </div>
                 </td>
             </tr>
         @endforeach

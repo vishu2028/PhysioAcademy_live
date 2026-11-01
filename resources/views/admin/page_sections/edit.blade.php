@@ -201,9 +201,9 @@
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4">Title / Label</th>
+                                    <th class="text-end pe-4">Actions</th>
                                     <th>Order</th>
                                     <th>Status</th>
-                                    <th class="text-end pe-4">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -213,14 +213,6 @@
                                         <div class="fw-bold text-dark">{{ $item->title ?: 'Untitled' }}</div>
                                         <div class="small text-muted">{{ Str::limit($item->body, 50) }}</div>
                                     </td>
-                                    <td><span class="badge bg-light text-dark">{{ $item->order }}</span></td>
-                                    <td>
-                                        @if($item->enabled)
-                                            <span class="badge bg-success-subtle text-success">Active</span>
-                                        @else
-                                            <span class="badge bg-secondary-subtle text-secondary">Disabled</span>
-                                        @endif
-                                    </td>
                                     <td class="text-end pe-4">
                                         <div class="d-flex justify-content-end gap-2">
                                             <a href="{{ route('admin.page-section-items.edit', $item) }}" class="btn btn-light btn-sm rounded-2"><i class="bi bi-pencil"></i></a>
@@ -229,6 +221,14 @@
                                                 <button type="submit" class="btn btn-danger btn-sm rounded-2"><i class="bi bi-trash"></i></button>
                                             </form>
                                         </div>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark">{{ $item->order }}</span></td>
+                                    <td>
+                                        @if($item->enabled)
+                                            <span class="badge bg-success-subtle text-success">Active</span>
+                                        @else
+                                            <span class="badge bg-secondary-subtle text-secondary">Disabled</span>
+                                        @endif
                                     </td>
                                 </tr>
                                 @empty

@@ -223,6 +223,70 @@ class CouponServiceTest extends TestCase
             ->assertSee('value="2026-10-31T12:00"', false);
     }
 
+    public function test_coupon_filters_survive_edit_and_update(): void
+    {
+        Role::create(['name' => 'admin', 'guard_name' => 'web']);
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $coupon = $this->coupon([
+            'code' => 'INACTIVEOFFER',
+            'applies_to' => Coupon::SERVICE_WEBINAR,
+            'is_active' => false,
+        ]);
+        $filters = [
+            'search' => 'INACTIVEOFFER',
+            'status' => 'inactive',
+            'service' => 'webinar',
+            'page' => 1,
+        ];
+
+        $this->actingAs($admin)
+            ->get(route('admin.coupons.edit', [$coupon, '_listing' => $filters]))
+            ->assertOk()
+            ->assertSee(e(route('admin.coupons.update', [$coupon, '_listing' => $filters])), false);
+
+        $this->put(route('admin.coupons.update', [$coupon, '_listing' => $filters]), [
+            'code' => 'INACTIVEOFFER',
+            'discount_type' => Coupon::TYPE_PERCENTAGE,
+            'discount_value' => 15,
+            'starts_at' => null,
+            'expires_at' => null,
+            'applies_to' => Coupon::SERVICE_WEBINAR,
+            'is_active' => '0',
+        ])->assertRedirect(route('admin.coupons.index', $filters));
+
+        $this->get(route('admin.coupons.index', $filters))
+            ->assertOk()
+            ->assertSee('value="inactive" selected', false)
+            ->assertSee('INACTIVEOFFER');
+    }
+
+    public function test_coupon_status_change_keeps_filter_and_hides_non_matching_record(): void
+    {
+        Role::create(['name' => 'admin', 'guard_name' => 'web']);
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $coupon = $this->coupon([
+            'code' => 'ACTIVE-OFFER',
+            'applies_to' => Coupon::SERVICE_WEBINAR,
+            'is_active' => true,
+        ]);
+        $filters = [
+            'search' => 'ACTIVE-OFFER',
+            'status' => 'active',
+            'service' => 'webinar',
+        ];
+
+        $this->actingAs($admin)
+            ->patch(route('admin.coupons.toggle', [$coupon, '_listing' => $filters]))
+            ->assertRedirect(route('admin.coupons.index', $filters));
+
+        $this->get(route('admin.coupons.index', $filters))
+            ->assertOk()
+            ->assertSee('value="active" selected', false)
+            ->assertSee('No coupons found');
+    }
+
     private function coupon(array $overrides = []): Coupon
     {
         return Coupon::create(array_merge([

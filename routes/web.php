@@ -10,6 +10,7 @@ use App\Http\Controllers\WebinarController;
 use App\Http\Controllers\GroupWebinarBookingController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\FrontendController;
+use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
@@ -47,6 +48,11 @@ Route::post(
     '/contact',
     [FrontendController::class, 'contactSubmit']
 )->name('contact.submit');
+
+Route::post(
+    '/newsletter/subscribe',
+    [NewsletterSubscriptionController::class, 'store']
+)->middleware('throttle:10,1')->name('newsletter.subscribe');
 
 Route::get(
     '/subjects',
@@ -189,6 +195,21 @@ Route::middleware('auth')->group(function () {
         '/doubt-sessions/history',
         [DoubtSessionBookingController::class, 'history']
     )->name('doubt-sessions.history');
+
+    Route::post(
+        '/doubt-sessions/{booking}/like',
+        [DoubtSessionBookingController::class, 'like']
+    )->whereNumber('booking')->name('doubt-sessions.likes.store');
+
+    Route::delete(
+        '/doubt-sessions/{booking}/like',
+        [DoubtSessionBookingController::class, 'unlike']
+    )->whereNumber('booking')->name('doubt-sessions.likes.destroy');
+
+    Route::post(
+        '/doubt-sessions/{booking}/follow-ups',
+        [DoubtSessionBookingController::class, 'storeFollowUp']
+    )->whereNumber('booking')->name('doubt-sessions.follow-ups.store');
 
     Route::post('/coupons/validate', [CouponController::class, 'validateCoupon'])
         ->middleware('throttle:20,1')
@@ -467,6 +488,15 @@ Route::middleware([
             'destroy',
         ]);
 
+        Route::resource(
+            'newsletter-subscribers',
+            \App\Http\Controllers\Admin\NewsletterSubscriberController::class
+        )->only([
+            'index',
+            'show',
+            'destroy',
+        ]);
+
         /*
          * Student Doubts
          */
@@ -500,6 +530,13 @@ Route::middleware([
             'show',
             'update',
         ]);
+
+        Route::patch(
+            'doubt-session-bookings/{booking}/follow-ups/{followUp}',
+            [AdminDoubtSessionBookingController::class, 'respondToFollowUp']
+        )->whereNumber('booking')
+            ->whereNumber('followUp')
+            ->name('doubt-session-bookings.follow-ups.update');
 
         Route::resource('webinars', \App\Http\Controllers\Admin\WebinarController::class)->except(['destroy']);
         Route::patch('webinar-registrations/{registration}', [\App\Http\Controllers\Admin\WebinarController::class, 'updateRegistration'])->name('webinar-registrations.update');

@@ -13,7 +13,7 @@
 <x-admin.data-table 
     title="Incoming Messages" 
     :serverPaginated="true"
-    :headers="['Sender', 'Subject', 'Received', 'Status', 'Actions']"
+    :headers="['Sender', 'Subject', 'Actions', 'Received', 'Status']"
 >
     @foreach($messages as $message)
     <tr class="{{ !$message->is_read ? 'bg-light-primary fw-bold' : '' }}">
@@ -24,14 +24,6 @@
             </div>
         </td>
         <td>{{ $message->subject ?? 'No Subject' }}</td>
-        <td>{{ $message->created_at->diffForHumans() }}</td>
-        <td>
-            @if(!$message->is_read)
-                <span class="badge bg-primary rounded-pill px-3">New</span>
-            @else
-                <span class="badge bg-light text-secondary rounded-pill px-3">Read</span>
-            @endif
-        </td>
         <td>
             <div class="d-flex gap-2">
                 <a href="{{ route('admin.messages.show', $message) }}" class="btn btn-light btn-sm rounded-3"><i class="bi bi-eye"></i></a>
@@ -40,6 +32,14 @@
                     <button type="submit" class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
                 </form>
             </div>
+        </td>
+        <td>{{ $message->created_at->diffForHumans() }}</td>
+        <td>
+            @if(!$message->is_read)
+                <span class="badge bg-primary rounded-pill px-3">New</span>
+            @else
+                <span class="badge bg-light text-secondary rounded-pill px-3">Read</span>
+            @endif
         </td>
     </tr>
     @endforeach

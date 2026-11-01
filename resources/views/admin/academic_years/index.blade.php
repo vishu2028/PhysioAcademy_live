@@ -12,12 +12,21 @@
 
 <x-admin.data-table 
     title="Year List" 
-    :headers="['Name', 'Semesters', 'Units', 'Topics', 'Order', 'Status', 'Actions']" 
+    :headers="['Name', 'Actions', 'Semesters', 'Units', 'Topics', 'Order', 'Status']"
     :createRoute="route('admin.academic-years.create')"
 >
     @foreach($years as $year)
     <tr>
         <td class="ps-4 fw-bold">{{ $year->name }}</td>
+        <td>
+            <div class="d-flex gap-2">
+                <a href="{{ route('admin.academic-years.edit', $year) }}" class="btn btn-primary btn-sm rounded-3"><i class="bi bi-pencil"></i></a>
+                <form action="{{ route('admin.academic-years.destroy', $year) }}" method="POST" onsubmit="return confirm('Delete this Year? This will also delete all topics under it.')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
+        </td>
         <td>
             @foreach($year->semesters as $sem)
                 <span class="badge bg-light text-dark border">{{ $sem->name }}</span>
@@ -32,15 +41,6 @@
             @else
                 <span class="badge bg-danger-subtle text-danger px-3">Inactive</span>
             @endif
-        </td>
-        <td>
-            <div class="d-flex gap-2">
-                <a href="{{ route('admin.academic-years.edit', $year) }}" class="btn btn-primary btn-sm rounded-3"><i class="bi bi-pencil"></i></a>
-                <form action="{{ route('admin.academic-years.destroy', $year) }}" method="POST" onsubmit="return confirm('Delete this Year? This will also delete all topics under it.')">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
-                </form>
-            </div>
         </td>
     </tr>
     @endforeach

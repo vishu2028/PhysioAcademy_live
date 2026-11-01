@@ -37,7 +37,7 @@
 
     <x-admin.data-table
         title="Support Feature List"
-        :headers="['Icon', 'Title', 'Description', 'Order', 'Status', 'Actions']"
+        :headers="['Icon', 'Title', 'Actions', 'Description', 'Order', 'Status']"
         :createRoute="route('admin.features.create')"
     >
         @foreach($features as $feature)
@@ -54,6 +54,21 @@
 
                 <td class="fw-bold">{{ $feature->title }}</td>
 
+                <td>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('admin.features.edit', $feature) }}" class="btn btn-primary btn-sm rounded-3">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="{{ route('admin.features.destroy', $feature) }}" method="POST" onsubmit="return confirm('Delete this feature?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm rounded-3">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+
                 <td class="small">{{ Str::limit($feature->description, 60) }}</td>
 
                 <td>
@@ -68,22 +83,6 @@
                     @endif
                 </td>
 
-                <td>
-                    <div class="d-flex gap-2">
-                        <a href="{{ route('admin.features.edit', $feature) }}" class="btn btn-primary btn-sm rounded-3">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-
-                        <form action="{{ route('admin.features.destroy', $feature) }}" method="POST" onsubmit="return confirm('Delete this feature?')">
-                            @csrf
-                            @method('DELETE')
-
-                            <button type="submit" class="btn btn-danger btn-sm rounded-3">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
-                    </div>
-                </td>
             </tr>
         @endforeach
     </x-admin.data-table>

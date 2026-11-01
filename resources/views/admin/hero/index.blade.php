@@ -16,7 +16,7 @@
 
 <x-admin.data-table 
     title="Hero Versioning" 
-    :headers="['Image', 'Title', 'Button', 'Status', 'Actions']" 
+    :headers="['Image', 'Title', 'Actions', 'Button', 'Status']"
     :createRoute="route('admin.hero.create')"
 >
     @foreach($heroes as $hero)
@@ -31,14 +31,6 @@
             @endif
         </td>
         <td class="fw-bold">{{ Str::limit($hero->title, 40) }}</td>
-        <td><span class="badge bg-light text-dark border">{{ $hero->button_text }}</span></td>
-        <td>
-            @if($hero->status)
-                <span class="badge bg-success-subtle text-success px-3">Active</span>
-            @else
-                <span class="badge bg-danger-subtle text-danger px-3">Inactive</span>
-            @endif
-        </td>
         <td>
             <div class="d-flex gap-2">
                 <a href="{{ route('admin.hero.edit', $hero) }}" class="btn btn-primary btn-sm rounded-3"><i class="bi bi-pencil"></i></a>
@@ -47,6 +39,14 @@
                     <button type="submit" class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
                 </form>
             </div>
+        </td>
+        <td><span class="badge bg-light text-dark border">{{ $hero->button_text }}</span></td>
+        <td>
+            @if($hero->status)
+                <span class="badge bg-success-subtle text-success px-3">Active</span>
+            @else
+                <span class="badge bg-danger-subtle text-danger px-3">Inactive</span>
+            @endif
         </td>
     </tr>
     @endforeach

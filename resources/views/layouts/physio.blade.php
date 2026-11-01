@@ -115,6 +115,14 @@
             justify-content: center;
             color: white;
             font-weight: bold;
+            overflow: hidden;
+            flex: 0 0 44px;
+        }
+
+        .user-avatar-mini img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .glass-card-db {
@@ -278,7 +286,11 @@
 
             <div class="user-profile-mini">
                 <div class="user-avatar-mini">
-                    {{ substr(auth()->user()->name, 0, 1) }}
+                    @if(auth()->user()->avatarUrl())
+                        <img src="{{ auth()->user()->avatarUrl() }}" alt="{{ auth()->user()->name }} profile picture">
+                    @else
+                        {{ substr(auth()->user()->name, 0, 1) }}
+                    @endif
                 </div>
                 <div class="user-info-mini">
                     <p class="mb-0 fw-bold small text-dark">{{ auth()->user()->name }}</p>

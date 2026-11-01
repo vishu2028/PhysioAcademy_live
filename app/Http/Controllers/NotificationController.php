@@ -27,6 +27,14 @@ class NotificationController extends Controller
         $topicRequestId = $databaseNotification->data['topic_request_id'] ?? null;
         $topicId = $databaseNotification->data['topic_id'] ?? null;
         $topicLink = $databaseNotification->data['topic_link'] ?? null;
+        $bookingId = $databaseNotification->data['booking_id'] ?? null;
+
+        if (
+            ($databaseNotification->data['type'] ?? null) === 'doubt_session_follow_up_answered'
+            && $bookingId
+        ) {
+            return redirect(url(route('doubt-sessions.history')) . '#session-booking-' . $bookingId);
+        }
 
         if ($doubtId) {
             return redirect(url(route('doubts.mine')) . '#doubt-' . $doubtId);

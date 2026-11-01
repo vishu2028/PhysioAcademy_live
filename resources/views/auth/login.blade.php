@@ -103,7 +103,7 @@
     </section>
   </main>
 
-  <script src="{{ asset('ui-physio/footer.js') }}"></script>
+  <script src="{{ asset('ui-physio/footer.js') }}?v={{ filemtime(public_path('ui-physio/footer.js')) }}"></script>
   <script src="{{ asset('ui-physio/auth.js') }}"></script>
   @php
     $firebaseWebConfig = config('services.firebase.web', []);

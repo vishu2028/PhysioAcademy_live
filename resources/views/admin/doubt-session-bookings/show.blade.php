@@ -39,7 +39,7 @@
 
     <div class="mb-4">
         <a
-            href="{{ route('admin.doubt-session-bookings.index') }}"
+            href="{{ route('admin.doubt-session-bookings.index', request()->query('_listing', [])) }}"
             class="text-decoration-none small text-secondary"
         >
             <i class="bi bi-arrow-left me-1"></i>
@@ -350,6 +350,74 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white p-4 border-0">
+                    <h5 class="fw-bold mb-1">Student Follow-ups</h5>
+                    <p class="text-secondary mb-0 small">
+                        Reply to additional questions for this booking. Replies are sent to the student by in-app notification and email.
+                    </p>
+                </div>
+
+                <div class="card-body p-4 pt-0">
+                    @forelse($booking->followUps as $followUp)
+                        <article class="border rounded-3 p-3 mb-3">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                <span class="badge bg-{{ $followUp->status === \App\Models\DoubtSessionFollowUp::STATUS_ANSWERED ? 'success' : 'warning' }}">
+                                    {{ $followUp->status === \App\Models\DoubtSessionFollowUp::STATUS_ANSWERED ? 'Answered' : 'Pending' }}
+                                </span>
+                                <time class="small text-secondary" datetime="{{ $followUp->created_at?->toIso8601String() }}">
+                                    Submitted {{ $followUp->created_at?->format('d M Y, h:i A') }}
+                                </time>
+                            </div>
+
+                            <div class="fw-bold mb-3">Student question</div>
+                            <p class="mb-3" style="white-space: pre-wrap;">{{ $followUp->question }}</p>
+
+                            @if($followUp->status === \App\Models\DoubtSessionFollowUp::STATUS_ANSWERED)
+                                <div class="alert alert-light border mb-0">
+                                    <strong>Admin response</strong>
+                                    <p class="mb-1 mt-2" style="white-space: pre-wrap;">{{ $followUp->answer }}</p>
+                                    <small class="text-secondary">
+                                        @if($followUp->answeredBy)
+                                            {{ $followUp->answeredBy->name }} ·
+                                        @endif
+                                        {{ $followUp->answered_at?->format('d M Y, h:i A') }}
+                                    </small>
+                                </div>
+                            @else
+                                <form
+                                    action="{{ route('admin.doubt-session-bookings.follow-ups.update', [$booking, $followUp]) }}"
+                                    method="POST"
+                                >
+                                    @csrf
+                                    @method('PATCH')
+                                    <label for="followUpAnswer{{ $followUp->id }}" class="form-label fw-bold">
+                                        Admin response
+                                    </label>
+                                    <textarea
+                                        name="answer"
+                                        id="followUpAnswer{{ $followUp->id }}"
+                                        class="form-control @error('answer') is-invalid @enderror"
+                                        rows="4"
+                                        maxlength="5000"
+                                        required
+                                    >{{ old('answer') }}</textarea>
+                                    @error('answer')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <button type="submit" class="btn btn-primary mt-3">
+                                        <i class="bi bi-send me-1"></i>
+                                        Send response
+                                    </button>
+                                </form>
+                            @endif
+                        </article>
+                    @empty
+                        <p class="text-secondary mb-0">No follow-up questions have been submitted for this session.</p>
+                    @endforelse
+                </div>
+            </div>
         </div>
 
         {{-- Admin management form --}}
@@ -357,7 +425,7 @@
             <form
                 action="{{ route(
                     'admin.doubt-session-bookings.update',
-                    $booking
+                    [$booking, '_listing' => request()->query('_listing', [])]
                 ) }}"
                 method="POST"
             >

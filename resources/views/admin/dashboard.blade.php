@@ -41,6 +41,8 @@
     .dash-stat-card.card-cyan::before { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
     .dash-stat-card.card-amber::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
     .dash-stat-card.card-emerald::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .dash-stat-card.card-blue::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .dash-stat-card.card-rose::before { background: linear-gradient(90deg, #f43f5e, #fb7185); }
 
     /* Icon containers with gradient backgrounds */
     .dash-icon-wrap {
@@ -74,6 +76,31 @@
     .dash-icon-wrap.icon-emerald {
         background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(52,211,153,0.08));
         color: #10b981;
+    }
+    .dash-icon-wrap.icon-blue {
+        background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(96,165,250,0.08));
+        color: #3b82f6;
+    }
+    .dash-icon-wrap.icon-rose {
+        background: linear-gradient(135deg, rgba(244,63,94,0.12), rgba(251,113,133,0.08));
+        color: #f43f5e;
+    }
+
+    .dash-stat-link {
+        display: block;
+        height: 100%;
+        color: inherit;
+        text-decoration: none;
+        border-radius: 20px;
+    }
+
+    .dash-stat-link:focus-visible {
+        outline: 3px solid #6366f1;
+        outline-offset: 3px;
+    }
+
+    .dash-stat-card {
+        min-height: 154px;
     }
 
     .dash-stat-label {
@@ -149,49 +176,6 @@
         padding: 24px;
     }
 
-    /* ─── Quick Action Buttons ─── */
-    .quick-action-btn {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 16px 20px;
-        border-radius: 14px;
-        border: 1px solid #f1f5f9;
-        background: #fafbfc;
-        color: #334155;
-        font-weight: 600;
-        font-size: 0.9rem;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
-
-    .quick-action-btn:hover {
-        background: linear-gradient(135deg, #6366f1, #818cf8);
-        color: #ffffff;
-        border-color: transparent;
-        transform: translateX(4px);
-        box-shadow: 0 8px 24px rgba(99,102,241,0.25);
-    }
-
-    .quick-action-btn:hover .qa-icon {
-        background: rgba(255,255,255,0.2);
-        color: #ffffff;
-    }
-
-    .qa-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        background: rgba(99,102,241,0.08);
-        color: #6366f1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.1rem;
-        transition: all 0.3s ease;
-        flex-shrink: 0;
-    }
-
     /* ─── Activity Table ─── */
     .dash-panel .table thead th {
         font-size: 0.75rem;
@@ -232,72 +216,100 @@
 @section('content')
 {{-- ─── Statistics Cards Row ─── --}}
 <div class="row g-4 mb-4">
-    <div class="col-xl-3 col-sm-6">
-        <div class="dash-stat-card card-indigo">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <p class="dash-stat-label">Total Users</p>
-                    <h3 class="dash-stat-value">{{ $stats['users'] }}</h3>
-                    <div class="dash-stat-trend trend-up">
-                        <i class="bi bi-arrow-up-short"></i> 12% this month
+    <div class="col-12 col-sm-6 col-md-4 col-xl-2">
+        <a href="{{ route('admin.users.index') }}" class="dash-stat-link">
+            <div class="dash-stat-card card-indigo">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="dash-stat-label">Total Users</p>
+                        <h3 class="dash-stat-value">{{ $stats['users'] }}</h3>
+                    </div>
+                    <div class="dash-icon-wrap icon-indigo">
+                        <i class="bi bi-people-fill"></i>
                     </div>
                 </div>
-                <div class="dash-icon-wrap icon-indigo">
-                    <i class="bi bi-people-fill"></i>
-                </div>
             </div>
-        </div>
+        </a>
     </div>
 
-    <div class="col-xl-3 col-sm-6">
-        <div class="dash-stat-card card-cyan">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <p class="dash-stat-label">Total Pages</p>
-                    <h3 class="dash-stat-value">{{ $stats['pages'] }}</h3>
-                    <div class="dash-stat-trend trend-up">
-                        <i class="bi bi-arrow-up-short"></i> 3 new pages
+    <div class="col-12 col-sm-6 col-md-4 col-xl-2">
+        <a href="{{ route('admin.subjects.index') }}" class="dash-stat-link">
+            <div class="dash-stat-card card-cyan">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="dash-stat-label">Subjects</p>
+                        <h3 class="dash-stat-value">{{ $stats['subjects'] }}</h3>
+                    </div>
+                    <div class="dash-icon-wrap icon-cyan">
+                        <i class="bi bi-book-half"></i>
                     </div>
                 </div>
-                <div class="dash-icon-wrap icon-cyan">
-                    <i class="bi bi-file-earmark-richtext-fill"></i>
-                </div>
             </div>
-        </div>
+        </a>
     </div>
 
-    <div class="col-xl-3 col-sm-6">
-        <div class="dash-stat-card card-amber">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <p class="dash-stat-label">Messages</p>
-                    <h3 class="dash-stat-value">{{ $stats['messages'] }}</h3>
-                    <div class="dash-stat-trend trend-neutral">
-                        <i class="bi bi-dash"></i> No change
+    <div class="col-12 col-sm-6 col-md-4 col-xl-2">
+        <a href="{{ route('admin.academic-years.index') }}" class="dash-stat-link">
+            <div class="dash-stat-card card-amber">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="dash-stat-label">Academic Years</p>
+                        <h3 class="dash-stat-value">{{ $stats['academic_years'] }}</h3>
+                    </div>
+                    <div class="dash-icon-wrap icon-amber">
+                        <i class="bi bi-calendar3"></i>
                     </div>
                 </div>
-                <div class="dash-icon-wrap icon-amber">
-                    <i class="bi bi-envelope-open-fill"></i>
-                </div>
             </div>
-        </div>
+        </a>
     </div>
 
-    <div class="col-xl-3 col-sm-6">
-        <div class="dash-stat-card card-emerald">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <p class="dash-stat-label">Total Services</p>
-                    <h3 class="dash-stat-value">{{ $stats['services'] }}</h3>
-                    <div class="dash-stat-trend trend-up">
-                        <i class="bi bi-journal-text me-1"></i> Library Topics
+    <div class="col-12 col-sm-6 col-md-4 col-xl-2">
+        <a href="{{ route('admin.exam-aids.index') }}" class="dash-stat-link">
+            <div class="dash-stat-card card-emerald">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="dash-stat-label">Exam Aid</p>
+                        <h3 class="dash-stat-value">{{ $stats['exam_aids'] }}</h3>
+                    </div>
+                    <div class="dash-icon-wrap icon-emerald">
+                        <i class="bi bi-journal-text"></i>
                     </div>
                 </div>
-                <div class="dash-icon-wrap icon-emerald">
-                    <i class="bi bi-journal-bookmark-fill"></i>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-12 col-sm-6 col-md-4 col-xl-2">
+        <a href="{{ route('admin.doubt-session-bookings.index') }}" class="dash-stat-link">
+            <div class="dash-stat-card card-blue">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="dash-stat-label">Doubt Sessions</p>
+                        <h3 class="dash-stat-value">{{ $stats['doubt_sessions'] }}</h3>
+                    </div>
+                    <div class="dash-icon-wrap icon-blue">
+                        <i class="bi bi-camera-video"></i>
+                    </div>
                 </div>
             </div>
-        </div>
+        </a>
+    </div>
+
+    <div class="col-12 col-sm-6 col-md-4 col-xl-2">
+        <a href="{{ route('admin.group-webinars.index') }}" class="dash-stat-link">
+            <div class="dash-stat-card card-rose">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="dash-stat-label">Webinars</p>
+                        <h3 class="dash-stat-value">{{ $stats['group_webinars'] }}</h3>
+                    </div>
+                    <div class="dash-icon-wrap icon-rose">
+                        <i class="bi bi-people"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
     </div>
 </div>
 
@@ -326,9 +338,9 @@
     </div>
 </div>
 
-{{-- ─── Activity & Quick Actions Row ─── --}}
+{{-- ─── Activity Row ─── --}}
 <div class="row g-4">
-    <div class="col-xl-8">
+    <div class="col-12">
         <div class="dash-panel">
             <div class="section-header">
                 <h5><i class="bi bi-clock-history me-2 text-primary"></i>Recent Activity</h5>
@@ -379,44 +391,6 @@
                             @endforelse
                         </tbody>
                     </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-4">
-        <div class="dash-panel">
-            <div class="section-header">
-                <h5><i class="bi bi-lightning-fill me-2 text-warning"></i>Quick Actions</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-3">
-                    <a href="{{ url('admin/pages/create') }}" class="quick-action-btn">
-                        <div class="qa-icon">
-                            <i class="bi bi-plus-lg"></i>
-                        </div>
-                        <div>
-                            <span class="d-block">Create New Page</span>
-                            <small class="text-muted fw-normal">Add content to your site</small>
-                        </div>
-                    </a>
-                    <a href="{{ url('admin/media') }}" class="quick-action-btn">
-                        <div class="qa-icon" style="background: rgba(6,182,212,0.08); color: #06b6d4;">
-                            <i class="bi bi-cloud-arrow-up"></i>
-                        </div>
-                        <div>
-                            <span class="d-block">Upload Media</span>
-                            <small class="text-muted fw-normal">Images, videos & files</small>
-                        </div>
-                    </a>
-                    <a href="{{ url('admin/settings') }}" class="quick-action-btn">
-                        <div class="qa-icon" style="background: rgba(245,158,11,0.08); color: #f59e0b;">
-                            <i class="bi bi-gear-wide-connected"></i>
-                        </div>
-                        <div>
-                            <span class="d-block">System Settings</span>
-                            <small class="text-muted fw-normal">Configure your platform</small>
-                        </div>
-                    </a>
                 </div>
             </div>
         </div>
@@ -479,7 +453,7 @@
             labels: {!! json_encode(array_keys($chartData['distribution'])) !!},
             datasets: [{
                 data: {!! json_encode(array_values($chartData['distribution'])) !!},
-                backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444'],
+                backgroundColor: ['#10b981', '#ef4444'],
                 borderWidth: 0,
                 hoverOffset: 8
             }]
@@ -495,6 +469,17 @@
                         usePointStyle: true,
                         pointStyle: 'circle',
                         font: { family: 'Plus Jakarta Sans', weight: '600', size: 12 }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = Number(context.parsed) || 0;
+                            const total = context.dataset.data.reduce((sum, count) => sum + (Number(count) || 0), 0);
+                            const percentage = total > 0 ? (value / total * 100).toFixed(1) : '0.0';
+
+                            return `${context.label}: ${value} (${percentage}%)`;
+                        }
                     }
                 }
             }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\PreservesListingContext;
 use App\Http\Controllers\Controller;
 use App\Models\Coupon;
 use Carbon\CarbonImmutable;
@@ -10,6 +11,8 @@ use Illuminate\Validation\Rule;
 
 class CouponController extends Controller
 {
+    use PreservesListingContext;
+
     public function index(Request $request)
     {
         $coupons = Coupon::query()
@@ -33,7 +36,7 @@ class CouponController extends Controller
     {
         Coupon::create($this->validated($request));
 
-        return redirect()->route('admin.coupons.index')->with('success', 'Coupon created.');
+        return $this->redirectToListing($request, 'admin.coupons.index')->with('success', 'Coupon created.');
     }
 
     public function edit(Coupon $coupon)
@@ -45,25 +48,25 @@ class CouponController extends Controller
     {
         $coupon->update($this->validated($request, $coupon));
 
-        return redirect()->route('admin.coupons.index')->with('success', 'Coupon updated.');
+        return $this->redirectToListing($request, 'admin.coupons.index')->with('success', 'Coupon updated.');
     }
 
-    public function toggle(Coupon $coupon)
+    public function toggle(Request $request, Coupon $coupon)
     {
         $coupon->update(['is_active' => ! $coupon->is_active]);
 
-        return back()->with('success', 'Coupon status updated.');
+        return $this->redirectToListing($request, 'admin.coupons.index')->with('success', 'Coupon status updated.');
     }
 
-    public function destroy(Coupon $coupon)
+    public function destroy(Request $request, Coupon $coupon)
     {
         if ($coupon->redemptions()->exists()) {
-            return back()->withErrors(['coupon' => 'Coupons with redemption history cannot be deleted. Deactivate the coupon instead.']);
+            return $this->redirectToListing($request, 'admin.coupons.index')->withErrors(['coupon' => 'Coupons with redemption history cannot be deleted. Deactivate the coupon instead.']);
         }
 
         $coupon->delete();
 
-        return back()->with('success', 'Coupon deleted.');
+        return $this->redirectToListing($request, 'admin.coupons.index')->with('success', 'Coupon deleted.');
     }
 
     private function validated(Request $request, ?Coupon $coupon = null): array

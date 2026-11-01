@@ -2,16 +2,21 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\PreservesListingContext;
 use App\Http\Controllers\Controller;
 use App\Models\DoubtSessionBooking;
+use App\Models\DoubtSessionFollowUp;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 use App\Notifications\DoubtSessionStatusUpdated;
+use App\Notifications\DoubtSessionFollowUpAnswered;
 use Illuminate\Support\Facades\DB;
 
 class DoubtSessionBookingController extends Controller
 {
+    use PreservesListingContext;
+
     /**
      * Display all one-on-one session bookings.
      */
@@ -376,6 +381,7 @@ class DoubtSessionBookingController extends Controller
             'academicYear',
             'subject',
             'confirmedBy',
+            'followUps.answeredBy',
         ]);
 
         return view(
@@ -384,6 +390,44 @@ class DoubtSessionBookingController extends Controller
                 'booking' => $doubtSessionBooking,
             ]
         );
+    }
+
+    public function respondToFollowUp(
+        Request $request,
+        DoubtSessionBooking $booking,
+        int $followUp
+    ) {
+        $followUp = $booking->followUps()->findOrFail($followUp);
+
+        abort_if(
+            $followUp->status === DoubtSessionFollowUp::STATUS_ANSWERED,
+            409,
+            'This follow-up has already been answered.'
+        );
+
+        $validated = $request->validate([
+            'answer' => ['required', 'string', 'max:5000'],
+        ]);
+
+        $followUp->update([
+            'answer' => trim($validated['answer']),
+            'status' => DoubtSessionFollowUp::STATUS_ANSWERED,
+            'answered_by' => $request->user()->id,
+            'answered_at' => now(),
+        ]);
+
+        $booking->loadMissing('user');
+        if ($booking->user) {
+            $booking->user->notify(
+                new DoubtSessionFollowUpAnswered(
+                    $followUp->load('booking')
+                )
+            );
+        }
+
+        return redirect()
+            ->route('admin.doubt-session-bookings.show', $booking)
+            ->with('success', 'Follow-up response sent to the student.');
     }
 
     /**
@@ -598,12 +642,12 @@ class DoubtSessionBookingController extends Controller
             }
         });
 
-        return redirect()
-            ->route(
-                'admin.doubt-session-bookings.show',
-                $doubtSessionBooking
-            )
-            ->with(
+        $filters = $this->listingFilters($request);
+        $redirect = $filters
+            ? redirect()->route('admin.doubt-session-bookings.index', $filters)
+            : redirect()->route('admin.doubt-session-bookings.show', $doubtSessionBooking);
+
+        return $redirect->with(
                 'success',
                 'Doubt session booking updated successfully.'
             );

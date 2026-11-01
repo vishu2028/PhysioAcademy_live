@@ -3849,11 +3849,24 @@ img { max-width: 100%; display: block; }
     font-weight: 700;
 }
 .footer-subscribe-message {
-    min-height: 20px;
+    display: none;
     margin-top: 10px;
-    color: #2563eb;
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-radius: 10px;
     font-weight: 800;
     font-size: 0.84rem;
+}
+.footer-subscribe-message:not(:empty) { display: block; }
+.footer-subscribe-message[data-state="success"] {
+    color: #86efac;
+    background: rgba(16,185,129,0.12);
+    border-color: rgba(134,239,172,0.28);
+}
+.footer-subscribe-message[data-state="error"] {
+    color: #fca5a5;
+    background: rgba(220,38,38,0.12);
+    border-color: rgba(252,165,165,0.28);
 }
 .footer-bottom {
     position: relative;

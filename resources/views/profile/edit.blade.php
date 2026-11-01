@@ -11,7 +11,11 @@
         <div class="admin-cover-art"></div>
         <div class="admin-meta-row d-flex align-items-end gap-3 gap-md-4 px-4">
             <div class="admin-avatar-main shadow-lg">
-                {{ substr($user->name, 0, 1) }}
+                @if($user->avatarUrl())
+                    <img src="{{ $user->avatarUrl() }}" alt="{{ $user->name }} profile picture">
+                @else
+                    {{ substr($user->name, 0, 1) }}
+                @endif
             </div>
             <div class="mb-3">
                 <h2 class="fw-bold text-dark mb-1">{{ $user->name }}</h2>
@@ -65,7 +69,11 @@
         <div class="glass-card-db p-4 rounded-5 overflow-hidden position-relative">
             <div class="d-flex align-items-center gap-4 position-relative z-1">
                 <div class="user-avatar-hero shadow-lg">
-                    {{ substr($user->name, 0, 1) }}
+                    @if($user->avatarUrl())
+                        <img src="{{ $user->avatarUrl() }}" alt="{{ $user->name }} profile picture">
+                    @else
+                        {{ substr($user->name, 0, 1) }}
+                    @endif
                 </div>
                 <div>
                     <h3 class="fw-bold mb-1">{{ $user->name }}</h3>
@@ -213,10 +221,12 @@
     .admin-profile-header { position: relative; height: 180px; margin-top: -20px; }
     .admin-cover-art { position: absolute; inset: 0; background: linear-gradient(135deg, #1e293b, #334155); border-radius: 30px; }
     .admin-meta-row { position: absolute; bottom: -30px; left: 0; width: 100%; transition: transform 0.3s; }
-    .admin-avatar-main { width: 120px; height: 120px; border-radius: 30px; background: #fff; color: #1e293b; display: grid; place-items: center; font-size: 3.5rem; font-weight: 800; border: 5px solid #fff; }
+    .admin-avatar-main { width: 120px; height: 120px; border-radius: 30px; background: #fff; color: #1e293b; display: grid; place-items: center; font-size: 3.5rem; font-weight: 800; border: 5px solid #fff; overflow: hidden; }
+    .admin-avatar-main img { width: 100%; height: 100%; object-fit: cover; }
     .stat-icon-wrap { width: 42px; height: 42px; border-radius: 12px; background: rgba(37,99,235,0.08); color: #2563eb; display: grid; place-items: center; font-size: 1.2rem; }
 
-    .user-avatar-hero { width: 100px; height: 100px; border-radius: 28px; background: linear-gradient(135deg, #2563eb, #38bdf8); color: #fff; display: grid; place-items: center; font-size: 2.8rem; font-weight: 800; border: 4px solid #fff; }
+    .user-avatar-hero { width: 100px; height: 100px; border-radius: 28px; background: linear-gradient(135deg, #2563eb, #38bdf8); color: #fff; display: grid; place-items: center; font-size: 2.8rem; font-weight: 800; border: 4px solid #fff; overflow: hidden; flex: 0 0 100px; }
+    .user-avatar-hero img { width: 100%; height: 100%; object-fit: cover; }
     .hero-decorative-orb { position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(37,99,235,0.05); border-radius: 50%; filter: blur(50px); pointer-events: none; }
 
     .nav-link-item { width: 100%; padding: 12px 18px; border-radius: 14px; border: none; background: transparent; text-align: left; font-weight: 600; color: #64748b; transition: 0.2s; display: flex; align-items: center; gap: 12px; text-decoration: none; }

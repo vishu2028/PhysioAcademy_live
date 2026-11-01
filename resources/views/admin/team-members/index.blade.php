@@ -12,7 +12,7 @@
 
     <x-admin.data-table
         title="Team"
-        :headers="['Member', 'Designation', 'Order', 'Status', 'Actions']"
+        :headers="['Member', 'Actions', 'Designation', 'Order', 'Status']"
         :createRoute="route('admin.team-members.create')"
         createText="Add Member"
     >
@@ -33,15 +33,6 @@
                         </div>
                     </div>
                 </td>
-                <td>{{ $member->designation }}</td>
-                <td>{{ $member->sort_order }}</td>
-                <td>
-                    @if($member->is_active)
-                        <span class="badge bg-success-subtle text-success px-3">Visible</span>
-                    @else
-                        <span class="badge bg-danger-subtle text-danger px-3">Hidden</span>
-                    @endif
-                </td>
                 <td>
                     <div class="d-flex gap-2">
                         <a href="{{ route('admin.team-members.edit', $member) }}" class="btn btn-primary btn-sm rounded-3">
@@ -54,6 +45,15 @@
                             <button class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
                         </form>
                     </div>
+                </td>
+                <td>{{ $member->designation }}</td>
+                <td>{{ $member->sort_order }}</td>
+                <td>
+                    @if($member->is_active)
+                        <span class="badge bg-success-subtle text-success px-3">Visible</span>
+                    @else
+                        <span class="badge bg-danger-subtle text-danger px-3">Hidden</span>
+                    @endif
                 </td>
             </tr>
         @endforeach

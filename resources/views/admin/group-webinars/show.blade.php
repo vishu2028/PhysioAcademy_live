@@ -86,7 +86,7 @@
                     </div>
                     <div class="table-responsive participant-table-scroll">
                         <table class="table participant-table align-middle mb-0">
-                            <thead><tr><th>Participant</th><th>Account</th><th>Invitation</th><th>Payment</th><th>Individual Amount</th><th>Coupon</th><th>Razorpay Reference</th><th>Action</th></tr></thead>
+                            <thead><tr><th>Participant</th><th>Action</th><th>Account</th><th>Invitation</th><th>Payment</th><th>Individual Amount</th><th>Coupon</th><th>Razorpay Reference</th></tr></thead>
                             <tbody>
                             @foreach($groupWebinar->participants as $participant)
                                 @php
@@ -113,6 +113,16 @@
                                         <div class="participant-name">{{ $participant->name ?: ($participant->role === 'organizer' ? $groupWebinar->organizer_name : 'Name not provided') }}</div>
                                         <a href="mailto:{{ $participant->email }}">{{ $participant->email }}</a>
                                         @if($participant->role === 'organizer')<span class="organizer-tag">Organizer</span>@endif
+                                    </td>
+                                    <td>
+                                        @if($participant->payment_status !== 'paid' && $participant->status !== 'cancelled')
+                                            <form method="POST" action="{{ route('admin.group-webinars.participants.resend', $participant) }}">
+                                                @csrf
+                                                <button class="btn btn-sm btn-outline-primary resend-button" type="submit"><i class="bi bi-envelope-arrow-up me-1"></i>Resend invite</button>
+                                            </form>
+                                        @else
+                                            <span class="text-secondary">—</span>
+                                        @endif
                                     </td>
                                     <td>{{ $participant->user_id ? 'Registered User' : 'Guest' }}</td>
                                     <td><span class="payment-status-badge {{ $invitationClass }}">{{ $invitationLabel }}</span><div class="table-subtext">{{ $participant->invitation_expires_at?->format('d M Y, h:i A') ? 'Expires '.$participant->invitation_expires_at->format('d M Y, h:i A') : 'No expiry recorded' }}</div></td>
@@ -143,16 +153,6 @@
                                         @empty
                                             <span class="text-secondary">No payment attempt</span>
                                         @endforelse
-                                    </td>
-                                    <td>
-                                        @if($participant->payment_status !== 'paid' && $participant->status !== 'cancelled')
-                                            <form method="POST" action="{{ route('admin.group-webinars.participants.resend', $participant) }}">
-                                                @csrf
-                                                <button class="btn btn-sm btn-outline-primary resend-button" type="submit"><i class="bi bi-envelope-arrow-up me-1"></i>Resend invite</button>
-                                            </form>
-                                        @else
-                                            <span class="text-secondary">—</span>
-                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

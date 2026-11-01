@@ -96,7 +96,7 @@
                             <li><button class="dropdown-item" onclick="copyToClipboard('{{ $item->url }}')"><i class="bi bi-link-45deg me-2"></i> Copy URL</button></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <form action="{{ route('admin.media.destroy', $item) }}" method="POST" onsubmit="return confirm('Delete this file permanently?')">
+                                <form action="{{ route('admin.media.destroy', [$item, '_listing' => request()->query()]) }}" method="POST" onsubmit="return confirm('Delete this file permanently?')">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i> Delete</button>
                                 </form>
@@ -130,7 +130,7 @@
                 <h5 class="modal-title fw-bold">Upload Files</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('admin.media.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('admin.media.store', ['_listing' => request()->query()]) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body p-4">
                     <div class="mb-3">

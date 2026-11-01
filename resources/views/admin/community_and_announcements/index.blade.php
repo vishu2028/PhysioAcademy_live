@@ -183,9 +183,10 @@
 
                                     <th>Subject</th>
 
+                                    <th width="150">Actions</th>
+
                                     <th>Time</th>
 
-                                    <th width="150">Actions</th>
 
                                 </tr>
 
@@ -230,47 +231,19 @@
 
                                         </td>
 
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                <a href="{{ route('admin.community.edit', $activity->id) }}" class="btn btn-sm btn-light border" title="Edit"><i class="bi bi-pencil"></i></a>
+                                                <form action="{{ route('admin.community.destroy', $activity->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this activity?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-light border text-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                                </form>
+                                            </div>
+                                        </td>
 
                                         <td class="text-secondary">
                                             {{ $activity->time }}
-                                        </td>
-
-
-                                        <td>
-
-                                            <div class="d-flex gap-1">
-
-                                                {{-- Edit --}}
-                                                <a href="{{ route('admin.community.edit', $activity->id) }}"
-                                                   class="btn btn-sm btn-light border"
-                                                   title="Edit">
-
-                                                    <i class="bi bi-pencil"></i>
-
-                                                </a>
-
-
-                                                {{-- Delete --}}
-                                                <form action="{{ route('admin.community.destroy', $activity->id) }}"
-                                                      method="POST"
-                                                      class="d-inline"
-                                                      onsubmit="return confirm('Are you sure you want to delete this activity?');">
-
-                                                    @csrf
-                                                    @method('DELETE')
-
-                                                    <button type="submit"
-                                                            class="btn btn-sm btn-light border text-danger"
-                                                            title="Delete">
-
-                                                        <i class="bi bi-trash"></i>
-
-                                                    </button>
-
-                                                </form>
-
-                                            </div>
-
                                         </td>
 
                                     </tr>
@@ -352,9 +325,9 @@
 
                                     <th>Title</th>
 
-                                    <th>Date</th>
-
                                     <th width="150">Actions</th>
+
+                                    <th>Date</th>
 
                                 </tr>
 
@@ -387,6 +360,16 @@
                                             {{ $announcement->title }}
                                         </td>
 
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                <a href="{{ route('admin.announcements.edit', $announcement->id) }}" class="btn btn-sm btn-light border" title="Edit"><i class="bi bi-pencil"></i></a>
+                                                <form action="{{ route('admin.announcements.destroy', $announcement->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this announcement?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-light border text-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                                </form>
+                                            </div>
+                                        </td>
 
                                         <td class="text-secondary">
 
@@ -394,43 +377,6 @@
 
                                         </td>
 
-
-                                        <td>
-
-                                            <div class="d-flex gap-1">
-
-                                                {{-- Edit --}}
-                                                <a href="{{ route('admin.announcements.edit', $announcement->id) }}"
-                                                   class="btn btn-sm btn-light border"
-                                                   title="Edit">
-
-                                                    <i class="bi bi-pencil"></i>
-
-                                                </a>
-
-
-                                                {{-- Delete --}}
-                                                <form action="{{ route('admin.announcements.destroy', $announcement->id) }}"
-                                                      method="POST"
-                                                      class="d-inline"
-                                                      onsubmit="return confirm('Are you sure you want to delete this announcement?');">
-
-                                                    @csrf
-                                                    @method('DELETE')
-
-                                                    <button type="submit"
-                                                            class="btn btn-sm btn-light border text-danger"
-                                                            title="Delete">
-
-                                                        <i class="bi bi-trash"></i>
-
-                                                    </button>
-
-                                                </form>
-
-                                            </div>
-
-                                        </td>
 
                                     </tr>
 

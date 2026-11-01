@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers\Admin;
+use App\Http\Controllers\Admin\Concerns\PreservesListingContext;
 use App\Http\Controllers\Controller;
 use App\Models\Webinar;
 use App\Models\WebinarRegistration;
@@ -9,6 +10,8 @@ use Illuminate\Validation\Rule;
 
 class WebinarController extends Controller
 {
+    use PreservesListingContext;
+
     public function index(Request $request) {
         $webinars = Webinar::withCount('registrations')
             ->when($request->search, fn($q,$s)=>$q->where(function ($query) use ($s) {
@@ -30,8 +33,8 @@ class WebinarController extends Controller
         return view('admin.webinars.index', compact('webinars','subjects','academicYears'));
     }
     public function create() { return view('admin.webinars.create', ['webinar'=>new Webinar]); }
-    public function store(Request $request) { $webinar=$this->save(new Webinar,$request); return redirect()->route('admin.webinars.index')->with('success','Webinar created.'); }
-    public function show(Webinar $webinar) { $registrations=$webinar->registrations()->with('user')->latest()->paginate(25); return view('admin.webinars.show',compact('webinar','registrations')); }
+    public function store(Request $request) { $webinar=$this->save(new Webinar,$request); return $this->redirectToListing($request, 'admin.webinars.index')->with('success','Webinar created.'); }
+    public function show(Webinar $webinar) { $registrations=$webinar->registrations()->with('user')->latest()->paginate(25)->withQueryString(); return view('admin.webinars.show',compact('webinar','registrations')); }
     public function edit(Webinar $webinar) { return view('admin.webinars.edit',compact('webinar')); }
     public function update(Request $request, Webinar $webinar) {
         $this->save($webinar,$request);
@@ -46,7 +49,12 @@ class WebinarController extends Controller
                 }
             });
         }
-        return redirect()->route('admin.webinars.show',$webinar)->with('success','Webinar updated.');
+        $filters = $this->listingFilters($request);
+        $redirect = $filters
+            ? redirect()->route('admin.webinars.index', $filters)
+            : redirect()->route('admin.webinars.show', $webinar);
+
+        return $redirect->with('success','Webinar updated.');
     }
     public function destroy(Webinar $webinar) { $webinar->delete(); return back()->with('success','Webinar deleted.'); }
     public function updateRegistration(Request $request, WebinarRegistration $registration) {

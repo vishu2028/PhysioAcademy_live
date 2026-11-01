@@ -12,13 +12,26 @@
 
     <x-admin.data-table
         title="Category List"
-        :headers="['Name', 'Slug / Page', 'Exam Aid', 'Topics', 'Order', 'Status', 'Actions']"
+        :headers="['Name', 'Actions', 'Slug / Page', 'Exam Aid', 'Topics', 'Order', 'Status']"
         :createRoute="route('admin.exam-aid-categories.create')"
         createText="Add Category"
     >
         @foreach($categories as $category)
             <tr>
                 <td class="ps-4 fw-bold">{{ $category->name }}</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('admin.exam-aid-categories.edit', $category) }}" class="btn btn-primary btn-sm rounded-3">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="{{ route('admin.exam-aid-categories.destroy', $category) }}" method="POST"
+                              onsubmit="return confirm('Delete this category? Its materials will become uncategorized.')">
+                            @csrf
+                            @method('DELETE')
+                            <button class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
+                </td>
                 <td>
                     <a href="{{ $category->public_url }}" target="_blank" rel="noopener" class="small text-decoration-none">
                         /exam-aid/category/{{ $category->slug }}
@@ -34,19 +47,6 @@
                     @else
                         <span class="badge bg-danger-subtle text-danger px-3">Inactive</span>
                     @endif
-                </td>
-                <td>
-                    <div class="d-flex gap-2">
-                        <a href="{{ route('admin.exam-aid-categories.edit', $category) }}" class="btn btn-primary btn-sm rounded-3">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <form action="{{ route('admin.exam-aid-categories.destroy', $category) }}" method="POST"
-                              onsubmit="return confirm('Delete this category? Its materials will become uncategorized.')">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
-                        </form>
-                    </div>
                 </td>
             </tr>
         @endforeach

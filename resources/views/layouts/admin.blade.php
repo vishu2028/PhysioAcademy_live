@@ -380,6 +380,9 @@
                 <a href="{{ route('admin.menus.index') }}" class="nav-link-admin @if(request()->routeIs('admin.menus.*')) active @endif">
                     <i class="bi bi-list-ul"></i> Navigation Menus
                 </a>
+                <a href="{{ route('admin.newsletter-subscribers.index') }}" class="nav-link-admin @if(request()->routeIs('admin.newsletter-subscribers.*')) active @endif">
+                    <i class="bi bi-envelope-paper"></i> Newsletter Subscribers
+                </a>
 
                 <div class="sidebar-section-label">UI Components</div>
                 <a href="{{ route('admin.sliders.index') }}" class="nav-link-admin @if(request()->routeIs('admin.sliders.*')) active @endif">
@@ -390,12 +393,6 @@
                 </a>
 
                 <div class="sidebar-section-label">System & Users</div>
-                @php
-                    $unreadMessages = \App\Models\Message::unread()->count();
-                @endphp
-                <a href="{{ route('admin.messages.index') }}" class="nav-link-admin @if(request()->routeIs('admin.messages.*')) active @endif">
-                    <i class="bi bi-envelope"></i> Inquiries @if($unreadMessages > 0) <span class="badge bg-danger ms-auto rounded-pill">{{ $unreadMessages }}</span> @endif
-                </a>
                 @php
                     $pendingDoubts = \App\Models\Doubt::where('status', 'pending')->count();
                 @endphp
@@ -545,6 +542,10 @@
             if($('.datatable').length > 0) {
                 $('.datatable').each(function() {
                     var serverPaginated = $(this).data('server-paginated') === true;
+                    var stateKey = function(settings) {
+                        return 'AdminDataTables_' + @json(auth()->id()) + '_' +
+                            settings.sInstance + '_' + window.location.pathname;
+                    };
 
                     $(this).DataTable({
                     "pageLength": 10,
@@ -553,6 +554,16 @@
                     "searching": !serverPaginated,
                     "info": !serverPaginated,
                     "ordering": !serverPaginated,
+                    "stateSave": true,
+                    "stateDuration": 0,
+                    "stateSaveDelay": 0,
+                    "stateSaveCallback": function(settings, data) {
+                        localStorage.setItem(stateKey(settings), JSON.stringify(data));
+                    },
+                    "stateLoadCallback": function(settings) {
+                        var savedState = localStorage.getItem(stateKey(settings));
+                        return savedState ? JSON.parse(savedState) : null;
+                    },
                     "language": {
                         "search": "_INPUT_",
                         "searchPlaceholder": "Search records..."

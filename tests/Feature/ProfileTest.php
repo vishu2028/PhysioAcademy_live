@@ -21,6 +21,29 @@ class ProfileTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_firebase_profile_photo_is_rendered_on_the_profile_page(): void
+    {
+        $user = User::factory()->create([
+            'avatar' => 'https://images.example.com/firebase-profile.jpg',
+        ]);
+
+        $this->actingAs($user)
+            ->get('/profile')
+            ->assertOk()
+            ->assertSee('src="https://images.example.com/firebase-profile.jpg"', false)
+            ->assertSee('alt="'.$user->name.' profile picture"', false);
+    }
+
+    public function test_uploaded_profile_photo_uses_the_public_storage_url(): void
+    {
+        $user = User::factory()->create(['avatar' => 'avatars/student.png']);
+
+        $this->assertSame(
+            \Illuminate\Support\Facades\Storage::disk('public')->url('avatars/student.png'),
+            $user->avatarUrl()
+        );
+    }
+
     public function test_profile_information_can_be_updated(): void
     {
         $user = User::factory()->create();

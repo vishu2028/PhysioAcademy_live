@@ -135,13 +135,14 @@
         <div class="footer-newsletter">
             <h3>Subscribe Now</h3>
             <p>{{ get_setting('newsletter_text', 'Get updates about important topics, exam resources, and new learning materials.') }}</p>
-            <form class="footer-subscribe-form" id="footerSubscribeForm">
+            <form class="footer-subscribe-form" id="footerSubscribeForm" method="POST" action="{{ route('newsletter.subscribe') }}">
+                @csrf
                 <label for="footerEmail" class="sr-only">Email address</label>
-                <input id="footerEmail" type="email" placeholder="Enter your email" required>
+                <input id="footerEmail" name="email" type="email" placeholder="Enter your email" autocomplete="email" required>
                 <button type="submit"><span>Subscribe</span></button>
             </form>
             <small>{{ get_setting('newsletter_small_text', 'Join our YouTube & academic community.') }}</small>
-            <div class="footer-subscribe-message" id="footerSubscribeMessage" role="status" aria-live="polite"></div>
+            <div class="footer-subscribe-message" id="footerSubscribeMessage" role="status" aria-live="polite" aria-atomic="true"></div>
         </div>
     </div>
     <div class="footer-bottom">
@@ -151,3 +152,7 @@
         <span>Developed By <a href="{{ e(config('app.developer.url', '#')) }}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;text-underline-offset:3px;font-weight:600;">{{ e(config('app.developer.name', 'Developer')) }}</a></span>
     </div>
 </footer>
+
+@push('scripts')
+    <script src="{{ asset('ui-physio/footer.js') }}?v={{ filemtime(public_path('ui-physio/footer.js')) }}" defer></script>
+@endpush

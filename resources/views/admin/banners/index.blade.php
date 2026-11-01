@@ -12,21 +12,12 @@
 
 <x-admin.data-table 
     title="Banner List" 
-    :headers="['Title', 'Message', 'Type', 'Status', 'Actions']" 
+    :headers="['Title', 'Actions', 'Message', 'Type', 'Status']"
     :createRoute="route('admin.banners.create')"
 >
     @foreach($banners as $banner)
     <tr>
         <td class="ps-4 fw-bold">{{ $banner->title }}</td>
-        <td><small>{{ Str::limit($banner->content, 50) }}</small></td>
-        <td><span class="badge bg-light text-dark border">{{ strtoupper($banner->type ?? 'Announcement') }}</span></td>
-        <td>
-            @if($banner->status)
-                <span class="badge bg-success-subtle text-success px-3">Published</span>
-            @else
-                <span class="badge bg-light text-secondary px-3">Inactive</span>
-            @endif
-        </td>
         <td>
             <div class="d-flex gap-2">
                 <a href="{{ route('admin.banners.edit', $banner) }}" class="btn btn-primary btn-sm rounded-3"><i class="bi bi-pencil"></i></a>
@@ -35,6 +26,15 @@
                     <button type="submit" class="btn btn-danger btn-sm rounded-3"><i class="bi bi-trash"></i></button>
                 </form>
             </div>
+        </td>
+        <td><small>{{ Str::limit($banner->content, 50) }}</small></td>
+        <td><span class="badge bg-light text-dark border">{{ strtoupper($banner->type ?? 'Announcement') }}</span></td>
+        <td>
+            @if($banner->status)
+                <span class="badge bg-success-subtle text-success px-3">Published</span>
+            @else
+                <span class="badge bg-light text-secondary px-3">Inactive</span>
+            @endif
         </td>
     </tr>
     @endforeach

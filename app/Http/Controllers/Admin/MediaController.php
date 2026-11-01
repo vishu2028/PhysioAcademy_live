@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\PreservesListingContext;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
 use Illuminate\Http\Request;
@@ -9,6 +10,8 @@ use Illuminate\Support\Facades\Storage;
 
 class MediaController extends Controller
 {
+    use PreservesListingContext;
+
     public function index(Request $request)
     {
         $query = Media::latest();
@@ -58,10 +61,10 @@ class MediaController extends Controller
             }
         }
 
-        return back()->with('success', "{$uploaded} file(s) uploaded successfully.");
+        return $this->redirectToListing($request, 'admin.media.index')->with('success', "{$uploaded} file(s) uploaded successfully.");
     }
 
-    public function destroy(Media $media)
+    public function destroy(Request $request, Media $media)
     {
         $path = $media->file_path ?: $media->path;
         if ($path) {
@@ -69,6 +72,6 @@ class MediaController extends Controller
         }
         $media->delete();
 
-        return back()->with('success', 'Media deleted successfully.');
+        return $this->redirectToListing($request, 'admin.media.index')->with('success', 'Media deleted successfully.');
     }
 }

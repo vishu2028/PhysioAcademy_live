@@ -23,11 +23,11 @@
                 <tr>
                     <th>Title</th>
                     <th>Subject</th>
+                    <th width="160">Action</th>
                     <th>Unit</th>
                     <th>Academic Year</th>
                     <th>Semester</th>
                     <th>Status</th>
-                    <th width="160">Action</th>
                 </tr>
                 </thead>
 
@@ -42,18 +42,6 @@
                         </td>
 
                         <td>{{ $examAid->subject->name ?? '-' }}</td>
-                        <td>{{ $examAid->unit->name ?? '-' }}</td>
-                        <td>{{ $examAid->academicYear->name ?? '-' }}</td>
-                        <td>{{ $examAid->semester->name ?? '-' }}</td>
-
-                        <td>
-                            @if($examAid->status)
-                                <span class="badge bg-success">Active</span>
-                            @else
-                                <span class="badge bg-secondary">Inactive</span>
-                            @endif
-                        </td>
-
                         <td>
                             <a href="{{ route('admin.exam-aids.edit', $examAid) }}" class="btn btn-sm btn-outline-primary">
                                 Edit
@@ -69,6 +57,18 @@
                                 </button>
                             </form>
                         </td>
+                        <td>{{ $examAid->unit->name ?? '-' }}</td>
+                        <td>{{ $examAid->academicYear->name ?? '-' }}</td>
+                        <td>{{ $examAid->semester->name ?? '-' }}</td>
+
+                        <td>
+                            @if($examAid->status)
+                                <span class="badge bg-success">Active</span>
+                            @else
+                                <span class="badge bg-secondary">Inactive</span>
+                            @endif
+                        </td>
+
                     </tr>
                 @empty
                     <tr>

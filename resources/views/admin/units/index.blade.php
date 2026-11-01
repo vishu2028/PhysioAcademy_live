@@ -24,7 +24,7 @@
 
     <x-admin.data-table
         title="Units List"
-        :headers="['#', 'Unit', 'Subject', 'Sort Order', 'Status', 'Actions']"
+        :headers="['#', 'Unit', 'Subject', 'Actions', 'Sort Order', 'Status']"
         :createRoute="route('admin.units.create')"
     >
 
@@ -51,6 +51,22 @@
                 </td>
 
                 <td>
+                    <a href="{{ route('admin.units.edit', $unit) }}"
+                       class="btn btn-sm btn-warning">
+                        Edit
+                    </a>
+
+                    <form action="{{ route('admin.units.destroy', $unit) }}"
+                          method="POST"
+                          class="d-inline"
+                          onsubmit="return confirm('Are you sure you want to delete this unit?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+
+                <td>
                     {{ $unit->sort_order }}
                 </td>
 
@@ -69,34 +85,6 @@
                         </button>
 
                     </form>
-                </td>
-
-                <td>
-
-                    <a href="{{ route('admin.units.edit', $unit) }}"
-                       class="btn btn-sm btn-warning">
-
-                        Edit
-
-                    </a>
-
-                    <form action="{{ route('admin.units.destroy', $unit) }}"
-                          method="POST"
-                          class="d-inline"
-                          onsubmit="return confirm('Are you sure you want to delete this unit?')">
-
-                        @csrf
-                        @method('DELETE')
-
-                        <button type="submit"
-                                class="btn btn-sm btn-danger">
-
-                            Delete
-
-                        </button>
-
-                    </form>
-
                 </td>
 
             </tr>

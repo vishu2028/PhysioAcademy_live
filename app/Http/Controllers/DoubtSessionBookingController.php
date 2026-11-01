@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AcademicYear;
 use App\Models\DoubtSessionBooking;
+use App\Models\DoubtSessionFollowUp;
 use App\Models\Subject;
 use App\Services\RazorpayService;
 use App\Services\CouponService;
@@ -82,6 +83,12 @@ class DoubtSessionBookingController extends Controller
     {
         $bookings = $request->user()
             ->doubtSessionBookings()
+            ->with('followUps.answeredBy')
+            ->withCount('likes')
+            ->withExists([
+                'likes as liked_by_current_user' => fn ($query) => $query
+                    ->where('user_id', $request->user()->id),
+            ])
             ->latest('created_at')
             ->paginate(10);
 
@@ -89,6 +96,52 @@ class DoubtSessionBookingController extends Controller
             'doubt-sessions.history',
             compact('bookings')
         );
+    }
+
+    public function like(Request $request, int $booking)
+    {
+        $booking = $request->user()
+            ->doubtSessionBookings()
+            ->findOrFail($booking);
+
+        abort_unless(filled($booking->admin_notes), 403);
+
+        $booking->likes()->firstOrCreate([
+            'user_id' => $request->user()->id,
+        ]);
+
+        return back()->with('success', 'You liked the admin response.');
+    }
+
+    public function unlike(Request $request, int $booking)
+    {
+        $booking = $request->user()
+            ->doubtSessionBookings()
+            ->findOrFail($booking);
+
+        $booking->likes()
+            ->where('user_id', $request->user()->id)
+            ->delete();
+
+        return back()->with('success', 'Your like was removed.');
+    }
+
+    public function storeFollowUp(Request $request, int $booking)
+    {
+        $booking = $request->user()
+            ->doubtSessionBookings()
+            ->findOrFail($booking);
+
+        $validated = $request->validate([
+            'question' => ['required', 'string', 'max:5000'],
+        ]);
+
+        $booking->followUps()->create([
+            'question' => trim($validated['question']),
+            'status' => DoubtSessionFollowUp::STATUS_PENDING,
+        ]);
+
+        return back()->with('success', 'Your follow-up question has been submitted.');
     }
 
     /**

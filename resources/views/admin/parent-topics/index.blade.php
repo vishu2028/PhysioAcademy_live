@@ -35,11 +35,11 @@
                         <th>#</th>
                         <th>Parent Topic</th>
                         <th>Subject</th>
+                        <th>Actions</th>
                         <th>Unit</th>
                         <th>Topic</th>
                         <th>Sort Order</th>
                         <th>Status</th>
-                        <th class="text-end">Actions</th>
                     </tr>
                     </thead>
 
@@ -57,6 +57,20 @@
                                 <span class="badge bg-primary-subtle text-primary">
                                     {{ $parentTopic->subject?->name ?? 'N/A' }}
                                 </span>
+                            </td>
+
+                            <td class="text-end">
+                                <a href="{{ route('admin.parent-topics.edit', $parentTopic) }}" class="btn btn-sm btn-primary">
+                                    Edit
+                                </a>
+                                <form action="{{ route('admin.parent-topics.destroy', $parentTopic) }}"
+                                      method="POST"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Are you sure you want to delete this parent topic?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
                             </td>
 
                             <td>
@@ -81,23 +95,6 @@
                                 @endif
                             </td>
 
-                            <td class="text-end">
-                                <a href="{{ route('admin.parent-topics.edit', $parentTopic) }}" class="btn btn-sm btn-primary">
-                                    Edit
-                                </a>
-
-                                <form action="{{ route('admin.parent-topics.destroy', $parentTopic) }}"
-                                      method="POST"
-                                      class="d-inline"
-                                      onsubmit="return confirm('Are you sure you want to delete this parent topic?')">
-                                    @csrf
-                                    @method('DELETE')
-
-                                    <button type="submit" class="btn btn-sm btn-danger">
-                                        Delete
-                                    </button>
-                                </form>
-                            </td>
                         </tr>
                     @empty
                         <tr>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\PreservesListingContext;
 use App\Http\Controllers\Controller;
 use App\Models\Doubt;
 use App\Notifications\DoubtAnswered;
@@ -10,6 +11,8 @@ use Illuminate\Http\Request;
 
 class DoubtController extends Controller
 {
+    use PreservesListingContext;
+
     public function index(Request $request)
     {
         $validated = $request->validate([
@@ -87,13 +90,13 @@ class DoubtController extends Controller
             }
         });
 
-        return back()->with('success', 'Doubt updated successfully.');
+        return $this->redirectToListing($request, 'admin.doubts.index')->with('success', 'Doubt updated successfully.');
     }
 
-    public function destroy(Doubt $doubt)
+    public function destroy(Request $request, Doubt $doubt)
     {
         $doubt->delete();
 
-        return back()->with('success', 'Doubt deleted successfully.');
+        return $this->redirectToListing($request, 'admin.doubts.index')->with('success', 'Doubt deleted successfully.');
     }
 }

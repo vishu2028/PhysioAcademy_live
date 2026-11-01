@@ -31,10 +31,10 @@
             '#',
             'Topic',
             'Subject',
+            'Actions',
             'Unit',
             'Sort Order',
             'Status',
-            'Actions'
         ]"
         :createRoute="route('admin.unit-topics.create')"
     >
@@ -64,6 +64,24 @@
                 </td>
 
                 <td>
+                    <div class="d-inline-flex gap-2">
+                        <a href="{{ route('admin.unit-topics.edit', $unitTopic) }}"
+                           class="btn btn-primary btn-sm rounded-3">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form action="{{ route('admin.unit-topics.destroy', $unitTopic) }}"
+                              method="POST"
+                              onsubmit="return confirm('Delete this topic?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm rounded-3">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+
+                <td>
                     <span class="badge bg-secondary-subtle text-secondary">
                         {{ $unitTopic->unit->name ?? 'N/A' }}
                     </span>
@@ -83,31 +101,6 @@
                             Inactive
                         </span>
                     @endif
-                </td>
-
-                <td>
-                    <div class="d-inline-flex gap-2">
-
-                        <a href="{{ route('admin.unit-topics.edit', $unitTopic) }}"
-                           class="btn btn-primary btn-sm rounded-3">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-
-                        <form action="{{ route('admin.unit-topics.destroy', $unitTopic) }}"
-                              method="POST"
-                              onsubmit="return confirm('Delete this topic?')">
-
-                            @csrf
-                            @method('DELETE')
-
-                            <button type="submit"
-                                    class="btn btn-danger btn-sm rounded-3">
-                                <i class="bi bi-trash"></i>
-                            </button>
-
-                        </form>
-
-                    </div>
                 </td>
 
             </tr>

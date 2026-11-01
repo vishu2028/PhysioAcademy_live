@@ -152,6 +152,7 @@
                         <thead>
                         <tr>
                             <th class="column-reference">Reference</th>
+                            <th class="column-action action-column">Action</th>
                             <th class="column-organizer">Organizer</th>
                             <th class="column-webinar">Webinar Details</th>
                             <th class="column-participants">Participants</th>
@@ -159,7 +160,6 @@
                             <th class="column-status">Webinar Status</th>
                             <th class="column-schedule">Schedule</th>
                             <th class="column-submitted">Submitted</th>
-                            <th class="column-action action-column">Action</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -186,6 +186,9 @@
                                 <td class="column-reference">
                                     <div class="reference-value">{{ $groupWebinar->reference }}</div>
                                     <div class="reference-id">Request ID #{{ $groupWebinar->id }}</div>
+                                </td>
+                                <td class="column-action action-column">
+                                    <a href="{{ route('admin.group-webinars.show', $groupWebinar) }}" class="btn btn-sm btn-primary view-booking-button"><i class="bi bi-eye me-1"></i>View</a>
                                 </td>
                                 <td class="column-organizer">
                                     <div class="student-name">{{ $groupWebinar->organizer_name }}</div>
@@ -221,9 +224,6 @@
                                 <td class="column-submitted">
                                     <div class="submitted-date">{{ $groupWebinar->created_at->format('d M Y') }}</div>
                                     <div class="submitted-time">{{ $groupWebinar->created_at->format('h:i A') }}</div>
-                                </td>
-                                <td class="column-action action-column">
-                                    <a href="{{ route('admin.group-webinars.show', $groupWebinar) }}" class="btn btn-sm btn-primary view-booking-button"><i class="bi bi-eye me-1"></i>View</a>
                                 </td>
                             </tr>
                         @empty

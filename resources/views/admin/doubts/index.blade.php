@@ -69,12 +69,12 @@
                         <th>Student</th>
                         <th>Year</th>
                         <th>Subject</th>
+                        <th>Action</th>
                         <th>Topic</th>
                         <th>Doubt</th>
                         <th>Submitted Date &amp; Time</th>
                         <th>Status</th>
                         <th class="response-column">Response</th>
-                        <th>Action</th>
                     </tr>
                     </thead>
 
@@ -89,6 +89,14 @@
                             <td>{{ $doubt->academicYear?->name ?? '-' }}</td>
 
                             <td>{{ $doubt->subject?->name ?? '-' }}</td>
+
+                            <td>
+                                <form action="{{ route('admin.doubts.destroy', [$doubt, '_listing' => request()->query()]) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this doubt?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
 
                             <td>{{ $doubt->topic ?: '-' }}</td>
 
@@ -173,16 +181,6 @@
                                 @endif
                             </td>
 
-                            <td>
-                                <form action="{{ route('admin.doubts.destroy', $doubt) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this doubt?')">
-                                    @csrf
-                                    @method('DELETE')
-
-                                    <button type="submit" class="btn btn-danger btn-sm">
-                                        Delete
-                                    </button>
-                                </form>
-                            </td>
                         </tr>
                     @empty
                         <tr>
@@ -222,6 +220,11 @@
                     <form id="responseModalForm" method="POST">
                         @csrf
                         @method('PUT')
+                        @foreach(request()->query() as $key => $value)
+                            @if(is_scalar($value))
+                                <input type="hidden" name="_listing[{{ $key }}]" value="{{ $value }}">
+                            @endif
+                        @endforeach
                         <label class="form-label fw-semibold" for="responseStatus">Status</label>
                         <select class="form-select mb-3" id="responseStatus" name="status">
                             <option value="pending">Pending</option>
