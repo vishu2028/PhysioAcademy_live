@@ -241,6 +241,11 @@ Route::middleware('auth')->group(function () {
         [DoubtSessionBookingController::class, 'verifyPayment']
     )->name('doubt-sessions.payment.verify');
 
+    Route::post(
+        '/doubt-sessions/{booking}/payment/failure',
+        [DoubtSessionBookingController::class, 'reportPaymentFailure']
+    )->name('doubt-sessions.payment.failure');
+
     Route::get(
         '/doubt-sessions/{booking}/success',
         [DoubtSessionBookingController::class, 'success']

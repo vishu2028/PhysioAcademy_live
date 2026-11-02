@@ -1,196 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login — Physio Academy</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="{{ asset('ui-physio/style.css') }}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Login — PhysioSource</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('ui-physio/style.css') }}">
 </head>
-
 <body class="pauth-body">
-  <main class="pauth-page" data-auth-page="login">
-    <div class="pauth-particles"></div>
-    <section class="pauth-shell pauth-single" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-      <div class="pauth-panel-wrap">
-        <div class="pauth-form-panel">
-          <a href="{{ url('/') }}" class="auth-close" aria-label="Close login">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </a>
-
-          <div class="pauth-form-head">
-            <h2 id="loginTitle">Welcome Back</h2>
-            <p>Continue your academic journey with Physio Academy.</p>
-          </div>
-
-          <!-- Session Status -->
-          @if (session('status'))
-            <div class="alert alert-success mb-4"
-              style="color: #10b981; background: rgba(16,185,129,0.1); padding: 10px; border-radius: 8px; font-size: 0.9rem;">
-              {{ session('status') }}
+    <main class="pauth-page" data-auth-page="login">
+        <div class="pauth-particles"></div>
+        <section class="pauth-shell pauth-single" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+            <div class="pauth-panel-wrap">
+                <div class="pauth-form-panel">
+                    <a href="{{ url('/') }}" class="auth-close" aria-label="Close login">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </a>
+                    <div class="pauth-form-head">
+                        <h1 id="loginTitle">Welcome Back</h1>
+                        <p>Continue your academic journey with PhysioSource.</p>
+                    </div>
+                    @if (session('status'))
+                        <div class="alert alert-success mb-4" role="status">{{ session('status') }}</div>
+                    @endif
+                    <p class="social-auth-intro">Sign in or create your account securely with a provider.</p>
+                    @include('auth.partials.provider-buttons')
+                </div>
             </div>
-          @endif
-
-          <form class="pauth-form" id="loginForm" method="POST" action="{{ route('login') }}">
-            @csrf
-            <div class="pauth-field">
-              <input class="pauth-input @error('email') is-invalid @enderror" id="loginEmail" name="email" type="email"
-                placeholder=" " value="{{ old('email') }}" autocomplete="email" required autofocus>
-              <label class="pauth-label" for="loginEmail">Email address</label>
-              <span class="pauth-field-icon">@</span>
-              @error('email')
-                <p class="pauth-error" style="display: block;">{{ $message }}</p>
-              @enderror
-            </div>
-
-            <div class="pauth-field">
-              <input class="pauth-input @error('password') is-invalid @enderror" id="loginPassword" name="password"
-                type="password" placeholder=" " autocomplete="current-password" required>
-              <label class="pauth-label" for="loginPassword">Password</label>
-              <button class="pauth-pass-toggle" type="button" data-toggle-password="loginPassword"
-                aria-label="Show password">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              </button>
-              @error('password')
-                <p class="pauth-error" style="display: block;">{{ $message }}</p>
-              @enderror
-            </div>
-
-            <div class="pauth-row">
-              <label class="pauth-check">
-                <input type="checkbox" name="remember">
-                <span class="pauth-check-box"></span>
-                Remember me
-              </label>
-              @if (Route::has('password.request'))
-                <a class="pauth-link" href="{{ route('password.request') }}">Forgot Password?</a>
-              @endif
-            </div>
-
-            <button class="pauth-submit" type="submit">
-              <span class="pauth-btn-text">Login to Continue</span>
-            </button>
-
-            <div class="pauth-divider"><span>or</span></div>
-
-            <button class="pauth-google" type="button" data-google-action>
-              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="#4285F4" d="M21.6 12.23c0-.78-.07-1.53-.2-2.23H12v4.22h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.52Z"/>
-                <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.43l-3.24-2.51c-.9.6-2.04.95-3.38.95-2.6 0-4.8-1.76-5.59-4.12H3.06v2.59A10 10 0 0 0 12 22Z"/>
-                <path fill="#FBBC05" d="M6.41 13.89A6 6 0 0 1 6.1 12c0-.65.11-1.29.31-1.89V7.52H3.06A10 10 0 0 0 2 12c0 1.61.39 3.14 1.06 4.48l3.35-2.59Z"/>
-                <path fill="#EA4335" d="M12 5.99c1.47 0 2.78.5 3.82 1.5l2.87-2.87C16.95 3 14.69 2 12 2a10 10 0 0 0-8.94 5.52l3.35 2.59C7.2 7.75 9.4 5.99 12 5.99Z"/>
-              </svg>
-              <span>Continue with Google</span>
-            </button>
-            <p class="pauth-error" data-google-error role="alert"></p>
-          </form>
-
-          <p class="pauth-switch">New to Physio Academy? <a class="pauth-link" href="{{ route('register') }}">Create an
-              account</a></p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <script src="{{ asset('ui-physio/footer.js') }}?v={{ filemtime(public_path('ui-physio/footer.js')) }}"></script>
-  <script src="{{ asset('ui-physio/auth.js') }}"></script>
-  @php
-    $firebaseWebConfig = config('services.firebase.web', []);
-    $firebaseWebConfigured = collect(['apiKey', 'authDomain', 'projectId', 'appId'])
-        ->every(fn ($key) => filled($firebaseWebConfig[$key] ?? null));
-  @endphp
-  <script>
-    window.physioFirebaseConfig = @json($firebaseWebConfig);
-    window.physioFirebaseConfigured = @json($firebaseWebConfigured);
-    window.physioFirebaseLoginUrl = @json(route('login.firebase'));
-    window.physioFirebaseCsrf = @json(csrf_token());
-  </script>
-  <script type="module">
-    import { getApps, initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
-
-    const button = document.querySelector('[data-google-action]');
-    const error = document.querySelector('[data-google-error]');
-    let firebaseAuth = null;
-    let firebaseInitializationError = null;
-
-    if (window.physioFirebaseConfigured) {
-      try {
-        const firebaseApp = getApps()[0] || initializeApp(window.physioFirebaseConfig);
-        firebaseAuth = getAuth(firebaseApp);
-      } catch (initializationError) {
-        firebaseInitializationError = initializationError;
-      }
-    }
-
-    button?.addEventListener('click', async () => {
-      if (!window.physioFirebaseConfigured || !firebaseAuth) {
-        error.textContent = 'Google sign-in is unavailable because Firebase web configuration is missing on this site. Please contact support.';
-        error.style.display = 'block';
-        return;
-      }
-
-      button.disabled = true;
-      button.classList.add('loading');
-      button.querySelector('span').textContent = 'Connecting securely...';
-      error.textContent = '';
-      error.style.display = 'none';
-
-      try {
-        const provider = new GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
-        const credential = await signInWithPopup(firebaseAuth, provider);
-        const idToken = await credential.user.getIdToken();
-        const response = await fetch(window.physioFirebaseLoginUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': window.physioFirebaseCsrf
-          },
-          credentials: 'same-origin',
-          body: JSON.stringify({ id_token: idToken })
-        });
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok || !data.success) {
-          await signOut(firebaseAuth).catch(() => {});
-          throw new Error(data.message || 'Google sign-in could not be completed.');
-        }
-
-        window.location.assign(data.redirect);
-      } catch (authError) {
-        const code = authError?.code || '';
-        const messages = {
-          'auth/popup-closed-by-user': 'Google sign-in was cancelled.',
-          'auth/popup-blocked': 'Your browser blocked the Google sign-in popup. Allow popups and try again.',
-          'auth/unauthorized-domain': 'This website is not authorized for Google sign-in. Please contact support.',
-          'auth/operation-not-allowed': 'Google sign-in is disabled for this Firebase project. Please contact support.',
-          'auth/invalid-api-key': 'Google sign-in is misconfigured on this website. Please contact support.',
-          'auth/network-request-failed': 'A network error interrupted Google sign-in. Check your connection and try again.'
-        };
-        error.textContent = messages[code]
-          || (firebaseInitializationError
-            ? 'Google sign-in could not be initialized. Please use email and password or contact support.'
-            : authError?.message || 'Google sign-in could not be completed. Please try again.');
-        error.style.display = 'block';
-        button.disabled = false;
-        button.classList.remove('loading');
-        button.querySelector('span').textContent = 'Continue with Google';
-      }
-    });
-  </script>
+        </section>
+    </main>
+    <script src="{{ asset('ui-physio/footer.js') }}?v={{ filemtime(public_path('ui-physio/footer.js')) }}"></script>
 </body>
-
 </html>

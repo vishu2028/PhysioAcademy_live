@@ -126,7 +126,7 @@
                                             <div class="content-overlay" style="background: linear-gradient(to bottom, transparent, #FFFFFF); height: 100px; margin-top: -100px; position: relative; z-index: 1;"></div>
                                             <div class="restricted-notice mt-4 px-4 py-3 rounded-4 border border-blue-100 bg-blue-50/50 text-center">
                                                 <p class="mb-2 fw-bold text-blue-900">✨ Reading in Preview Mode (50%)</p>
-                                                <p class="text-sm text-blue-700 mb-3">Join Physio Academy to unlock full detailed descriptions, diagrams, and clinical insights.</p>
+                                                <p class="text-sm text-blue-700 mb-3">Join PhysioSource to unlock full detailed descriptions, diagrams, and clinical insights.</p>
                                                 <a href="{{ route('login') }}" class="btn-sidebar-primary d-inline-block px-5 py-2 w-auto">Login to Continue</a>
                                             </div>
                                         </div>

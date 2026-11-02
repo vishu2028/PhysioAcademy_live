@@ -13,7 +13,7 @@ class BookmarkPageSeeder extends Seeder
     {
         $page = Page::firstOrCreate(['slug' => 'bookmarks'], [
             'title' => 'My Saved Items',
-            'meta_title' => 'My Bookmarks - Physio Academy',
+            'meta_title' => 'My Bookmarks - PhysioSource',
             'meta_description' => 'Access your saved topics and learning materials.',
             'status' => true,
             'is_protected' => true,

@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "physio/physio-academy",
     "type": "project",
-    "description": "Physio Academy Laravel application.",
+    "description": "PhysioSource Laravel application.",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {

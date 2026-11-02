@@ -21,7 +21,7 @@
                 <div class="col-md-8">
                     <div class="mb-3">
                         <label class="form-label fw-bold small text-uppercase text-secondary">Question</label>
-                        <input type="text" name="question" class="form-control rounded-3 py-2 @error('question') is-invalid @enderror" value="{{ old('question', $faq->question) }}" placeholder="What is Physio Academy?" required>
+                        <input type="text" name="question" class="form-control rounded-3 py-2 @error('question') is-invalid @enderror" value="{{ old('question', $faq->question) }}" placeholder="What is PhysioSource?" required>
                         @error('question')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

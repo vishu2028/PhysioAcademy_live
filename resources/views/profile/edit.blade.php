@@ -21,7 +21,7 @@
                 <h2 class="fw-bold text-dark mb-1">{{ $user->name }}</h2>
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge bg-dark rounded-pill px-3 py-2 fw-bold small"><i class="bi bi-shield-lock-fill me-1"></i> System Administrator</span>
-                    <span class="text-muted small">Managing Physio Academy since {{ $user->created_at->format('Y') }}</span>
+                    <span class="text-muted small">Managing PhysioSource since {{ $user->created_at->format('Y') }}</span>
                 </div>
             </div>
         </div>

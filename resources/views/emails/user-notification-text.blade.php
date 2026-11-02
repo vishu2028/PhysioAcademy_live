@@ -1,4 +1,4 @@
-{{ config('app.name', 'Physio Academy') }}
+{{ brand_text(config('app.name', 'PhysioSource')) }}
 
 {{ $title }}
 

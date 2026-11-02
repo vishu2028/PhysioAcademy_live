@@ -26,9 +26,9 @@ class FAQController extends Controller
                 ->map(function (FAQ $faq) {
                     return [
                         'id' => $faq->id,
-                        'question' => $faq->question,
-                        'answer' => $faq->answer,
-                        'category' => $faq->category,
+                        'question' => brand_text($faq->question),
+                        'answer' => brand_text($faq->answer),
+                        'category' => brand_text($faq->category),
                         'order' => $faq->order,
                     ];
                 })

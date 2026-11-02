@@ -6,7 +6,7 @@
     <div class="mb-4 d-flex justify-content-between align-items-center">
         <div>
             <h2 class="fw-bold text-dark">Student Testimonials</h2>
-            <p class="text-secondary mb-0">Feedback from physiotherapy students using the platform.</p>
+            <p class="text-secondary mb-0">Feedback from PhysioSource students using the platform.</p>
         </div>
 
         {{-- Section Visibility Toggle --}}

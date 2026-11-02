@@ -8,7 +8,7 @@
             <div class="site-search-copy">
                 <span class="site-search-kicker"><span class="site-search-dot"></span> Site Search</span>
                 <h1>Search</h1>
-                <p>Find syllabus topics, subjects, units, and Exam Aid resources across Physio Academy.</p>
+                <p>Find syllabus topics, subjects, units, and Exam Aid resources across PhysioSource.</p>
             </div>
 
             <div class="site-search-panel">

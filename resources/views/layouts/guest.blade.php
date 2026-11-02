@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Physio Academy') }}</title>
+        <title>{{ brand_text(config('app.name', 'PhysioSource')) }}</title>
 
         @if(get_setting('site_favicon'))
             <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . get_setting('site_favicon')) }}">

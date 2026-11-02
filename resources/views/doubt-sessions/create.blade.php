@@ -23,7 +23,7 @@
                     <h1>Book a Doubt Session</h1>
 
                     <p>
-                        Submit your physiotherapy doubt and booking details.
+                        Submit your PhysioSource doubt and booking details.
                         The admin will confirm your session date and time
                         after your booking is completed.
                     </p>
@@ -339,8 +339,10 @@
                                     <p id="sessionCouponMessage" class="small mt-2 mb-0" role="status" aria-live="polite"></p>
                                     <div id="sessionCouponBreakdown" class="coupon-breakdown mt-2" hidden>
                                         <div><span>Original price</span><strong id="sessionCouponOriginal"></strong></div>
-                                        <div><span>Discount</span><strong id="sessionCouponDiscount"></strong></div>
-                                        <div><span>Payable</span><strong id="sessionCouponFinal"></strong></div>
+                                        <div><span>Applied coupon</span><strong id="sessionCouponApplied"></strong></div>
+                                        <div><span>Discount type</span><strong id="sessionCouponType"></strong></div>
+                                        <div><span>Discount amount</span><strong id="sessionCouponDiscount"></strong></div>
+                                        <div><span>Final payable</span><strong id="sessionCouponFinal"></strong></div>
                                         <button id="sessionCouponRemove" type="button" class="btn btn-link btn-sm px-0">Remove coupon</button>
                                     </div>
                                 </section>
@@ -372,7 +374,7 @@
                                         @if($isFree)
                                             Submit Free Booking
                                         @else
-                                            Continue to Payment
+                                            Continue to Payment — ₹{{ number_format((float) $price, 2) }}
                                         @endif
                                     </span>
 
@@ -419,7 +421,7 @@
                                         @if($isFree)
                                             Free
                                         @else
-                                            ₹{{ number_format((float) $price, 2) }}
+                                            <span id="sessionSidebarPrice">₹{{ number_format((float) $price, 2) }}</span>
                                         @endif
                                     </strong>
                                 </div>
@@ -1107,13 +1109,19 @@
                 const baseAmount = Number(document.getElementById('sessionPayableSummary')?.dataset.baseAmount || 0);
 
                 const money = (value) => `₹${Number(value).toFixed(2)}`;
+                const updatePayable = (amount) => {
+                    document.getElementById('sessionPayableSummary').textContent = money(amount);
+                    document.getElementById('sessionSidebarPrice').textContent = money(amount);
+                    document.getElementById('bookingSubmitText').textContent = `Continue to Payment — ${money(amount)}`;
+                };
                 const showCouponQuote = (quote) => {
                     document.getElementById('sessionCouponOriginal').textContent = money(quote.original_amount);
+                    document.getElementById('sessionCouponApplied').textContent = quote.code;
+                    document.getElementById('sessionCouponType').textContent = quote.discount_description;
                     document.getElementById('sessionCouponDiscount').textContent = `−${money(quote.discount_amount)}`;
                     document.getElementById('sessionCouponFinal').textContent = money(quote.final_amount);
                     couponBreakdown.hidden = false;
-                    const summary = document.getElementById('sessionPayableSummary');
-                    if (summary) summary.textContent = money(quote.final_amount);
+                    updatePayable(quote.final_amount);
                     couponCode.value = quote.code;
                     couponInput.value = quote.code;
                     couponMessage.textContent = quote.message;
@@ -1128,7 +1136,7 @@
                             method: 'POST',
                             credentials: 'same-origin',
                             headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},
-                            body: JSON.stringify({code:couponInput.value,service:'doubt_session',amount:baseAmount})
+                            body: JSON.stringify({code:couponInput.value,service:'doubt_session'})
                         });
                         const quote = await response.json();
                         if (!response.ok) throw new Error(quote.message || 'Invalid coupon code.');
@@ -1136,6 +1144,7 @@
                     } catch (error) {
                         couponCode.value = '';
                         couponBreakdown.hidden = true;
+                        updatePayable(baseAmount);
                         couponMessage.textContent = error.message || 'Unable to validate coupon.';
                         couponMessage.className = 'small mt-2 mb-0 text-danger';
                     } finally {
@@ -1148,8 +1157,7 @@
                     couponBreakdown.hidden = true;
                     couponMessage.textContent = 'Coupon removed.';
                     couponMessage.className = 'small mt-2 mb-0 text-muted';
-                    const summary = document.getElementById('sessionPayableSummary');
-                    if (summary) summary.textContent = money(baseAmount);
+                    updatePayable(baseAmount);
                 });
                 couponInput?.addEventListener('input', () => {
                     if (couponInput.value.toUpperCase() !== couponCode.value) {
@@ -1157,8 +1165,7 @@
                         couponBreakdown.hidden = true;
                         couponMessage.textContent = 'Apply the edited code to recalculate your price.';
                         couponMessage.className = 'small mt-2 mb-0 text-muted';
-                        const summary = document.getElementById('sessionPayableSummary');
-                        if (summary) summary.textContent = money(baseAmount);
+                        updatePayable(baseAmount);
                     }
                 });
                 if (couponCode?.value) {

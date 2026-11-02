@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         const checkout=new window.Razorpay({
             key:@json(app(\App\Services\RazorpayService::class)->keyId()),
             amount:@json($order['amount']),currency:@json($order['currency']),
-            name:@json(config('app.name')),description:@json($webinar->title),order_id:@json($order['id']),
+            name:@json(brand_text(config('app.name', 'PhysioSource'))),description:@json(brand_text($webinar->title)),order_id:@json($order['id']),
             handler:(response)=>{
                 document.getElementById('webinarPaymentId').value=response.razorpay_payment_id;
                 document.getElementById('webinarPaymentSignature').value=response.razorpay_signature;

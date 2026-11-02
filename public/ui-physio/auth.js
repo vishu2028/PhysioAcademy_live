@@ -114,27 +114,6 @@
     });
   });
 
-  const loginForm = qs('#loginForm');
-  if (loginForm) {
-    const email = qs('#loginEmail');
-    const password = qs('#loginPassword');
-    email.addEventListener('input', () => setError(email, validateEmail(email)));
-    password.addEventListener('input', () => setError(password, validatePassword(password)));
-    loginForm.addEventListener('submit', (event) => {
-      const errors = [
-        [email, validateEmail(email)],
-        [password, validatePassword(password)]
-      ];
-      errors.forEach(([input, error]) => setError(input, error));
-      if (errors.some(([, error]) => error)) {
-        event.preventDefault();
-        return;
-      }
-      const button = qs('.pauth-submit', loginForm);
-      setLoading(button, true);
-    });
-  }
-
   const signupForm = qs('#signupForm');
   if (signupForm) {
     const name = qs('#signupName');

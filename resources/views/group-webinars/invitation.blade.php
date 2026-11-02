@@ -34,7 +34,7 @@
                     <div class="col-md-6"><div class="bg-light rounded-3 p-3"><div class="small text-secondary">Webinar reference</div><strong>{{ $participant->request->reference }}</strong></div></div>
                     <div class="col-md-6"><div class="bg-light rounded-3 p-3"><div class="small text-secondary">Organizer</div><strong>{{ $participant->request->organizer_name }}</strong><div class="small">{{ $participant->request->organizer_email }}</div></div></div>
                     <div class="col-md-6"><div class="bg-light rounded-3 p-3"><div class="small text-secondary">Your participant email</div><strong>{{ $participant->email }}</strong></div></div>
-                    <div class="col-md-6"><div class="bg-light rounded-3 p-3"><div class="small text-secondary">Your individual amount</div><strong>{{ $participant->request->is_free ? 'Free' : '₹'.number_format((float) $participant->amount_due, 2) }}</strong></div></div>
+                    <div class="col-md-6"><div class="bg-light rounded-3 p-3"><div class="small text-secondary">Your individual amount</div><strong id="participantAmount">{{ $participant->request->is_free ? 'Free' : '₹'.number_format((float) $participant->amount_due, 2) }}</strong></div></div>
                 </div>
                 <p class="mb-3">Your payment status: <span class="badge {{ $participant->payment_status === 'paid' ? 'bg-success' : ($participant->payment_status === 'not_required' ? 'bg-info' : 'bg-warning text-dark') }}">{{ ucwords(str_replace('_', ' ', $participant->payment_status)) }}</span></p>
                 <div class="alert alert-primary rounded-3">Each person pays their own amount through a unique invitation. The organizer does not pay for the group.</div>
@@ -56,8 +56,10 @@
                             <p id="couponMessage" class="small mt-2 mb-0" role="status" aria-live="polite"></p>
                             <div id="couponBreakdown" class="border rounded-3 p-3 mt-2" hidden>
                                 <div class="d-flex justify-content-between gap-3"><span>Original amount</span><strong id="couponOriginal"></strong></div>
-                                <div class="d-flex justify-content-between gap-3"><span>Discount</span><strong id="couponDiscount"></strong></div>
-                                <div class="d-flex justify-content-between gap-3"><span>Payable</span><strong id="couponFinal"></strong></div>
+                                <div class="d-flex justify-content-between gap-3"><span>Applied coupon</span><strong id="couponAppliedCode"></strong></div>
+                                <div class="d-flex justify-content-between gap-3"><span>Discount type</span><strong id="couponDiscountType"></strong></div>
+                                <div class="d-flex justify-content-between gap-3"><span>Discount amount</span><strong id="couponDiscount"></strong></div>
+                                <div class="d-flex justify-content-between gap-3"><span>Final payable</span><strong id="couponFinal"></strong></div>
                                 <button type="button" class="btn btn-link btn-sm px-0" id="removeCoupon">Remove coupon</button>
                             </div>
                         </div>
@@ -88,8 +90,12 @@
     const breakdown = document.getElementById('couponBreakdown');
     if (!input || !apply || !breakdown) return;
     let quotedCode = '';
+    const originalAmount = Number(@json((float) $participant->amount));
 
     const money = amount => `₹${Number(amount).toFixed(2)}`;
+    const updateAmount = amount => {
+        document.getElementById('participantAmount').textContent = money(amount);
+    };
     apply.addEventListener('click', async () => {
         apply.disabled = true;
         message.textContent = 'Validating coupon…';
@@ -108,8 +114,11 @@
             const quote = await response.json();
             if (!response.ok) throw new Error(quote.message || 'Invalid coupon code.');
             document.getElementById('couponOriginal').textContent = money(quote.original_amount);
+            document.getElementById('couponAppliedCode').textContent = quote.code;
+            document.getElementById('couponDiscountType').textContent = quote.discount_description;
             document.getElementById('couponDiscount').textContent = `−${money(quote.discount_amount)}`;
             document.getElementById('couponFinal').textContent = money(quote.final_amount);
+            updateAmount(quote.final_amount);
             input.value = quote.code;
             quotedCode = quote.code;
             breakdown.hidden = false;
@@ -118,6 +127,7 @@
         } catch (error) {
             quotedCode = '';
             breakdown.hidden = true;
+            updateAmount(originalAmount);
             message.textContent = error.message || 'Unable to validate coupon.';
             message.className = 'small mt-2 mb-0 text-danger';
         } finally {
@@ -129,6 +139,7 @@
         input.value = '';
         quotedCode = '';
         breakdown.hidden = true;
+        updateAmount(originalAmount);
         message.textContent = 'Coupon removed.';
         message.className = 'small mt-2 mb-0 text-muted';
     });
@@ -136,6 +147,7 @@
         if (input.value.trim().toUpperCase() !== quotedCode) {
             quotedCode = '';
             breakdown.hidden = true;
+            updateAmount(originalAmount);
             message.textContent = 'Apply the edited code to recalculate your price.';
             message.className = 'small mt-2 mb-0 text-muted';
         }

@@ -36,7 +36,7 @@ if (!function_exists('brand_text')) {
             return $value;
         }
 
-        return str_replace(
+        return str_ireplace(
             [
                 'dynamic-laravel-cms',
                 'Dynamic Laravel CMS',
@@ -44,8 +44,10 @@ if (!function_exists('brand_text')) {
                 'PhysioAcademy',
                 'Physiocademy',
                 'PhysiocAademy',
+                'Physio Academy',
+                'Physio academy',
             ],
-            'Physio Academy',
+            'PhysioSource',
             $value
         );
     }

@@ -24,8 +24,8 @@
             </div>
             <span>Student Driven Platform</span>
           </div>
-          <h2>Physio<span>Academy</span></h2>
-          <p>A modern academic ecosystem designed for physiotherapy students to learn smarter, navigate syllabus easily, and access structured educational support.</p>
+          <h2>PhysioSource</h2>
+          <p>A modern academic ecosystem designed for PhysioSource students to learn smarter, navigate syllabus easily, and access structured educational support.</p>
           <div class="footer-status-row">
             <span></span>
             Academic resources syncing across the learning academy
@@ -89,8 +89,8 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© 2026 Physio Academy || All rights reserved || Designed & Developed by <a href="https://www.rootflashtechnology.com/" target="_blank" rel="noopener noreferrer">Rootflash Technology</a>.</span>
-        <span>Built for focused physiotherapy learning.</span>
+        <span>© 2026 PhysioSource || All rights reserved || Designed & Developed by <a href="https://www.rootflashtechnology.com/" target="_blank" rel="noopener noreferrer">Rootflash Technology</a>.</span>
+        <span>Built for focused PhysioSource learning.</span>
       </div>
     `;
 

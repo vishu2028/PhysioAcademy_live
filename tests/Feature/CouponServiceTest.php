@@ -6,6 +6,7 @@ use App\Models\Coupon;
 use App\Models\CouponRedemption;
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\Webinar;
 use Carbon\CarbonImmutable;
 use App\Services\CouponService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -68,6 +69,123 @@ class CouponServiceTest extends TestCase
         } catch (ValidationException $exception) {
             $this->assertStringContainsString('Minimum', $exception->errors()['coupon_code'][0]);
         }
+    }
+
+    public function test_coupon_preview_uses_server_configured_doubt_session_price(): void
+    {
+        $user = User::factory()->create();
+        $this->coupon([
+            'code' => 'SESSION20',
+            'discount_type' => Coupon::TYPE_PERCENTAGE,
+            'discount_value' => 20,
+            'applies_to' => Coupon::SERVICE_DOUBT_SESSION,
+        ]);
+        Setting::updateOrCreate(['key' => 'doubt_session_price'], [
+            'value' => '1000',
+            'group' => 'doubt_session',
+            'label' => 'Doubt session price',
+            'type' => 'number',
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('coupons.validate'), [
+                'code' => 'SESSION20',
+                'service' => Coupon::SERVICE_DOUBT_SESSION,
+                'amount' => 1,
+            ])
+            ->assertOk()
+            ->assertJson([
+                'valid' => true,
+                'code' => 'SESSION20',
+                'original_amount' => 1000,
+                'discount_description' => '20% discount',
+                'discount_amount' => 200,
+                'final_amount' => 800,
+            ]);
+    }
+
+    public function test_webinar_coupon_preview_uses_the_webinars_database_price(): void
+    {
+        $user = User::factory()->create();
+        $webinar = Webinar::create([
+            'title' => 'Clinical webinar',
+            'slug' => 'clinical-webinar',
+            'starts_at' => now()->addDay(),
+            'price' => 1000,
+            'is_free' => false,
+            'status' => 'published',
+        ]);
+        $this->coupon([
+            'code' => 'WEBINAR200',
+            'discount_type' => Coupon::TYPE_FIXED,
+            'discount_value' => 200,
+            'applies_to' => Coupon::SERVICE_WEBINAR,
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('coupons.validate'), [
+                'code' => 'WEBINAR200',
+                'service' => Coupon::SERVICE_WEBINAR,
+                'webinar_id' => $webinar->id,
+                'amount' => 1,
+            ])
+            ->assertOk()
+            ->assertJson([
+                'valid' => true,
+                'code' => 'WEBINAR200',
+                'original_amount' => 1000,
+                'discount_description' => '₹200.00 fixed discount',
+                'discount_amount' => 200,
+                'final_amount' => 800,
+            ]);
+    }
+
+    public function test_coupon_preview_rejects_an_unknown_code(): void
+    {
+            $user = User::factory()->create();
+            Setting::updateOrCreate(['key' => 'doubt_session_price'], [
+                'value' => '1000',
+                'group' => 'doubt_session',
+                'label' => 'Doubt session price',
+                'type' => 'number',
+            ]);
+
+            $this->actingAs($user)
+                ->postJson(route('coupons.validate'), [
+                    'code' => 'NOT-A-COUPON',
+                    'service' => Coupon::SERVICE_DOUBT_SESSION,
+                ])
+                ->assertUnprocessable()
+                ->assertJson([
+                    'valid' => false,
+                    'message' => 'Invalid coupon code.',
+                ]);
+    }
+
+    public function test_coupon_preview_rejects_free_doubt_sessions(): void
+    {
+                $user = User::factory()->create();
+                $this->coupon([
+                    'code' => 'PAIDONLY',
+                    'applies_to' => Coupon::SERVICE_DOUBT_SESSION,
+                ]);
+                Setting::updateOrCreate(['key' => 'doubt_session_is_free'], [
+                    'value' => '1',
+                    'group' => 'doubt_session',
+                    'label' => 'Free doubt sessions',
+                    'type' => 'text',
+                ]);
+
+                $this->actingAs($user)
+                    ->postJson(route('coupons.validate'), [
+                        'code' => 'PAIDONLY',
+                        'service' => Coupon::SERVICE_DOUBT_SESSION,
+                    ])
+                    ->assertUnprocessable()
+                    ->assertJson([
+                        'valid' => false,
+                        'message' => 'Coupons are available only for paid sessions.',
+                    ]);
     }
 
     public function test_inactive_expired_and_usage_limited_coupons_are_rejected(): void

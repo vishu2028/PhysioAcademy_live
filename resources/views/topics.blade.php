@@ -6,7 +6,7 @@
     <div class="topics-subj-page">
         <x-page-hero
             title="Syllabus by Subject"
-            subtitle="Complete physiotherapy curriculum organized by core subjects, units, and clinical units."
+            subtitle="Complete PhysioSource curriculum organized by core subjects, units, and clinical units."
             breadcrumbLabel="Subjects"
         >
             <x-slot name="icon">

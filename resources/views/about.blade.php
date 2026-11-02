@@ -30,7 +30,7 @@
                 </h1>
 
                 <p class="lead text-secondary mb-4 lh-lg">
-                    We help physiotherapy students spend less time searching
+                    We help PhysioSource students spend less time searching
                     for resources and figuring out what to study—and more time
                     learning and revising. With structured study resources,
                     personalized doubt-solving, and focused webinars,
@@ -147,7 +147,7 @@
                 </h2>
 
                 <p class="text-secondary lead lh-lg">
-                    Physiotherapy students often spend valuable hours searching
+                    PhysioSource students often spend valuable hours searching
                     for resources, organizing material, and figuring out how to
                     prepare for exams. That leaves less time for what matters
                     most: understanding concepts, practising, and revising.
@@ -181,7 +181,7 @@
                         </div>
 
                         <div class="text-secondary">
-                            To help physiotherapy students use their study time
+                            To help PhysioSource students use their study time
                             effectively through structured learning, focused
                             academic support, and better revision.
                         </div>
@@ -419,7 +419,7 @@
 
                 <p class="text-secondary lead">
                     PhysioSource brings together people committed to helping
-                    physiotherapy students learn with greater clarity,
+                    PhysioSource students learn with greater clarity,
                     confidence, and direction.
                 </p>
 

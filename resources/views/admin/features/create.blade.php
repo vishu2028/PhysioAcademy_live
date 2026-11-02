@@ -24,7 +24,7 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Description</label>
-                        <textarea name="description" class="form-control rounded-3" rows="4" placeholder="e.g. Browse the complete physiotherapy syllabus..." required>{{ old('description') }}</textarea>
+                        <textarea name="description" class="form-control rounded-3" rows="4" placeholder="e.g. Browse the complete PhysioSource syllabus..." required>{{ old('description') }}</textarea>
                     </div>
 
                     <div class="row">

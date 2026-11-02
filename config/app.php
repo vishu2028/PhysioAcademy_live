@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Physio Academy'),
+    'name' => env('APP_NAME', 'PhysioSource'),
 
     /*
     |--------------------------------------------------------------------------

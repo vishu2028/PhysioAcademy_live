@@ -1,5 +1,5 @@
 /**
- * Physio Academy Content Protection System
+ * PhysioSource Content Protection System
  * Provides multi-layer security for sensitive medical/academic content.
  */
 
@@ -59,7 +59,7 @@
         watermark.id = 'pa-watermark';
         watermark.innerHTML = `
             <div class="watermark-inner">
-                ${Array(50).fill('<span>Physio Academy Protection</span>').join('')}
+                ${Array(50).fill('<span>PhysioSource Protection</span>').join('')}
             </div>
         `;
         document.body.appendChild(watermark);
@@ -82,7 +82,7 @@
     window.addEventListener('load', () => {
         if (isProtected()) {
             injectWatermark();
-            console.log('%cContent Protected by Physio Academy Security Layer', 'color: #2563eb; font-weight: bold;');
+            console.log('%cContent Protected by PhysioSource Security Layer', 'color: #2563eb; font-weight: bold;');
         }
     });
 

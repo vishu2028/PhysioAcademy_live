@@ -48,33 +48,33 @@ class PageController extends Controller
         return response()->json([
             'data' => [
                 'id' => $page->id,
-                'title' => $page->title,
+                'title' => brand_text($page->title),
                 'slug' => $page->slug,
-                'content' => $page->content,
+                'content' => brand_text($page->content),
                 'is_protected' => (bool) $page->is_protected,
 
                 'meta' => [
-                    'title' => $page->meta_title,
-                    'description' => $page->meta_description,
+                    'title' => brand_text($page->meta_title),
+                    'description' => brand_text($page->meta_description),
                 ],
 
                 'sections' => $page->sections
                     ->map(function ($section) {
                         return [
                             'id' => $section->id,
-                            'name' => $section->name,
+                            'name' => brand_text($section->name),
                             'slug' => $section->slug,
                             'type' => $section->type,
-                            'content' => $section->content,
+                            'content' => brand_text($section->content),
                             'order' => $section->order,
 
                             'items' => $section->items
                                 ->map(function ($item) {
                                     return [
                                         'id' => $item->id,
-                                        'title' => $item->title,
-                                        'body' => $item->body,
-                                        'meta' => $item->meta,
+                                        'title' => brand_text($item->title),
+                                        'body' => brand_text($item->body),
+                                        'meta' => brand_text($item->meta),
                                         'order' => $item->order,
                                     ];
                                 })

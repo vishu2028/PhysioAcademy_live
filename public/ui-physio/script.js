@@ -487,37 +487,23 @@ function initSearchInput() {
 // ── AUTH MODAL ─────────────────────────────────────────────────────────
 function initAuthModal() {
     const overlay = document.getElementById('authOverlay');
-    const openLogin = document.getElementById('openLogin');
-    const openRegister = document.getElementById('openRegister');
     const closeBtn = document.getElementById('authClose');
-    const tabs = document.querySelectorAll('.auth-tab');
-    const slider = document.getElementById('authTabSlider');
     const loginPanel = document.getElementById('loginPanel');
-    const registerPanel = document.getElementById('registerPanel');
     if (!overlay) return;
 
-    function openModal(tab = 'login') {
+    function openModal() {
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
-        switchTab(tab);
+        if (loginPanel) loginPanel.classList.remove('hidden');
     }
+
     function closeModal() {
         overlay.classList.remove('active');
         document.body.style.overflow = '';
     }
-    function switchTab(tab) {
-        tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-        if (slider) slider.classList.toggle('right', tab === 'register');
-        if (loginPanel) loginPanel.classList.toggle('hidden', tab !== 'login');
-        if (registerPanel) registerPanel.classList.toggle('hidden', tab !== 'register');
-    }
 
     closeBtn?.addEventListener('click', closeModal);
     overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-    });
 
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape' && overlay.classList.contains('active')) closeModal();
@@ -878,4 +864,4 @@ dynamicStyles.textContent = `
 `;
 document.head.appendChild(dynamicStyles);
 
-console.log('%cPhysio Academy Loaded', 'color:#2563eb;font-size:1.2rem;font-weight:bold;background:#f8fbff;padding:8px 16px;border-radius:8px;');
+console.log('%cPhysioSource Loaded', 'color:#2563eb;font-size:1.2rem;font-weight:bold;background:#f8fbff;padding:8px 16px;border-radius:8px;');

@@ -18,14 +18,14 @@
                     @if(filled($hero?->badge))
                         <div class="hero-badge reveal-up">
                             <span class="badge-dot"></span>
-                            <span>{{ $hero->badge }}</span>
+                            <span>{{ brand_text($hero->badge) }}</span>
                         </div>
                     @endif
 
                     <h1 class="hero-title reveal-up delay-1">
                         @php
-                            $heroTitle = $hero->title ?? get_setting('hero_title', 'Your Academic Guide for Physiotherapy');
-                            $heroHighlight = $hero ? $hero->title_highlight : null;
+                            $heroTitle = brand_text($hero->title ?? get_setting('hero_title', 'Your Academic Guide for PhysioSource'));
+                            $heroHighlight = $hero ? brand_text($hero->title_highlight) : null;
                         @endphp
 
                         @if(filled($heroHighlight))
@@ -40,17 +40,17 @@
                     </h1>
 
                     <p class="hero-subtitle reveal-up delay-2">
-                        {{ $hero->subtitle ?? get_setting('hero_subtitle', 'Navigate your syllabus, understand important topics, improve answer writing, and get academic support — all in one place.') }}
+                        {{ brand_text($hero->subtitle ?? get_setting('hero_subtitle', 'Navigate your syllabus, understand important topics, improve answer writing, and get academic support — all in one place.')) }}
                     </p>
 
                     <div class="hero-actions reveal-up delay-3">
                         @auth
                             <a href="{{ $hero->button_url ?? route('topics.index') }}" class="btn-hero-primary">
-                                <span>{{ $hero->button_text ?? 'Explore Topics' }}</span>
+                                <span>                                {{ brand_text($hero->button_text ?? 'Explore Topics') }}</span>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                             </a>
                             <a href="{{ $hero->secondary_button_url ?? '#ask-doubt' }}" class="btn-hero-secondary">
-                                <span>{{ $hero->secondary_button_text ?? 'Ask a Doubt' }}</span>
+                                <span>                                {{ brand_text($hero->secondary_button_text ?? 'Ask a Doubt') }}</span>
                             </a>
                         @else
                             <a href="{{ route('register') }}" class="btn-hero-primary">
@@ -411,7 +411,7 @@
                     <div class="section-header reveal-up text-center">
                         <span class="section-tag">Testimonials</span>
                         <h2 class="section-title">What Our <span class="text-gradient">Students Say</span></h2>
-                        <p class="section-subtitle">Join thousands of physiotherapy students who have transformed their learning experience</p>
+                        <p class="section-subtitle">Join thousands of PhysioSource students who have transformed their learning experience</p>
                     </div>
 
                     <div class="restriction-container">
@@ -427,7 +427,7 @@
                                             <i class="bi bi-star-fill {{ $i < $testimonial->rating ? 'text-warning' : 'text-secondary opacity-25' }}"></i>
                                         @endfor
                                     </div>
-                                    <p class="tc-content mb-4">"{{ auth()->check() ? $testimonial->content : Str::limit($testimonial->content, strlen($testimonial->content)/2) }}"</p>
+                                    <p class="tc-content mb-4">"{{ auth()->check() ? brand_text($testimonial->content) : Str::limit(brand_text($testimonial->content), strlen($testimonial->content)/2) }}"</p>
                                     <div class="tc-user d-flex align-items-center gap-3">
                                         <div class="tcu-avatar">
                                             <img src="{{ $testimonial->client_image ? asset('storage/'.$testimonial->client_image) : 'https://ui-avatars.com/api/?name='.urlencode($testimonial->client_name).'&background=3b82f6&color=fff' }}" alt="{{ $testimonial->client_name }}" class="rounded-circle" width="48" height="48">
@@ -634,7 +634,7 @@
                         <div class="rc-coming-badge">Coming Soon</div>
                         <div class="rc-icon-big"><span class="ui-icon ui-icon-hospital"></span></div>
                         <h3>Clinical Cases</h3>
-                        <p>Real-world case studies with physiotherapy assessment and management approaches.</p>
+                        <p>Real-world case studies with PhysioSource assessment and management approaches.</p>
                         <div class="rc-stats"><span>In development</span></div>
                         <button class="rc-btn" disabled>Notify Me</button>
                     </div>
@@ -650,7 +650,7 @@
                     <div class="ask-doubt-info">
                         <span class="section-tag">Academic Support</span>
                         <h2 class="section-title">Have a <span class="text-gradient">Doubt?</span></h2>
-                        <p class="section-subtitle">Submit your physiotherapy doubts and get structured academic explanations with clinical connections.</p>
+                        <p class="section-subtitle">Submit your PhysioSource doubts and get structured academic explanations with clinical connections.</p>
 
                         <div class="ask-doubt-features">
                             <div class="adf-item">
@@ -682,7 +682,7 @@
                             </div>
 
                             <p class="dsp-description">
-                                Discuss your physiotherapy concepts directly in a focused
+                                Discuss your PhysioSource concepts directly in a focused
                                 one-on-one academic support session.
                             </p>
 
@@ -1551,10 +1551,10 @@
             <div class="section-container">
                 <div class="about-layout">
                     <div class="about-left reveal-left">
-                        <span class="section-tag">About {{ get_setting('site_name', 'Physio Academy') }}</span>
+                        <span class="section-tag">About {{ get_setting('site_name', 'PhysioSource') }}</span>
                         <h2 class="section-title">{!! get_setting('about_title', 'Built for <span class="text-gradient">Physio Students</span><br/>By Physio Students') !!}</h2>
-                        <p class="about-para">{{ auth()->check() ? get_setting('about_description_1', 'Physio Academy was created to bridge the gap between textbook knowledge and real examination performance. We understand the challenges of physiotherapy education — complex topics, unclear answer formats, and limited academic guidance.') : Str::limit(get_setting('about_description_1', 'Physio Academy was created to bridge the gap between textbook knowledge and real examination performance.'), 80) }}</p>
-                        <p class="about-para">{{ auth()->check() ? get_setting('about_description_2', 'Our platform is completely aligned with the latest 2024 curriculum, offering topic-by-topic academic support, viva preparation, and answer writing guidance tailored specifically for physiotherapy students.') : Str::limit(get_setting('about_description_2', 'Our platform is completely aligned with the latest 2024 curriculum, offering topic-by-topic academic support...'), 80) }}</p>
+                        <p class="about-para">{{ auth()->check() ? get_setting('about_description_1', 'PhysioSource was created to bridge the gap between textbook knowledge and real examination performance. We understand the challenges of PhysioSource education — complex topics, unclear answer formats, and limited academic guidance.') : Str::limit(get_setting('about_description_1', 'PhysioSource was created to bridge the gap between textbook knowledge and real examination performance.'), 80) }}</p>
+                        <p class="about-para">{{ auth()->check() ? get_setting('about_description_2', 'Our platform is completely aligned with the latest 2024 curriculum, offering topic-by-topic academic support, viva preparation, and answer writing guidance tailored specifically for PhysioSource students.') : Str::limit(get_setting('about_description_2', 'Our platform is completely aligned with the latest 2024 curriculum, offering topic-by-topic academic support...'), 80) }}</p>
 
                         @guest
                             <a href="javascript:void(0)" onclick="document.getElementById('authOverlay').classList.add('active')" class="text-primary small fw-bold d-block mb-4">Login to read full mission details →</a>
@@ -1618,7 +1618,7 @@
                                 <div class="tl-content glass-card">
                                     <span class="tl-year">Q3 2024</span>
                                     <h4>12,000+ Students</h4>
-                                    <p>Platform crossed 12K active physiotherapy students across India.</p>
+                                    <p>Platform crossed 12K active PhysioSource students across India.</p>
                                 </div>
                             </div>
                             <div class="tl-item">
@@ -1648,7 +1648,7 @@
                     <div class="about-left reveal-left">
 
                         <span class="section-tag">
-                            About {{ get_setting('site_name', 'Physio Academy') }}
+                            About {{ get_setting('site_name', 'PhysioSource') }}
                         </span>
 
 
@@ -1657,7 +1657,7 @@
 
                             @if($aboutContent)
 
-                                {!! $aboutContent->main_title !!}
+                                {!! brand_text($aboutContent->main_title) !!}
 
                             @else
 
@@ -1679,21 +1679,21 @@
                             @if($aboutContent)
 
                                 @auth
-                                    {{ $aboutContent->main_description }}
+                                    {{ brand_text($aboutContent->main_description) }}
                                 @else
-                                    {{ Str::limit($aboutContent->main_description, 80) }}
+                                    {{ Str::limit(brand_text($aboutContent->main_description), 80) }}
                                 @endauth
 
                             @else
 
                                 @auth
-                                    Physio Academy was created to bridge the gap
+                                    PhysioSource was created to bridge the gap
                                     between textbook knowledge and real examination
                                     performance.
 
                                 @else
                                     {{ Str::limit(
-                                        'Physio Academy was created to bridge the gap between textbook knowledge and real examination performance.',
+                                        'PhysioSource was created to bridge the gap between textbook knowledge and real examination performance.',
                                         80
                                     ) }}
                                 @endauth
@@ -1846,7 +1846,7 @@
                                         {{-- Title --}}
                                         <h4>
 
-                                            {{ $timeline->title }}
+                                            {{ brand_text($timeline->title) }}
 
                                         </h4>
 
@@ -1854,7 +1854,7 @@
                                         {{-- Description --}}
                                         <p>
 
-                                            {{ $timeline->description }}
+                                            {{ brand_text($timeline->description) }}
 
                                         </p>
 
@@ -1910,7 +1910,7 @@
                 <div class="section-container text-center">
                     <div class="guest-cta-card mx-auto glass-card">
                         <div class="cta-content-inner">
-                            <h2>Ready to Master Physiotherapy?</h2>
+                            <h2>Ready to Master PhysioSource?</h2>
                             <p>Create your free student account today and get instant access to the complete topic repository, academic notes, and examiner-vetted viva prep.</p>
                             <div class="guest-cta-actions">
                                 <a href="{{ route('register') }}" class="btn-cta-primary">Join the Academy now</a>

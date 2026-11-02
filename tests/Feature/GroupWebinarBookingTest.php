@@ -115,9 +115,9 @@ class GroupWebinarBookingTest extends TestCase
     {
         $organizer = User::factory()->create(['email' => 'organizer@example.com']);
         $coupon = Coupon::create([
-            'code' => 'GUEST10',
+            'code' => 'GUEST20',
             'discount_type' => Coupon::TYPE_PERCENTAGE,
-            'discount_value' => 10,
+            'discount_value' => 20,
             'applies_to' => Coupon::SERVICE_WEBINAR,
             'per_user_limit' => 1,
             'is_active' => true,
@@ -126,8 +126,8 @@ class GroupWebinarBookingTest extends TestCase
             $mock->shouldReceive('isConfigured')->andReturn(true);
             $mock->shouldReceive('createGroupWebinarParticipantOrder')
                 ->once()
-                ->withArgs(fn ($payment) => (float) $payment->amount === 450.0)
-                ->andReturn(['id' => 'order_guest_1', 'amount' => 45000, 'currency' => 'INR', 'status' => 'created']);
+                ->withArgs(fn ($payment) => (float) $payment->amount === 400.0)
+                ->andReturn(['id' => 'order_guest_1', 'amount' => 40000, 'currency' => 'INR', 'status' => 'created']);
         });
 
         $this->actingAs($organizer)->post(route('group-webinars.store'), $this->requestData([
@@ -140,7 +140,8 @@ class GroupWebinarBookingTest extends TestCase
         $response = $this->post(route('group-webinars.payment.start', $token), ['coupon_code' => $coupon->code]);
 
         $payment = $guest->payments()->firstOrFail();
-        $this->assertSame(450.0, (float) $payment->amount);
+        $this->assertSame(400.0, (float) $payment->amount);
+        $this->assertSame(100.0, (float) $payment->discount_amount);
         $this->assertSame('order_guest_1', $payment->razorpay_order_id);
         $this->assertSame(1, $guest->payments()->count());
         $this->assertSame(0, $groupRequest->participants->firstWhere('role', 'organizer')->payments()->count());
@@ -155,13 +156,57 @@ class GroupWebinarBookingTest extends TestCase
         $response->assertRedirect(route('group-webinars.payment', ['token' => $token, 'payment' => $payment->public_reference]));
     }
 
+    public function test_fixed_coupon_reduces_the_group_webinar_order_and_payment_page_amount(): void
+    {
+        $organizer = User::factory()->create(['email' => 'organizer@example.com']);
+        $coupon = Coupon::create([
+            'code' => 'LESS200',
+            'discount_type' => Coupon::TYPE_FIXED,
+            'discount_value' => 200,
+            'applies_to' => Coupon::SERVICE_WEBINAR,
+            'is_active' => true,
+        ]);
+        $this->mock(RazorpayService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('isConfigured')->andReturn(true);
+            $mock->shouldReceive('createGroupWebinarParticipantOrder')
+                ->once()
+                ->withArgs(fn ($payment) => (float) $payment->amount === 300.0)
+                ->andReturn(['id' => 'order_guest_fixed', 'amount' => 30000, 'currency' => 'INR', 'status' => 'created']);
+            $mock->shouldReceive('keyId')->once()->andReturn('rzp_test_public');
+            $mock->shouldReceive('amountToSubunits')->once()->with(300)->andReturn(30000);
+        });
+
+        $this->actingAs($organizer)->post(route('group-webinars.store'), $this->requestData([
+            ['email' => 'guest@example.com'],
+        ]))->assertRedirect(route('webinars.index'));
+
+        $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
+        $guest = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
+        $token = basename(parse_url($guest->emailDeliveries->first()->action_url, PHP_URL_PATH));
+        $this->post(route('group-webinars.payment.start', $token), ['coupon_code' => $coupon->code])
+            ->assertRedirect();
+
+        $payment = $guest->payments()->firstOrFail();
+        $this->assertSame(500.0, (float) $payment->original_amount);
+        $this->assertSame(200.0, (float) $payment->discount_amount);
+        $this->assertSame(300.0, (float) $payment->amount);
+        $this->assertSame('order_guest_fixed', $payment->razorpay_order_id);
+        $guest->update(['invitation_expires_at' => now()->subMinute()]);
+        $this->get(route('group-webinars.payment', ['token' => $token, 'payment' => $payment->public_reference]))
+            ->assertOk()
+            ->assertSee('LESS200')
+            ->assertSee('₹200.00 fixed discount')
+            ->assertSee('₹300.00 INR')
+            ->assertSee('amount: 30000', false);
+    }
+
     public function test_guest_coupon_preview_returns_authoritative_amounts_without_reserving_coupon(): void
     {
         $organizer = User::factory()->create(['email' => 'organizer@example.com']);
         $coupon = Coupon::create([
-            'code' => 'PREVIEW10',
+            'code' => 'PREVIEW20',
             'discount_type' => Coupon::TYPE_PERCENTAGE,
-            'discount_value' => 10,
+            'discount_value' => 20,
             'applies_to' => Coupon::SERVICE_WEBINAR,
             'is_active' => true,
         ]);
@@ -180,8 +225,9 @@ class GroupWebinarBookingTest extends TestCase
                 'valid' => true,
                 'code' => $coupon->code,
                 'original_amount' => 500,
-                'discount_amount' => 50,
-                'final_amount' => 450,
+                'discount_description' => '20% discount',
+                'discount_amount' => 100,
+                'final_amount' => 400,
             ]);
 
         $this->assertDatabaseCount('coupon_redemptions', 0);
@@ -228,6 +274,52 @@ class GroupWebinarBookingTest extends TestCase
         $this->assertSame('pay_guest_2', $payment->fresh()->razorpay_payment_id);
     }
 
+    public function test_authorized_group_payment_is_captured_before_marking_participant_paid(): void
+    {
+        $organizer = User::factory()->create(['email' => 'organizer@example.com']);
+        $this->mock(RazorpayService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('isConfigured')->andReturn(true);
+            $mock->shouldReceive('createGroupWebinarParticipantOrder')
+                ->andReturn(['id' => 'order_guest_authorized', 'amount' => 50000, 'currency' => 'INR', 'status' => 'created']);
+            $mock->shouldReceive('verifyGroupWebinarParticipantSignature')->once();
+            $mock->shouldReceive('fetchPayment')->once()->andReturn([
+                'id' => 'pay_guest_authorized',
+                'order_id' => 'order_guest_authorized',
+                'amount' => 50000,
+                'currency' => 'INR',
+                'status' => 'authorized',
+            ]);
+            $mock->shouldReceive('assertPaymentMatchesGroupWebinarParticipant')->twice();
+            $mock->shouldReceive('capturePayment')->once()->andReturn([
+                'id' => 'pay_guest_authorized',
+                'order_id' => 'order_guest_authorized',
+                'amount' => 50000,
+                'currency' => 'INR',
+                'status' => 'captured',
+            ]);
+        });
+
+        $this->actingAs($organizer)->post(route('group-webinars.store'), $this->requestData([
+            ['email' => 'guest@example.com'],
+        ]))->assertRedirect(route('webinars.index'));
+        $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
+        $guest = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
+        $token = basename(parse_url($guest->emailDeliveries->first()->action_url, PHP_URL_PATH));
+        $this->post(route('group-webinars.payment.start', $token))->assertRedirect();
+        $payment = $guest->payments()->firstOrFail();
+
+        $this->post(route('group-webinars.payment.verify', [
+            'token' => $token,
+            'payment' => $payment->public_reference,
+        ]), [
+            'razorpay_payment_id' => 'pay_guest_authorized',
+            'razorpay_signature' => 'verified-signature',
+        ])->assertRedirect(route('group-webinars.invitation', $token));
+
+        $this->assertSame('paid', $guest->fresh()->payment_status);
+        $this->assertSame('paid', $payment->fresh()->status);
+    }
+
     public function test_provider_verified_failed_payment_remains_unpaid_and_can_be_retried(): void
     {
         $organizer = User::factory()->create(['email' => 'organizer@example.com']);
@@ -269,6 +361,38 @@ class GroupWebinarBookingTest extends TestCase
         $this->assertSame('pending', $groupRequest->participants->firstWhere('role', 'organizer')->fresh()->payment_status);
         $this->post(route('group-webinars.payment.start', $token))->assertRedirect();
         $this->assertSame(2, $guest->payments()->count());
+    }
+
+    public function test_dismissed_group_checkout_stays_unpaid_and_reuses_the_same_order_on_retry(): void
+    {
+        $organizer = User::factory()->create(['email' => 'organizer@example.com']);
+        $this->mock(RazorpayService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('isConfigured')->once()->andReturn(true);
+            $mock->shouldReceive('createGroupWebinarParticipantOrder')
+                ->once()
+                ->andReturn(['id' => 'order_guest_cancelled', 'amount' => 50000, 'currency' => 'INR', 'status' => 'created']);
+        });
+
+        $this->actingAs($organizer)->post(route('group-webinars.store'), $this->requestData([
+            ['email' => 'guest@example.com'],
+        ]))->assertRedirect(route('webinars.index'));
+        $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
+        $guest = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
+        $token = basename(parse_url($guest->emailDeliveries->first()->action_url, PHP_URL_PATH));
+        $this->post(route('group-webinars.payment.start', $token))->assertRedirect();
+        $payment = $guest->payments()->firstOrFail();
+
+        $this->post(route('group-webinars.payment.abandon', [
+            'token' => $token,
+            'payment' => $payment->public_reference,
+        ]))->assertRedirect(route('group-webinars.invitation', $token));
+
+        $this->assertSame(GroupWebinarParticipantPayment::STATUS_ABANDONED, $payment->fresh()->status);
+        $this->assertSame(GroupWebinarParticipant::PAYMENT_PENDING, $guest->fresh()->payment_status);
+        $this->post(route('group-webinars.payment.start', $token))->assertRedirect();
+        $this->assertSame(1, $guest->payments()->count());
+        $this->assertSame('order_guest_cancelled', $payment->fresh()->razorpay_order_id);
+        $this->assertSame(GroupWebinarParticipantPayment::STATUS_PENDING, $payment->fresh()->status);
     }
 
     public function test_full_coupon_confirms_only_that_guest_without_creating_a_razorpay_order(): void

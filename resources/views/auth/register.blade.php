@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Register — Physio Academy</title>
+  <title>Register — PhysioSource</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -28,7 +28,7 @@
 
           <div class="pauth-form-head">
             <h2 id="signupTitle">Create Account</h2>
-            <p>Start your structured learning journey with Physio Academy.</p>
+            <p>Start your structured learning journey with PhysioSource.</p>
           </div>
 
           <form class="pauth-form" id="signupForm" method="POST" action="{{ route('register') }}">

@@ -6,7 +6,7 @@
     <div class="topics-year-page">
         <x-page-hero
             title="Syllabus by Year"
-            subtitle="Navigate the physiotherapy curriculum year-by-year with core modules and clinical focus areas."
+            subtitle="Navigate the PhysioSource curriculum year-by-year with core modules and clinical focus areas."
             breadcrumbLabel="Syllabus"
         >
             <x-slot name="icon">

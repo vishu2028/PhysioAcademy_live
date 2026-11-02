@@ -4,7 +4,7 @@
     /* ─── CONFIG ─────────────────────────────────────────────── */
     const BODY          = document.body;
     const IS_PROTECTED  = BODY.dataset.protected === 'true';
-    const SITE_NAME     = BODY.dataset.siteName  || 'Physio Academy';
+    const SITE_NAME     = BODY.dataset.siteName  || 'PhysioSource';
     const USER_EMAIL    = BODY.dataset.userEmail || '';
     const USER_ID       = BODY.dataset.userId    || '';
 

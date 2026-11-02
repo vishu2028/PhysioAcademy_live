@@ -146,10 +146,10 @@ class HomeController extends Controller
                 'hero' => $hero
                     ? [
                         'id' => $hero->id,
-                        'title' => $hero->title,
-                        'subtitle' => $hero->subtitle,
-                        'badge' => $hero->badge,
-                        'button_text' => $hero->button_text,
+                        'title' => brand_text($hero->title),
+                        'subtitle' => brand_text($hero->subtitle),
+                        'badge' => brand_text($hero->badge),
+                        'button_text' => brand_text($hero->button_text),
                         'button_url' => $hero->button_url,
                         'image_url' => $this->fileUrl(
                             $hero->image_path
@@ -166,8 +166,8 @@ class HomeController extends Controller
                     ->map(function ($feature) {
                         return [
                             'id' => $feature->id,
-                            'title' => $feature->title,
-                            'description' => $feature->description,
+                            'title' => brand_text($feature->title),
+                            'description' => brand_text($feature->description),
                             'icon' => $feature->icon,
                             'order' => $feature->order,
                         ];
@@ -186,10 +186,9 @@ class HomeController extends Controller
                     ->map(function ($testimonial) {
                         return [
                             'id' => $testimonial->id,
-                            'client_name' => $testimonial->client_name,
-                            'client_designation' => $testimonial
-                                ->client_designation,
-                            'content' => $testimonial->content,
+                            'client_name' => brand_text($testimonial->client_name),
+                            'client_designation' => brand_text($testimonial->client_designation),
+                            'content' => brand_text($testimonial->content),
                             'rating' => $testimonial->rating,
                             'client_image_url' => $this->fileUrl(
                                 $testimonial->client_image
@@ -203,9 +202,9 @@ class HomeController extends Controller
                     ->map(function ($faq) {
                         return [
                             'id' => $faq->id,
-                            'question' => $faq->question,
-                            'answer' => $faq->answer,
-                            'category' => $faq->category,
+                            'question' => brand_text($faq->question),
+                            'answer' => brand_text($faq->answer),
+                            'category' => brand_text($faq->category),
                             'order' => $faq->order,
                         ];
                     })
@@ -215,8 +214,8 @@ class HomeController extends Controller
                     ->map(function ($banner) {
                         return [
                             'id' => $banner->id,
-                            'title' => $banner->title,
-                            'description' => $banner->description,
+                            'title' => brand_text($banner->title),
+                            'description' => brand_text($banner->description),
                             'image_url' => $this->fileUrl(
                                 $banner->image_path
                             ),
@@ -230,12 +229,12 @@ class HomeController extends Controller
                     ->map(function ($slider) {
                         return [
                             'id' => $slider->id,
-                            'title' => $slider->title,
-                            'subtitle' => $slider->subtitle,
+                            'title' => brand_text($slider->title),
+                            'subtitle' => brand_text($slider->subtitle),
                             'image_url' => $this->fileUrl(
                                 $slider->image_path
                             ),
-                            'button_text' => $slider->button_text,
+                            'button_text' => brand_text($slider->button_text),
                             'button_url' => $slider->button_url,
                             'order' => $slider->order,
                         ];

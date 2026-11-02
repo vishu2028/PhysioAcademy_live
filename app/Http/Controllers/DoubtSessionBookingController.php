@@ -519,6 +519,7 @@ class DoubtSessionBookingController extends Controller
         }
 
         $razorpayKeyId = $this->razorpay->keyId();
+        $booking->loadMissing('coupon');
 
         $amountSubunits =
             $this->razorpay->amountToSubunits(
@@ -527,13 +528,23 @@ class DoubtSessionBookingController extends Controller
 
         $siteName = get_setting(
             'site_name',
-            'Physio Academy'
+            'PhysioSource'
         );
 
-        $paymentDescription =
-            'One-on-One Doubt Session (' .
-            $booking->duration_minutes .
-            ' Minutes)';
+        $paymentDescription = 'One-on-One Doubt Session ('.$booking->duration_minutes.' Minutes)';
+        if ($booking->coupon_code) {
+            $discountType = $booking->coupon?->discount_type === 'percentage'
+                ? rtrim(rtrim(number_format((float) $booking->coupon->discount_value, 2, '.', ''), '0'), '.').'%'
+                : 'fixed discount';
+            $paymentDescription = sprintf(
+                'Coupon %s (%s): ₹%s − ₹%s = ₹%s',
+                $booking->coupon_code,
+                $discountType,
+                number_format((float) $booking->original_amount, 2),
+                number_format((float) $booking->discount_amount, 2),
+                number_format((float) $booking->amount, 2)
+            );
+        }
 
         return view(
             'doubt-sessions.payment',
@@ -545,6 +556,49 @@ class DoubtSessionBookingController extends Controller
                 'paymentDescription'
             )
         );
+    }
+
+    public function reportPaymentFailure(Request $request, DoubtSessionBooking $booking)
+    {
+        $this->ensureBookingOwner($request, $booking);
+        abort_if($booking->is_free, 422);
+
+        $validated = $request->validate([
+            'razorpay_payment_id' => ['required', 'string', 'max:100'],
+        ]);
+
+        try {
+            $payment = $this->razorpay->fetchPayment($validated['razorpay_payment_id']);
+            $this->razorpay->assertPaymentMatchesBooking($booking, $payment);
+            if ($payment['status'] !== 'failed') {
+                return redirect()->route('doubt-sessions.payment', $booking)
+                    ->with('payment_error', 'Razorpay has not confirmed a failed payment. Your booking remains pending.');
+            }
+
+            DB::transaction(function () use ($booking, $validated): void {
+                $lockedBooking = DoubtSessionBooking::query()
+                    ->lockForUpdate()
+                    ->findOrFail($booking->id);
+
+                if ($lockedBooking->isPaid()) {
+                    return;
+                }
+
+                $lockedBooking->update([
+                    'razorpay_payment_id' => $validated['razorpay_payment_id'],
+                    'payment_status' => DoubtSessionBooking::PAYMENT_FAILED,
+                    'payment_error' => 'Razorpay reported that this payment attempt failed.',
+                ]);
+            });
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return redirect()->route('doubt-sessions.payment', $booking)
+                ->with('payment_error', 'The payment status could not be verified. Your booking remains unpaid.');
+        }
+
+        return redirect()->route('doubt-sessions.payment', $booking)
+            ->with('payment_error', 'Payment failed. You can try again using the same booking.');
     }
 
     /**
@@ -637,6 +691,13 @@ class DoubtSessionBookingController extends Controller
                     $booking,
                     $payment
                 );
+            if ($payment['status'] === 'authorized') {
+                $payment = $this->razorpay->capturePayment(
+                    $validated['razorpay_payment_id'],
+                    $payment
+                );
+                $this->razorpay->assertPaymentMatchesBooking($booking, $payment);
+            }
         } catch (
         SignatureVerificationError |
         UnexpectedValueException $exception

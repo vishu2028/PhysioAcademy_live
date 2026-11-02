@@ -16,18 +16,45 @@ class FirebaseGoogleLoginTest extends TestCase
     public function test_login_page_has_the_existing_firebase_google_sign_in_flow_without_server_secrets(): void
     {
         $response = $this->get(route('login'));
+        $socialAuthScript = file_get_contents(public_path('ui-physio/social-auth.js'));
 
         $response
             ->assertOk()
-            ->assertSee('GoogleAuthProvider')
-            ->assertSee('signInWithPopup')
+            ->assertSee('Continue with Google')
+            ->assertSee('Continue with Apple')
+            ->assertSee('social-auth.js')
             ->assertSee('window.physioFirebaseLoginUrl')
+            ->assertDontSee('Forgot Password?')
+            ->assertDontSee('name="email"')
+            ->assertDontSee('name="password"')
             ->assertDontSee('private_key');
+
+        $this->assertIsString($socialAuthScript);
+        $this->assertStringContainsString('signInWithRedirect', $socialAuthScript);
+        $this->assertStringContainsString('getRedirectResult', $socialAuthScript);
+        $this->assertStringNotContainsString('signInWithPopup', $socialAuthScript);
 
         $this->assertStringContainsString(
             'https://apis.google.com',
             $response->headers->get('Content-Security-Policy')
         );
+        $this->assertStringContainsString(
+            'https://appleid.cdn-apple.com',
+            $response->headers->get('Content-Security-Policy')
+        );
+    }
+
+    public function test_site_wide_auth_modal_only_displays_google_and_apple_options(): void
+    {
+        Role::findOrCreate('user', 'web');
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('Continue with Google')
+            ->assertSee('Continue with Apple')
+            ->assertDontSee('auth-tabs')
+            ->assertDontSee('name="password"')
+            ->assertDontSee('Forgot Password?');
     }
 
     public function test_google_login_creates_a_verified_regular_user_and_keeps_the_session(): void
@@ -114,6 +141,22 @@ class FirebaseGoogleLoginTest extends TestCase
 
         $this->assertGuest();
         $this->assertDatabaseCount('users', 0);
+    }
+
+    public function test_google_login_cannot_authenticate_an_administrator_account(): void
+    {
+        Role::findOrCreate('admin', 'web');
+        $admin = User::factory()->create(['email' => 'google.user@example.com']);
+        $admin->assignRole('admin');
+        $this->mockFirebaseUser();
+
+        $this->postJson(route('login.firebase'), [
+            'id_token' => 'valid-firebase-id-token',
+        ])->assertForbidden();
+
+        $this->assertGuest();
+        $this->assertDatabaseCount('users', 1);
+        $this->assertNull($admin->fresh()->firebase_uid);
     }
 
     private function mockFirebaseUser(): void

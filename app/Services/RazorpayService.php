@@ -77,6 +77,9 @@ class RazorpayService
                 'booking_reference' =>
                     $booking->booking_reference,
                 'user_id' => (string) $booking->user_id,
+                'coupon_code' => (string) ($booking->coupon_code ?? ''),
+                'original_amount' => number_format((float) $booking->original_amount, 2, '.', ''),
+                'discount_amount' => number_format((float) $booking->discount_amount, 2, '.', ''),
             ],
         ]);
 
@@ -175,6 +178,9 @@ class RazorpayService
             'notes' => [
                 'participant_payment' => $payment->public_reference,
                 'participant_id' => (string) $payment->participant_id,
+                'coupon_code' => (string) ($payment->coupon_code ?? ''),
+                'original_amount' => number_format((float) $payment->original_amount, 2, '.', ''),
+                'discount_amount' => number_format((float) $payment->discount_amount, 2, '.', ''),
             ],
         ]);
 
@@ -242,6 +248,23 @@ class RazorpayService
                 (string) $payment['status']
             ),
         ];
+    }
+
+    /**
+     * Capture a verified payment when the Razorpay account uses manual capture.
+     */
+    public function capturePayment(string $paymentId, array $payment): array
+    {
+        if ($payment['status'] !== 'authorized') {
+            return $payment;
+        }
+
+        $this->api()->payment->fetch($paymentId)->capture([
+            'amount' => (int) $payment['amount'],
+            'currency' => strtoupper((string) $payment['currency']),
+        ]);
+
+        return $this->fetchPayment($paymentId);
     }
 
     /**

@@ -30,6 +30,7 @@ class User extends Authenticatable
         'avatar',
         'password',
         'firebase_uid',
+        'apple_sub',
     ];
 
     /**

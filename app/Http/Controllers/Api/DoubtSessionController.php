@@ -392,7 +392,7 @@ class DoubtSessionController extends Controller
 
                 'name' => (string) get_setting(
                     'site_name',
-                    'Physio Academy'
+                    'PhysioSource'
                 ),
 
                 'description' =>

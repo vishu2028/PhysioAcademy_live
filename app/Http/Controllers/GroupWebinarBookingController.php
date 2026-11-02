@@ -218,6 +218,7 @@ class GroupWebinarBookingController extends Controller
             'message' => 'Coupon applied successfully.',
             'code' => $quote['coupon']->code,
             'original_amount' => $quote['original_amount'],
+            'discount_description' => $quote['discount_description'],
             'discount_amount' => $quote['discount_amount'],
             'final_amount' => $quote['final_amount'],
         ]);
@@ -367,7 +368,7 @@ class GroupWebinarBookingController extends Controller
 
     public function payment(string $token, string $reference)
     {
-        $participant = $this->participantFromToken($token);
+        $participant = $this->participantFromToken($token, allowExpired: true);
         $payment = $participant->payments()
             ->where('public_reference', $reference)
             ->whereIn('status', [
@@ -376,18 +377,32 @@ class GroupWebinarBookingController extends Controller
             ])
             ->firstOrFail();
         abort_if($participant->request->status === GroupWebinarRequest::STATUS_CANCELLED, 410);
+        $payment->load('coupon');
 
         return view('group-webinars.payment', [
             'participant' => $participant,
             'payment' => $payment,
             'token' => $token,
             'keyId' => $this->razorpay->keyId(),
+            'amountSubunits' => $this->razorpay->amountToSubunits($payment->amount),
+            'paymentDescription' => $payment->coupon_code
+                ? sprintf(
+                    'Coupon %s (%s): ₹%s − ₹%s = ₹%s',
+                    $payment->coupon_code,
+                    $payment->coupon?->discount_type === 'percentage'
+                        ? rtrim(rtrim(number_format((float) $payment->coupon->discount_value, 2, '.', ''), '0'), '.').'%'
+                        : 'fixed discount',
+                    number_format((float) $payment->original_amount, 2),
+                    number_format((float) $payment->discount_amount, 2),
+                    number_format((float) $payment->amount, 2)
+                )
+                : $participant->request->topic,
         ]);
     }
 
     public function verifyPayment(Request $request, string $token, string $reference)
     {
-        $participant = $this->participantFromToken($token);
+        $participant = $this->participantFromToken($token, allowExpired: true);
         $payment = $participant->payments()
             ->where('public_reference', $reference)
             ->whereIn('status', [
@@ -404,6 +419,13 @@ class GroupWebinarBookingController extends Controller
             $this->razorpay->verifyGroupWebinarParticipantSignature($payment, $data['razorpay_payment_id'], $data['razorpay_signature']);
             $razorpayPayment = $this->razorpay->fetchPayment($data['razorpay_payment_id']);
             $this->razorpay->assertPaymentMatchesGroupWebinarParticipant($payment, $razorpayPayment);
+            if ($razorpayPayment['status'] === 'authorized') {
+                $razorpayPayment = $this->razorpay->capturePayment(
+                    $data['razorpay_payment_id'],
+                    $razorpayPayment
+                );
+                $this->razorpay->assertPaymentMatchesGroupWebinarParticipant($payment, $razorpayPayment);
+            }
             if ($razorpayPayment['status'] !== 'captured') {
                 return redirect()->route('group-webinars.invitation', $token)->with('webinar_error', 'Payment is not captured yet. Please wait a moment and retry verification.');
             }
@@ -457,7 +479,7 @@ class GroupWebinarBookingController extends Controller
 
     public function reportPaymentFailure(Request $request, string $token, string $reference)
     {
-        $participant = $this->participantFromToken($token);
+        $participant = $this->participantFromToken($token, allowExpired: true);
         $payment = $participant->payments()
             ->where('public_reference', $reference)
             ->whereIn('status', [
@@ -516,7 +538,7 @@ class GroupWebinarBookingController extends Controller
 
     public function abandonPayment(string $token, string $reference)
     {
-        $participant = $this->participantFromToken($token);
+        $participant = $this->participantFromToken($token, allowExpired: true);
         DB::transaction(function () use ($participant, $reference): void {
             $payment = $participant->payments()
                 ->where('public_reference', $reference)

@@ -1,6 +1,6 @@
 @extends('layouts.frontend')
 
-@section('title', $page->title)
+@section('title', brand_text($page->meta_title ?: $page->title))
 
 @push('styles')
 <style>
@@ -49,7 +49,7 @@
 @section('content')
 <div class="page-hero">
     <div class="section-container">
-        <h1 class="page-title reveal-up">{{ $page->title }}</h1>
+        <h1 class="page-title reveal-up">{{ brand_text($page->title) }}</h1>
         <div class="hero-badge reveal-up delay-1">
             <span class="badge-dot"></span>
             <span>Last Updated: {{ $page->updated_at->format('M d, Y') }}</span>
@@ -61,10 +61,10 @@
     <div class="section-container">
         <div class="page-body reveal-up delay-2">
             @auth
-                {!! $page->content !!}
+                {!! brand_text($page->content) !!}
             @else
                 <div class="preview-mode">
-                    {!! Str::limit($page->content, strlen($page->content) / 2) !!}
+                    {!! Str::limit(brand_text($page->content), strlen($page->content) / 2) !!}
                     
                     <div class="restriction-box mt-5 p-5 rounded-4 text-center" style="background: rgba(37,99,235,0.05); border: 1px solid rgba(37,99,235,0.1);">
                         <div class="mb-4">

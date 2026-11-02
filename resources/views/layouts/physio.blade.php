@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', get_setting('site_name', 'Physio Academy'))</title>
+    <title>@yield('title', get_setting('site_name', 'PhysioSource'))</title>
 
     @if(get_setting('site_favicon'))
         <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . get_setting('site_favicon')) }}">
@@ -225,7 +225,7 @@
 <body
     class="@yield('body-class')"
     data-protected="{{ $isProtectedPage ? 'true' : 'false' }}"
-    data-site-name="{{ get_setting('site_name', 'Physio Academy') }}"
+    data-site-name="{{ get_setting('site_name', 'PhysioSource') }}"
     @auth data-user-email="{{ auth()->user()->email }}" data-user-id="{{ auth()->user()->id }}" @endauth
     data-protection-right-click="{{ get_setting('protection_disable_right_click', '0') }}"
     data-protection-devtools="{{ get_setting('protection_disable_devtools', '0') }}"

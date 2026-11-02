@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -30,6 +31,11 @@ class AuthenticatedSessionController extends Controller
         return view('auth.login');
     }
 
+    public function adminCreate(): View
+    {
+        return view('auth.admin-login');
+    }
+
     /**
      * Handle an incoming authentication request.
      */
@@ -44,6 +50,25 @@ class AuthenticatedSessionController extends Controller
         }
 
         return redirect()->intended(route('home', absolute: false));
+    }
+
+    public function adminStore(LoginRequest $request): RedirectResponse
+    {
+        $request->authenticate();
+
+        if (! $request->user()->hasAnyRole(['admin', 'super_admin'])) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => 'These credentials are not authorized for administrator access.',
+            ]);
+        }
+
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('admin.dashboard', absolute: false));
     }
 
     /**

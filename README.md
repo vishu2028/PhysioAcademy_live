@@ -1,10 +1,10 @@
-# Physio Academy
+# PhysioSource
 
-Physio Academy is a Laravel-based CMS and learning platform for physiotherapy academic content, topics, exam aid, pages, media, menus, and admin-managed site settings.
+PhysioSource is a Laravel-based CMS and learning platform for PhysioSource academic content, topics, exam aid, pages, media, menus, and admin-managed site settings.
 
 ## Project
 
-- Application name: `Physio Academy`
+- Application name: `PhysioSource`
 - Composer package: `physio/physio-academy`
 - Local URL: `http://physio-academy.test`
 
@@ -42,3 +42,9 @@ php artisan queue:work
 ```
 
 Apply database changes using the standard `php artisan migrate` command.
+
+## Authentication
+
+User sign-in uses Firebase Google Authentication or Sign in with Apple. Google web configuration and server-side Firebase service-account credentials must be configured for Firebase authentication. Apple sign-in requires `APPLE_CLIENT_ID` (the Apple Services ID) and `APPLE_REDIRECT_URI` (the exact registered HTTPS return URL). Enable Sign in with Apple for the primary App ID, associate the Services ID, and register the website domain and return URL in Apple Developer. Apple identity tokens are verified server-side against Apple's public signing keys; this flow does not require storing an Apple private key.
+
+Administrator password sign-in is separate at `/admin/login`. Apply schema updates with `php artisan migrate` before enabling Apple sign-in; the migration adds a nullable unique Apple subject ID and preserves existing users.

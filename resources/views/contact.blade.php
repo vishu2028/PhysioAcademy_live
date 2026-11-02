@@ -111,8 +111,8 @@
 @endphp
 <div class="contact-hero">
     <div class="section-container">
-        <h1 class="hero-title reveal-up">{{ $page->title ?? 'Get in Touch' }}</h1>
-        <p class="hero-subtitle reveal-up delay-1">{{ $page->meta_description ?? 'Have questions? We\'re here to help you on your academic journey.' }}</p>
+        <h1 class="hero-title reveal-up">{{ brand_text($page->title ?? 'Get in Touch') }}</h1>
+        <p class="hero-subtitle reveal-up delay-1">{{ brand_text($page->meta_description ?? 'Have questions? We\'re here to help you on your academic journey.') }}</p>
     </div>
 </div>
 

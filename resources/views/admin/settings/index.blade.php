@@ -170,7 +170,7 @@
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label class="form-label small font-weight-normal">Copyright Text</label>
-                                        <input type="text" name="settings[copyright_text]" class="form-control rounded-3" value="{{ get_setting('copyright_text', '© 2024 Physio Academy. All rights reserved.') }}">
+                                        <input type="text" name="settings[copyright_text]" class="form-control rounded-3" value="{{ get_setting('copyright_text', '© 2024 PhysioSource. All rights reserved.') }}">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label small font-weight-normal">Contact Address</label>

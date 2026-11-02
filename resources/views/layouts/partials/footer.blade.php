@@ -10,7 +10,7 @@
                     @if(get_setting('site_logo'))
                         <img
                             src="{{ asset('storage/' . get_setting('site_logo')) }}"
-                            alt="{{ get_setting('site_name', 'Physio Academy') }}"
+                            alt="{{ get_setting('site_name', 'PhysioSource') }}"
                             style="width: 100%; height: 100%; object-fit: contain;"
                         >
                     @else
@@ -22,8 +22,8 @@
                 </div>
                 <span>{{ get_setting('footer_tagline', 'Student Driven Platform') }}</span>
             </div>
-            <h2>{{ get_setting('site_name', 'Physio Academy') }}</h2>
-            <p>{{ get_setting('footer_text', 'A modern academic ecosystem designed for physiotherapy students to learn smarter, navigate syllabus easily, and access structured educational support.') }}</p>
+            <h2>{{ get_setting('site_name', 'PhysioSource') }}</h2>
+            <p>{{ get_setting('footer_text', 'A modern academic ecosystem designed for PhysioSource students to learn smarter, navigate syllabus easily, and access structured educational support.') }}</p>
             <div class="footer-status-row">
                 <span></span>
                 {{ get_setting('footer_status', 'Academic resources syncing across the learning academy') }}
@@ -37,7 +37,7 @@
             <h3>Quick Links</h3>
             @if($footerMenu)
                 @foreach($footerMenu->items as $item)
-                    <a href="{{ $item->url }}" target="{{ $item->target }}">{{ $item->title }}</a>
+                    <a href="{{ $item->url }}" target="{{ $item->target }}">{{ brand_text($item->title) }}</a>
                 @endforeach
             @else
                 <a href="/">Home</a>
@@ -55,7 +55,7 @@
             @endphp
             @if($supportMenu)
                 @foreach($supportMenu->items as $item)
-                    <a href="{{ $item->url }}" target="{{ $item->target }}">{{ $item->title }}</a>
+                    <a href="{{ $item->url }}" target="{{ $item->target }}">{{ brand_text($item->title) }}</a>
                 @endforeach
             @else
                 <a href="{{ route('faq') }}">FAQ</a>
@@ -147,8 +147,8 @@
     </div>
     <div class="footer-bottom">
         <a href="{{ route('home') }}#ask-doubt" class="footer-ask-doubt">Ask Doubt</a>
-        <span>{!! get_setting('copyright_text', '© 2026 Physio Academy || All rights reserved') !!}</span>
-        <span>{{ get_setting('footer_bottom_tag', 'Built for focused physiotherapy learning.') }}</span>
+        <span>{!! get_setting('copyright_text', '© 2026 PhysioSource || All rights reserved') !!}</span>
+        <span>{{ get_setting('footer_bottom_tag', 'Built for focused PhysioSource learning.') }}</span>
         <span>Developed By <a href="{{ e(config('app.developer.url', '#')) }}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;text-underline-offset:3px;font-weight:600;">{{ e(config('app.developer.name', 'Developer')) }}</a></span>
     </div>
 </footer>

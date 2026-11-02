@@ -36,7 +36,7 @@ class AboutPageSectionsSeeder extends Seeder
 
         $whyItems = [
             ['title' => 'Simplify the syllabus',         'body' => 'Bring structure to dense academic content with a cleaner, more deliberate learning flow.',                    'meta' => ['icon' => 'bi-check-lg'], 'order' => 1],
-            ['title' => 'Support the new curriculum',    'body' => 'Align the platform around the latest needs of physiotherapy students and evolving subjects.',                  'meta' => ['icon' => 'bi-check-lg'], 'order' => 2],
+            ['title' => 'Support the new curriculum',    'body' => 'Align the platform around the latest needs of PhysioSource students and evolving subjects.',                  'meta' => ['icon' => 'bi-check-lg'], 'order' => 2],
             ['title' => 'Improve answer writing',        'body' => 'Make exam preparation more actionable with focused support for structured responses.',                         'meta' => ['icon' => 'bi-check-lg'], 'order' => 3],
             ['title' => 'Provide structured learning',   'body' => 'Organize knowledge into approachable, modern pathways instead of scattered notes.',                           'meta' => ['icon' => 'bi-check-lg'], 'order' => 4],
             ['title' => 'Reduce confusion during exams', 'body' => 'Offer a calmer, more navigable experience for revision, recall, and topic discovery.',                        'meta' => ['icon' => 'bi-check-lg'], 'order' => 5],
@@ -68,7 +68,7 @@ class AboutPageSectionsSeeder extends Seeder
 
         $exploreItems = [
             ['title' => 'Navigate by Syllabus',      'body' => 'Follow a structured path tailored to your university curriculum.',                             'meta' => ['icon' => 'bi-folder2-open'],  'order' => 1],
-            ['title' => 'Search Topics Easily',      'body' => 'Find specific physiotherapy concepts in seconds with a focused search experience.',            'meta' => ['icon' => 'bi-search'],        'order' => 2],
+            ['title' => 'Search Topics Easily',      'body' => 'Find specific PhysioSource concepts in seconds with a focused search experience.',            'meta' => ['icon' => 'bi-search'],        'order' => 2],
             ['title' => 'Access Question Bank',      'body' => 'Practice from a comprehensive repository of previous exam questions.',                         'meta' => ['icon' => 'bi-book'],          'order' => 3],
             ['title' => 'Learn Answer Writing',      'body' => 'Master the art of presenting clinical answers to score higher in exams.',                      'meta' => ['icon' => 'bi-pencil-square'], 'order' => 4],
             ['title' => 'Ask Academic Doubts',       'body' => 'Get help from the community and simplify tricky concepts faster.',                             'meta' => ['icon' => 'bi-chat-dots'],     'order' => 5],
@@ -123,7 +123,7 @@ class AboutPageSectionsSeeder extends Seeder
                 'type'    => 'vision-banner',
                 'content' => [
                     'heading' => 'Our Vision',
-                    'body'    => 'To create a modern academic ecosystem for physiotherapy students that seamlessly combines structured learning, expert academic guidance, and competency-focused education in one accessible place.',
+                    'body'    => 'To create a modern academic ecosystem for PhysioSource students that seamlessly combines structured learning, expert academic guidance, and competency-focused education in one accessible place.',
                 ],
                 'order'   => 4,
                 'enabled' => true,

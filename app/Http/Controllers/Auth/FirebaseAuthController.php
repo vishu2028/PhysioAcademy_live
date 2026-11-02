@@ -47,7 +47,10 @@ class FirebaseAuthController extends Controller
         $userByUid = User::where('firebase_uid', $firebaseUser->uid)->first();
         $userByEmail = User::whereRaw('LOWER(email) = ?', [$email])->first();
 
-        if ($userByUid && $userByEmail && $userByUid->isNot($userByEmail)) {
+        if (
+            ($userByUid && $userByEmail && $userByUid->isNot($userByEmail))
+            || ($userByEmail && filled($userByEmail->firebase_uid) && $userByEmail->firebase_uid !== $firebaseUser->uid)
+        ) {
             return response()->json([
                 'success' => false,
                 'message' => 'This Google account is linked to another user.',
@@ -55,6 +58,13 @@ class FirebaseAuthController extends Controller
         }
 
         $user = $userByUid ?? $userByEmail;
+
+        if ($user?->hasAnyRole(['admin', 'super_admin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Administrator accounts must use the administrator login.',
+            ], 403);
+        }
 
         if (! $user) {
             $user = DB::transaction(function () use ($firebaseUser, $email): User {

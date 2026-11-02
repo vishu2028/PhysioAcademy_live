@@ -19,7 +19,7 @@
                     Frequently Asked Questions
                 </h1>
                 <p class="page-hero-subtitle">
-                    Find quick answers to common questions about {{ get_setting('site_name', 'Physio Academy') }}, curriculum access, and platform features.
+                    Find quick answers to common questions about {{ get_setting('site_name', 'PhysioSource') }}, curriculum access, and platform features.
                 </p>
                 <div class="page-hero-breadcrumb">
                     <a href="{{ route('home') }}">Home</a>
@@ -77,14 +77,14 @@
                             <div class="faq-item {{ $loop->first ? 'faq-item--open' : '' }} reveal-up" style="transition-delay: {{ $loop->index * 0.05 }}s">
                                 <button class="faq-question" type="button" aria-expanded="{{ $loop->first ? 'true' : 'false' }}">
                                     <span class="faq-num">{{ sprintf('%02d', $loop->iteration) }}</span>
-                                    <span class="faq-question-text">{{ $faq->question }}</span>
+                                    <span class="faq-question-text">{{ brand_text($faq->question) }}</span>
                                     <span class="faq-chevron">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
                             </span>
                                 </button>
                                 <div class="faq-answer" {{ $loop->first ? '' : 'hidden' }}>
                                     <div class="faq-answer-inner">
-                                        {!! nl2br(e($faq->answer)) !!}
+                                        {!! nl2br(e(brand_text($faq->answer))) !!}
                                     </div>
                                 </div>
                             </div>
@@ -107,7 +107,7 @@
                     <div class="faq-cta-blob faq-cta-blob-2"></div>
                     <div class="faq-cta-content">
                         <h2 class="faq-cta-title">Master Your Syllabus Today</h2>
-                        <p class="faq-cta-sub">Join thousands of physiotherapy students excelling with structured study plans and examiner-vetted resources.</p>
+                        <p class="faq-cta-sub">Join thousands of PhysioSource students excelling with structured study plans and examiner-vetted resources.</p>
                         <div class="faq-cta-actions">
                             @guest
                                 <a href="{{ route('register') }}" class="faq-cta-btn-primary">Get Started Free</a>

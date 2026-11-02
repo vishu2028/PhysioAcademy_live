@@ -13,7 +13,7 @@ class ContactPageSeeder extends Seeder
     {
         $page = Page::firstOrCreate(['slug' => 'contact-us'], [
             'title' => 'Get in Touch',
-            'meta_title' => 'Contact Us - Physio Academy',
+            'meta_title' => 'Contact Us - PhysioSource',
             'meta_description' => 'Have questions? We\'re here to help you on your academic journey.',
             'status' => true,
             'is_protected' => false,

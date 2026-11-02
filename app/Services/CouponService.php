@@ -110,7 +110,7 @@ class CouponService
         if ($coupon->starts_at && now()->lt($coupon->starts_at)) {
             $this->invalid('This coupon is not active yet.');
         }
-        if ($coupon->expires_at && now()->gt($coupon->expires_at)) {
+        if ($coupon->expires_at && now()->gte($coupon->expires_at)) {
             $this->invalid('This coupon has expired.');
         }
         if (! $coupon->appliesTo($service)) {
@@ -164,6 +164,9 @@ class CouponService
             'original_amount' => round($amount, 2),
             'discount_amount' => $discount,
             'final_amount' => round(max($amount - $discount, 0), 2),
+            'discount_description' => $coupon->discount_type === Coupon::TYPE_PERCENTAGE
+                ? rtrim(rtrim(number_format((float) $coupon->discount_value, 2, '.', ''), '0'), '.').'% discount'
+                : '₹'.number_format((float) $coupon->discount_value, 2).' fixed discount',
         ];
     }
 

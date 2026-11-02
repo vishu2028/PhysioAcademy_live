@@ -49,5 +49,9 @@ return [
             'appId' => env('FIREBASE_WEB_APP_ID', env('VITE_FIREBASE_APP_ID')),
         ],
     ],
+    'apple' => [
+        'client_id' => env('APPLE_CLIENT_ID'),
+        'redirect_uri' => env('APPLE_REDIRECT_URI'),
+    ],
 
 ];

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Admin Dashboard - {{ get_setting('site_name', config('app.name', 'Physio Academy')) }}</title>
+    <title>Admin Dashboard - {{ get_setting('site_name', config('app.name', 'PhysioSource')) }}</title>
 
     @if(get_setting('site_favicon'))
         <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . get_setting('site_favicon')) }}">
@@ -303,7 +303,7 @@
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
             <div class="sidebar-brand">
-                <span class="fs-4">{{ get_setting('site_name', 'Physio Academy') }}</span>
+                <span class="fs-4">{{ get_setting('site_name', 'PhysioSource') }}</span>
             </div>
             <div class="list-group list-group-flush pt-2">
                 <a href="{{ route('admin.dashboard') }}" class="nav-link-admin @if(request()->routeIs('admin.dashboard')) active @endif">

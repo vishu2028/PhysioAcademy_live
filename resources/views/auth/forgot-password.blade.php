@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Forgot Password — Physio Academy</title>
+  <title>Forgot Password — PhysioSource</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -18,7 +18,7 @@
         <div class="logo-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
         </div>
-        <span class="logo-text">Physio<span class="logo-accent">Academy</span></span>
+        <span class="logo-text">Physio<span class="logo-accent">Source</span></span>
       </a>
       <div class="pauth-floating-stack" aria-hidden="true">
         <div class="pauth-float-card"><strong>Secure Reset</strong><span>Protected account recovery</span></div>
@@ -29,7 +29,7 @@
       <div class="pauth-showcase-copy">
         <span class="pauth-eyebrow">Account Recovery</span>
         <h1>Reset access without losing your study momentum.</h1>
-        <p>We will verify your registered email and prepare a secure password reset path for your Physio Academy workspace.</p>
+        <p>We will verify your registered email and prepare a secure password reset path for your PhysioSource workspace.</p>
       </div>
     </div>
 

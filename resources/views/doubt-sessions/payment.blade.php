@@ -75,6 +75,18 @@
                             <strong>{{ $booking->coupon_code }}</strong>
                         </div>
                         <div class="payment-detail">
+                            <span>Discount type</span>
+                            <strong>
+                                @if($booking->coupon?->discount_type === 'percentage')
+                                    {{ rtrim(rtrim(number_format((float) $booking->coupon->discount_value, 2, '.', ''), '0'), '.') }}% discount
+                                @elseif($booking->coupon)
+                                    ₹{{ number_format((float) $booking->coupon->discount_value, 2) }} fixed discount
+                                @else
+                                    Coupon discount
+                                @endif
+                            </strong>
+                        </div>
+                        <div class="payment-detail">
                             <span>Discount</span>
                             <strong class="payment-amount">− ₹{{ number_format($booking->discount_amount, 2) }}</strong>
                         </div>
@@ -135,6 +147,16 @@
                         name="razorpay_signature"
                         id="razorpaySignature"
                     >
+                </form>
+
+                <form
+                    id="paymentFailureForm"
+                    action="{{ route('doubt-sessions.payment.failure', $booking) }}"
+                    method="POST"
+                    class="d-none"
+                >
+                    @csrf
+                    <input type="hidden" name="razorpay_payment_id" id="razorpayFailedPaymentId">
                 </form>
             </div>
         </div>
@@ -606,6 +628,15 @@
                                             : 'The payment failed. Please try again.';
 
                                     showMessage(description, 'error');
+
+                                    const paymentId = response.error
+                                        && response.error.metadata
+                                        ? response.error.metadata.payment_id
+                                        : null;
+                                    if (paymentId) {
+                                        document.getElementById('razorpayFailedPaymentId').value = paymentId;
+                                        document.getElementById('paymentFailureForm').submit();
+                                    }
                                 }
                             );
 

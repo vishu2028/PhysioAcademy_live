@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 520" role="img" aria-labelledby="title desc">
-  <title id="title">Physiotherapy learning illustration</title>
-  <desc id="desc">A student studies physiotherapy notes beside an anatomy model and learning interface.</desc>
+  <title id="title">PhysioSource learning illustration</title>
+  <desc id="desc">A student studies PhysioSource notes beside an anatomy model and learning interface.</desc>
   <defs>
     <linearGradient id="blueGlow" x1="90" y1="30" x2="470" y2="470" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#e0f2fe"/>

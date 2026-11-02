@@ -81,7 +81,7 @@ class CurriculumSeeder extends Seeder
                 'order' => 8,
             ],
             [
-                'name' => 'Musculoskeletal Physiotherapy',
+                'name' => 'Musculoskeletal PhysioSource',
                 'description' => 'Specialized treatment for muscle and bone injuries.',
                 'icon' => '💪',
                 'image' => null,
@@ -89,7 +89,7 @@ class CurriculumSeeder extends Seeder
                 'order' => 9,
             ],
             [
-                'name' => 'Neurological Physiotherapy',
+                'name' => 'Neurological PhysioSource',
                 'description' => 'Rehabilitation for patients with neurological disorders.',
                 'icon' => '🧠',
                 'image' => null,
@@ -116,7 +116,7 @@ class CurriculumSeeder extends Seeder
             ],
             [
                 'name' => 'Second Year',
-                'description' => 'Introduction to core Physiotherapy skills, Pathology and Kinesiology.',
+                'description' => 'Introduction to core PhysioSource skills, Pathology and Kinesiology.',
                 'units_count' => 10,
                 'topics_count' => 150,
                 'status' => true,
@@ -214,7 +214,7 @@ class CurriculumSeeder extends Seeder
             // Year 3 - Musculoskeletal
             [
                 'title' => 'ACL Tear & Rehabilitation',
-                'subject' => 'Musculoskeletal Physiotherapy',
+                'subject' => 'Musculoskeletal PhysioSource',
                 'year' => 'Third Year',
                 'module' => 'Unit II: Knee Complex',
                 'description' => 'Comprehensive protocol for Anterior Cruciate Ligament (ACL) injury assessment and post-surgical rehab.',
@@ -227,7 +227,7 @@ class CurriculumSeeder extends Seeder
             // Year 4 - Neurology
             [
                 'title' => 'Stroke Management (Hemiplegia)',
-                'subject' => 'Neurological Physiotherapy',
+                'subject' => 'Neurological PhysioSource',
                 'year' => 'Fourth Year',
                 'module' => 'Unit I',
                 'description' => 'Rehabilitation strategies for stroke patients focusing on neuroplasticity and functional recovery.',
