@@ -32,6 +32,13 @@ async function getFirebaseAuth() {
     return firebaseSdkPromise;
 }
 
+const firebaseAuthReady = window.physioFirebaseConfigured
+    ? getFirebaseAuth().catch((error) => {
+        firebaseInitializationError = error;
+        return null;
+    })
+    : Promise.resolve(null);
+
 function showError(message) {
     errorElements.forEach((element) => {
         element.textContent = message;
@@ -81,20 +88,36 @@ function googleErrorMessage(error) {
 }
 
 async function postJson(url, payload) {
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-CSRF-TOKEN': window.physioFirebaseCsrf
-        },
-        credentials: 'same-origin',
-        body: JSON.stringify(payload)
-    });
-    const data = await response.json().catch(() => ({}));
+    let response;
+
+    try {
+        response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': window.physioFirebaseCsrf
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+        });
+    } catch (error) {
+        if (error instanceof TypeError) {
+            throw new Error('Could not reach the PhysioSource sign-in service. Check your connection and try again.');
+        }
+
+        throw error;
+    }
+
+    let data;
+    try {
+        data = await response.json();
+    } catch {
+        throw new Error(`The sign-in service returned an unexpected response (HTTP ${response.status}).`);
+    }
 
     if (!response.ok || !data.success) {
-        throw new Error(data.message || 'Sign-in could not be completed.');
+        throw new Error(data.message || `Sign-in could not be completed (HTTP ${response.status}).`);
     }
 
     return data;
@@ -103,30 +126,10 @@ async function postJson(url, payload) {
 const googleButtons = [...document.querySelectorAll('[data-google-action]')];
 const googleLabel = 'Continue with Google';
 
-async function completeGoogleRedirect() {
-    if (!window.physioFirebaseConfigured || !googleButtons.length) {
-        return;
-    }
-
-    try {
-        const auth = await getFirebaseAuth();
-        const credential = await firebaseAuthSdk.getRedirectResult(auth);
-
-        if (!credential) {
-            return;
-        }
-
-        googleButtons.forEach((button) => setLoading(button, true, googleLabel));
-        const data = await postJson(window.physioFirebaseLoginUrl, {
-            id_token: await credential.user.getIdToken()
-        });
-
-        window.location.assign(data.redirect);
-    } catch (error) {
-        showError(googleErrorMessage(error));
-        googleButtons.forEach((button) => setLoading(button, false, googleLabel));
-    }
-}
+googleButtons.forEach((button) => setLoading(button, true, googleLabel));
+void firebaseAuthReady.then(() => {
+    googleButtons.forEach((button) => setLoading(button, false, googleLabel));
+});
 
 googleButtons.forEach((button) => {
     button.addEventListener('click', async () => {
@@ -142,18 +145,25 @@ googleButtons.forEach((button) => {
         setLoading(button, true, googleLabel);
 
         try {
-            const auth = await getFirebaseAuth();
+            const auth = await firebaseAuthReady;
+            if (!auth) {
+                throw firebaseInitializationError || new Error('Google sign-in could not be initialized.');
+            }
+
             const provider = new firebaseAuthSdk.GoogleAuthProvider();
             provider.setCustomParameters({ prompt: 'select_account' });
-            await firebaseAuthSdk.signInWithRedirect(auth, provider);
+            const credential = await firebaseAuthSdk.signInWithPopup(auth, provider);
+            const data = await postJson(window.physioFirebaseLoginUrl, {
+                id_token: await credential.user.getIdToken()
+            });
+
+            window.location.assign(data.redirect);
         } catch (error) {
             showError(googleErrorMessage(error));
             setLoading(button, false, googleLabel);
         }
     });
 });
-
-void completeGoogleRedirect();
 
 function loadAppleSdk() {
     if (window.AppleID?.auth) {

@@ -94,7 +94,7 @@ class NewsletterSubscriptionTest extends TestCase
             'status' => NewsletterSubscriber::STATUS_UNSUBSCRIBED,
         ]);
 
-        $this->actingAs($admin)
+        $this->actingAs($admin, 'admin')
             ->get(route('admin.newsletter-subscribers.index', [
                 'search' => 'reader',
                 'status' => NewsletterSubscriber::STATUS_SUBSCRIBED,
@@ -106,7 +106,7 @@ class NewsletterSubscriptionTest extends TestCase
             ->assertSee($matchingSubscriber->subscribed_at->format('h:i:s A'))
             ->assertDontSee('former@example.com');
 
-        $this->actingAs($admin)
+        $this->actingAs($admin, 'admin')
             ->get(route('admin.newsletter-subscribers.index', [
                 'status' => NewsletterSubscriber::STATUS_UNSUBSCRIBED,
             ]))
@@ -114,7 +114,7 @@ class NewsletterSubscriptionTest extends TestCase
             ->assertSee('former@example.com')
             ->assertDontSee('reader@example.com');
 
-        $this->actingAs($admin)
+        $this->actingAs($admin, 'admin')
             ->get(route('admin.newsletter-subscribers.show', [
                 'newsletter_subscriber' => $matchingSubscriber,
                 'search' => 'reader',
@@ -125,7 +125,7 @@ class NewsletterSubscriptionTest extends TestCase
             ->assertSee('Subscribed')
             ->assertSee('search=reader');
 
-        $this->actingAs($admin)
+        $this->actingAs($admin, 'admin')
             ->delete(route('admin.newsletter-subscribers.destroy', [
                 'newsletter_subscriber' => $matchingSubscriber,
                 'search' => 'reader',

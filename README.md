@@ -35,7 +35,7 @@ Group webinar requests are managed separately from scheduled webinar registratio
 
 Each participant (including the organizer) receives an individual email invitation. Guest participants can use the unique expiring link to apply their own coupon and pay their own amount through Razorpay; payment status is updated only after server-side signature and payment verification. Admins can review participant payments, confirm or cancel a request, set its schedule and meeting link, and notify participants.
 
-Before enabling paid requests in production, configure the existing Razorpay credentials and mail provider, and run a Laravel queue worker for invitation and schedule emails:
+In-app user notifications are also emailed after their database transaction commits, using the existing configured mailer. They are delivered synchronously and do not wait in the queue. Group webinar invitation and schedule emails remain queued; run a Laravel queue worker for those jobs:
 
 ```bash
 php artisan queue:work

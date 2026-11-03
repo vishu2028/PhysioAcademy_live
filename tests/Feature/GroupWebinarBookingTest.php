@@ -479,7 +479,7 @@ class GroupWebinarBookingTest extends TestCase
             'admin_response' => 'Please join five minutes early.',
         ];
 
-        $this->actingAs($admin)->patch(route('admin.group-webinars.update', $groupRequest), $payload)
+        $this->actingAs($admin, 'admin')->patch(route('admin.group-webinars.update', $groupRequest), $payload)
             ->assertRedirect(route('admin.group-webinars.show', $groupRequest));
 
         $this->assertSame('confirmed', $groupRequest->fresh()->status);
@@ -511,7 +511,7 @@ class GroupWebinarBookingTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole($role);
 
-        $this->actingAs($admin)->get(route('admin.group-webinars.index'))
+        $this->actingAs($admin, 'admin')->get(route('admin.group-webinars.index'))
             ->assertOk()
             ->assertSee('Group Webinar Requests')
             ->assertSee('Total Webinar Requests')

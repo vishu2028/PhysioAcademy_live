@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\Concerns\PreservesListingContext;
 use App\Http\Controllers\Controller;
 use App\Models\Doubt;
+use App\Models\DoubtMessage;
 use App\Notifications\DoubtAnswered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ class DoubtController extends Controller
             'academicYear',
             'subject',
             'answeredBy',
+            'messages.sender',
         ]);
 
         $search = trim($validated['search'] ?? '');
@@ -60,6 +62,7 @@ class DoubtController extends Controller
         ]);
 
         $wasAnswered = filled($doubt->answer);
+        $previousAnswer = $doubt->answer;
         $answer = Doubt::sanitizeHtml($request->input('answer'));
         $data = [
             'status' => $request->status,
@@ -75,8 +78,20 @@ class DoubtController extends Controller
             $data['answered_at'] = now();
         }
 
-        DB::transaction(function () use ($doubt, $data, $answer, $wasAnswered): void {
+        DB::transaction(function () use ($doubt, $data, $answer, $wasAnswered, $previousAnswer): void {
+            if (filled($previousAnswer) && $previousAnswer !== $answer) {
+                $this->archiveLegacyAnswer($doubt, $previousAnswer);
+            }
+
             $doubt->update($data);
+
+            if (filled($answer) && $previousAnswer !== $answer) {
+                $doubt->messages()->create([
+                    'sender_id' => auth()->id(),
+                    'sender_role' => DoubtMessage::ROLE_ADMIN,
+                    'message' => $answer,
+                ]);
+            }
 
             if (
                 ! $wasAnswered
@@ -91,6 +106,25 @@ class DoubtController extends Controller
         });
 
         return $this->redirectToListing($request, 'admin.doubts.index')->with('success', 'Doubt updated successfully.');
+    }
+
+    private function archiveLegacyAnswer(Doubt $doubt, string $answer): void
+    {
+        $alreadyArchived = $doubt->messages()
+            ->where('sender_role', DoubtMessage::ROLE_ADMIN)
+            ->where('message', $answer)
+            ->exists();
+
+        if ($alreadyArchived) {
+            return;
+        }
+
+        $doubt->messages()->create([
+            'sender_id' => $doubt->answered_by,
+            'sender_role' => DoubtMessage::ROLE_ADMIN,
+            'message' => $answer,
+            'created_at' => $doubt->answered_at ?? $doubt->updated_at,
+        ]);
     }
 
     public function destroy(Request $request, Doubt $doubt)

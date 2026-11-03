@@ -95,6 +95,20 @@
 
                     <tbody>
                     @forelse($doubts as $doubt)
+                        @php
+                            $conversationText = $doubt->messages->map(function ($message) {
+                                $sender = $message->sender_role === \App\Models\DoubtMessage::ROLE_ADMIN
+                                    ? ($message->sender?->name ?? 'Admin')
+                                    : 'Student';
+                                $content = $message->sender_role === \App\Models\DoubtMessage::ROLE_ADMIN
+                                    ? strip_tags(\App\Models\Doubt::sanitizeHtml($message->message))
+                                    : $message->message;
+
+                                return $sender . ' · ' . $message->created_at?->copy()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A')
+                                    . "\n" . $content;
+                            })->implode("\n\n");
+                            $encodedConversation = base64_encode($conversationText);
+                        @endphp
                         <tr>
                             <td>
                                 <strong>{{ $doubt->user?->name ?? 'N/A' }}</strong><br>
@@ -156,6 +170,7 @@
                                                 data-topic="{{ $doubt->topic ?: '-' }}"
                                                 data-submission="{{ $doubt->created_at?->copy()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A') ?? '-' }}"
                                                 data-message="{{ base64_encode($doubt->message) }}"
+                                                data-thread="{{ $encodedConversation }}"
                                                 data-answer="{{ base64_encode(\App\Models\Doubt::sanitizeHtml($doubt->answer)) }}">
                                             View Response
                                         </button>
@@ -168,6 +183,7 @@
                                                 data-topic="{{ $doubt->topic ?: '-' }}"
                                                 data-submission="{{ $doubt->created_at?->copy()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A') ?? '-' }}"
                                                 data-message="{{ base64_encode($doubt->message) }}"
+                                                data-thread="{{ $encodedConversation }}"
                                                 data-answer="{{ base64_encode(\App\Models\Doubt::sanitizeHtml($doubt->answer)) }}">
                                             Edit Response
                                         </button>
@@ -190,6 +206,7 @@
                                             data-topic="{{ $doubt->topic ?: '-' }}"
                                             data-submission="{{ $doubt->created_at?->copy()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A') ?? '-' }}"
                                             data-message="{{ base64_encode($doubt->message) }}"
+                                            data-thread="{{ $encodedConversation }}"
                                             data-answer="">
                                         Add Response
                                     </button>
@@ -230,6 +247,10 @@
                             <div class="col-md-6"><div class="label">Topic</div><div class="value" id="responseTopic"></div></div>
                             <div class="col-md-6"><div class="label">Submitted</div><div class="value" id="responseSubmission"></div></div>
                             <div class="col-12"><div class="label">Doubt</div><div class="value" id="responseMessage"></div></div>
+                            <div class="col-12" id="responseConversationContainer" hidden>
+                                <div class="label">Conversation</div>
+                                <div class="value" id="responseConversation" style="white-space: pre-wrap"></div>
+                            </div>
                         </div>
                     </div>
                     <form id="responseModalForm" method="POST">
@@ -295,7 +316,9 @@
             let responseEditorPromise;
             let responseEditorIsReadOnly = false;
 
-            const decode = (value) => value ? atob(value) : '';
+            const decodeUtf8 = (value) => value
+                ? new TextDecoder().decode(Uint8Array.from(atob(value), (character) => character.charCodeAt(0)))
+                : '';
             const setText = (id, value) => {
                 document.getElementById(id).textContent = value || '-';
             };
@@ -406,8 +429,11 @@
                     setText('responseSubject', button.dataset.subject);
                     setText('responseTopic', button.dataset.topic);
                     setText('responseSubmission', button.dataset.submission);
-                    setText('responseMessage', decode(button.dataset.message));
-                    pendingResponseHtml = decode(button.dataset.answer);
+                    setText('responseMessage', decodeUtf8(button.dataset.message));
+                    const conversation = decodeUtf8(button.dataset.thread);
+                    setText('responseConversation', conversation);
+                    document.getElementById('responseConversationContainer').hidden = !conversation;
+                    pendingResponseHtml = decodeUtf8(button.dataset.answer);
                     modalContent.value = pendingResponseHtml;
                     editorContainer.classList.toggle('response-editor-readonly', currentMode === 'view');
                     responseForm.action = `{{ url('/admin/doubts') }}/${button.dataset.id}`;

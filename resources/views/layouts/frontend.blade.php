@@ -13,6 +13,17 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ asset('ui-physio/style.css') }}" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        [data-notification-menu] > [data-notification-dropdown],
+        .nav-user-menu > .nav-user-dropdown {
+            display: none;
+        }
+
+        [data-notification-menu].is-open > [data-notification-dropdown],
+        .nav-user-menu.is-open > .nav-user-dropdown {
+            display: block;
+        }
+    </style>
     @if(get_setting('site_favicon'))
         <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . get_setting('site_favicon')) }}">
     @endif
@@ -392,6 +403,7 @@
                             class="student-notification-button"
                             data-notification-toggle
                             aria-label="Open notifications"
+                            aria-controls="student-notification-dropdown"
                             aria-expanded="false"
                         >
                             <i class="bi bi-bell"></i>
@@ -408,6 +420,8 @@
                         <div
                             class="student-notification-dropdown"
                             data-notification-dropdown
+                            id="student-notification-dropdown"
+                            aria-hidden="true"
                         >
                             <div class="student-notification-header">
                                 <div>
@@ -522,6 +536,8 @@
                         type="button"
                         class="nav-user-avatar"
                         aria-label="Open profile menu"
+                        aria-controls="nav-user-dropdown"
+                        aria-expanded="false"
                     >
                         @if($user->avatarUrl())
                             <img src="{{ $user->avatarUrl() }}" alt="{{ $displayName }} profile picture">
@@ -530,7 +546,11 @@
                         @endif
                     </button>
 
-                    <div class="nav-user-dropdown">
+                    <div
+                        class="nav-user-dropdown"
+                        id="nav-user-dropdown"
+                        aria-hidden="true"
+                    >
                         <div class="nav-user-dropdown-card">
                             <div class="nav-user-info">
                                 <div class="nav-user-info-avatar">
@@ -605,7 +625,7 @@
                                 <a
                                     href="{{ route('doubts.mine') }}"
                                     class="nav-user-menu-link
-                                {{ request()->routeIs('doubts.mine') ? 'active' : '' }}"
+                                {{ request()->routeIs('doubts.*') ? 'active' : '' }}"
                                 >
                                     <svg
                                         width="17"
@@ -629,7 +649,7 @@
                                         />
                                     </svg>
 
-                                    <span>My Doubts</span>
+                                    <span>                                    My Doubts</span>
                                 </a>
 
                                 <div class="nav-user-divider"></div>
@@ -804,128 +824,75 @@
 <script src="{{ asset('ui-physio/script.js') }}"></script>
 <script src="{{ asset('ui-physio/protection.js') }}?v={{ time() }}"></script>
 <script>
-    document.addEventListener(
-        'DOMContentLoaded',
-        function () {
-            const notificationMenus =
-                document.querySelectorAll(
-                    '[data-notification-menu]'
-                );
+    (() => {
+        const menuSelector = '[data-notification-menu], .nav-user-menu';
+        const openMenuSelector = '[data-notification-menu].is-open, .nav-user-menu.is-open';
+        const toggleSelector = '[data-notification-toggle], .nav-user-avatar';
 
-            notificationMenus.forEach(function (menu) {
-                const toggle = menu.querySelector(
-                    '[data-notification-toggle]'
-                );
+        const getToggle = (menu) => menu.querySelector(toggleSelector);
+        const getPanel = (menu) => menu.querySelector(
+            '[data-notification-dropdown], .nav-user-dropdown'
+        );
 
-                if (! toggle) {
-                    return;
+        const closeMenu = (menu) => {
+            menu.classList.remove('is-open');
+            getToggle(menu)?.setAttribute('aria-expanded', 'false');
+            getPanel(menu)?.setAttribute('aria-hidden', 'true');
+
+            if (menu.matches('[data-notification-menu]')) {
+                getToggle(menu)?.setAttribute('aria-label', 'Open notifications');
+            }
+        };
+
+        const closeAllMenus = () => {
+            document.querySelectorAll(openMenuSelector).forEach(closeMenu);
+        };
+
+        document.querySelectorAll(menuSelector).forEach(closeMenu);
+
+        document.addEventListener('click', (event) => {
+            const toggle = event.target.closest(toggleSelector);
+
+            if (toggle) {
+                event.preventDefault();
+                const menu = toggle.closest(menuSelector);
+                const shouldOpen = !menu.classList.contains('is-open');
+
+                closeAllMenus();
+
+                if (shouldOpen) {
+                    menu.classList.add('is-open');
+                    toggle.setAttribute('aria-expanded', 'true');
+                    getPanel(menu)?.setAttribute('aria-hidden', 'false');
+
+                    if (menu.matches('[data-notification-menu]')) {
+                        toggle.setAttribute('aria-label', 'Close notifications');
+                    }
                 }
 
-                toggle.addEventListener(
-                    'click',
-                    function (event) {
-                        event.preventDefault();
-                        event.stopPropagation();
+                return;
+            }
 
-                        const isOpen =
-                            menu.classList.contains(
-                                'is-open'
-                            );
+            if (!event.target.closest(menuSelector)) {
+                closeAllMenus();
+            }
+        });
 
-                        document
-                            .querySelectorAll(
-                                '[data-notification-menu].is-open'
-                            )
-                            .forEach(function (openMenu) {
-                                openMenu.classList.remove(
-                                    'is-open'
-                                );
+        document.addEventListener('keydown', (event) => {
+            if (event.key !== 'Escape') {
+                return;
+            }
 
-                                const openToggle =
-                                    openMenu.querySelector(
-                                        '[data-notification-toggle]'
-                                    );
+            const openMenu = document.querySelector(openMenuSelector);
+            if (!openMenu) {
+                return;
+            }
 
-                                openToggle?.setAttribute(
-                                    'aria-expanded',
-                                    'false'
-                                );
-                            });
-
-                        if (! isOpen) {
-                            menu.classList.add(
-                                'is-open'
-                            );
-
-                            toggle.setAttribute(
-                                'aria-expanded',
-                                'true'
-                            );
-                        }
-                    }
-                );
-
-                menu.addEventListener(
-                    'click',
-                    function (event) {
-                        event.stopPropagation();
-                    }
-                );
-            });
-
-            document.addEventListener(
-                'click',
-                function () {
-                    document
-                        .querySelectorAll(
-                            '[data-notification-menu].is-open'
-                        )
-                        .forEach(function (menu) {
-                            menu.classList.remove(
-                                'is-open'
-                            );
-
-                            menu
-                                .querySelector(
-                                    '[data-notification-toggle]'
-                                )
-                                ?.setAttribute(
-                                    'aria-expanded',
-                                    'false'
-                                );
-                        });
-                }
-            );
-
-            document.addEventListener(
-                'keydown',
-                function (event) {
-                    if (event.key !== 'Escape') {
-                        return;
-                    }
-
-                    document
-                        .querySelectorAll(
-                            '[data-notification-menu].is-open'
-                        )
-                        .forEach(function (menu) {
-                            menu.classList.remove(
-                                'is-open'
-                            );
-
-                            menu
-                                .querySelector(
-                                    '[data-notification-toggle]'
-                                )
-                                ?.setAttribute(
-                                    'aria-expanded',
-                                    'false'
-                                );
-                        });
-                }
-            );
-        }
-    );
+            const toggle = getToggle(openMenu);
+            closeAllMenus();
+            toggle?.focus();
+        });
+    })();
 </script>
 @auth
     @if(auth()->user()->hasAnyRole(['super_admin', 'admin']) === false)
@@ -1293,34 +1260,51 @@
 
     /* Avatar */
     .nav-user-avatar {
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        flex: 0 0 54px;
         width: 54px;
+        min-width: 54px;
         height: 54px;
+        min-height: 54px;
+        overflow: hidden;
+        box-sizing: border-box;
         border-radius: 50%;
         border: 1px solid rgba(59, 130, 246, 0.25);
         background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
         color: #ffffff;
         font-size: 21px;
         font-weight: 700;
-        line-height: 54px;
         text-align: center;
         cursor: pointer;
         box-shadow: 0 10px 25px rgba(37, 99, 235, 0.22);
-        transition: all 0.22s ease;
+        transition: box-shadow 0.22s ease, border-color 0.22s ease;
         padding: 0;
     }
 
     .nav-user-avatar:hover {
-        transform: translateY(-2px);
         box-shadow: 0 14px 32px rgba(37, 99, 235, 0.30);
     }
 
-    .nav-user-avatar img,
     .nav-user-info-avatar img {
         display: block;
         width: 100%;
         height: 100%;
         border-radius: 50%;
         object-fit: cover;
+    }
+
+    .nav-user-avatar img {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        border-radius: 50%;
+        object-fit: cover;
+        object-position: center;
     }
 
     /* Dropdown Wrapper */
@@ -1336,8 +1320,7 @@
         z-index: 9999;
     }
 
-    .nav-user-menu:hover .nav-user-dropdown,
-    .nav-user-menu:focus-within .nav-user-dropdown {
+    .nav-user-menu.is-open .nav-user-dropdown {
         opacity: 1;
         visibility: visible;
         transform: translateY(0) scale(1);
@@ -1506,9 +1489,11 @@
     /* Mobile adjustment */
     @media (max-width: 768px) {
         .nav-user-avatar {
+            flex-basis: 46px;
             width: 46px;
+            min-width: 46px;
             height: 46px;
-            line-height: 46px;
+            min-height: 46px;
             font-size: 18px;
         }
 

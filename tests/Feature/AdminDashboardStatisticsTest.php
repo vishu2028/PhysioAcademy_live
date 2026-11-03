@@ -83,7 +83,7 @@ class AdminDashboardStatisticsTest extends TestCase
             ],
         ]);
 
-        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
+        $response = $this->actingAs($admin, 'admin')->get(route('admin.dashboard'));
 
         $response->assertOk()
             ->assertViewHas('stats', function (array $stats): bool {
@@ -116,12 +116,12 @@ class AdminDashboardStatisticsTest extends TestCase
         $this->assertSame(1, $groupWebinarCount);
 
         $groupRequest->delete();
-        $this->actingAs($admin)
+        $this->actingAs($admin, 'admin')
             ->get(route('admin.dashboard'))
             ->assertViewHas('stats.group_webinars', 0);
 
         $inactiveTopic->update(['status' => true]);
-        $this->actingAs($admin)
+        $this->actingAs($admin, 'admin')
             ->get(route('admin.dashboard'))
             ->assertViewHas('chartData.distribution', [
                 'Active Topics' => 2,
@@ -130,7 +130,7 @@ class AdminDashboardStatisticsTest extends TestCase
 
         $activeTopic->delete();
         $inactiveTopic->delete();
-        $this->actingAs($admin)
+        $this->actingAs($admin, 'admin')
             ->get(route('admin.dashboard'))
             ->assertViewHas('chartData.distribution', [
                 'Active Topics' => 0,

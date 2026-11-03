@@ -1,11 +1,11 @@
 <?php
 
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\AppleAuthController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
-use App\Http\Controllers\Auth\FirebaseAuthController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\FirebaseAuthController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -31,12 +31,6 @@ Route::middleware('guest')->group(function () {
         ->middleware('throttle:10,1')
         ->name('login.apple');
 
-    Route::get('admin/login', [AuthenticatedSessionController::class, 'adminCreate'])
-        ->name('admin.login');
-
-    Route::post('admin/login', [AuthenticatedSessionController::class, 'adminStore'])
-        ->middleware('throttle:5,1');
-
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 
@@ -49,6 +43,16 @@ Route::middleware('guest')->group(function () {
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
 });
+
+Route::get('admin/login', [AuthenticatedSessionController::class, 'adminCreate'])
+    ->name('admin.login');
+
+Route::post('admin/login', [AuthenticatedSessionController::class, 'adminStore'])
+    ->middleware('throttle:5,1');
+
+Route::post('admin/logout', [AuthenticatedSessionController::class, 'adminDestroy'])
+    ->middleware('auth:admin')
+    ->name('admin.logout');
 
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)

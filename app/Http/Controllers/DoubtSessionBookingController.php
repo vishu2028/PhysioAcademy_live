@@ -76,19 +76,10 @@ class DoubtSessionBookingController extends Controller
     /**
      * Display the authenticated student's doubt session history.
      */
-    /**
-     * Display the authenticated student's doubt session history.
-     */
     public function history(Request $request)
     {
         $bookings = $request->user()
             ->doubtSessionBookings()
-            ->with('followUps.answeredBy')
-            ->withCount('likes')
-            ->withExists([
-                'likes as liked_by_current_user' => fn ($query) => $query
-                    ->where('user_id', $request->user()->id),
-            ])
             ->latest('created_at')
             ->paginate(10);
 

@@ -48,8 +48,10 @@ class AuthenticationTest extends TestCase
             'password' => 'password',
         ]);
 
-        $this->assertAuthenticatedAs($admin);
+        $this->assertAuthenticatedAs($admin, 'admin');
+        $this->assertGuest('web');
         $response->assertRedirect(route('admin.dashboard', absolute: false));
+        $this->get(route('admin.dashboard'))->assertOk();
     }
 
     public function test_admin_routes_redirect_guests_to_the_separate_admin_login(): void
@@ -60,14 +62,17 @@ class AuthenticationTest extends TestCase
 
     public function test_regular_users_cannot_use_the_admin_password_login(): void
     {
-        User::factory()->create();
+        $user = User::factory()->create();
+        $this->actingAs($user, 'web');
 
+        $this->get(route('admin.login'))->assertOk();
         $this->post(route('admin.login'), [
-            'email' => 'test@example.com',
+            'email' => $user->email,
             'password' => 'password',
         ])->assertSessionHasErrors('email');
 
-        $this->assertGuest();
+        $this->assertAuthenticatedAs($user, 'web');
+        $this->assertGuest('admin');
     }
 
     public function test_admin_password_login_rejects_invalid_passwords(): void
@@ -92,5 +97,61 @@ class AuthenticationTest extends TestCase
 
         $this->assertGuest();
         $response->assertRedirect('/');
+    }
+
+    public function test_admin_and_user_logouts_only_end_their_own_guard_session(): void
+    {
+        Role::findOrCreate('admin', 'web');
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web');
+        $this->post(route('admin.login'), [
+            'email' => $admin->email,
+            'password' => 'password',
+        ])->assertRedirect(route('admin.dashboard', absolute: false));
+
+        $this->assertAuthenticatedAs($user, 'web');
+        $this->assertAuthenticatedAs($admin, 'admin');
+
+        $this->post(route('admin.logout'))->assertRedirect(route('admin.login'));
+        $this->assertAuthenticatedAs($user, 'web');
+        $this->assertGuest('admin');
+
+        $this->post(route('admin.login'), [
+            'email' => $admin->email,
+            'password' => 'password',
+        ])->assertRedirect(route('admin.dashboard', absolute: false));
+        $this->post(route('logout'))->assertRedirect('/');
+        $this->assertGuest('web');
+        $this->assertAuthenticatedAs($admin, 'admin');
+    }
+
+    public function test_regular_user_cannot_access_admin_routes_even_when_signed_in(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web')
+            ->get(route('admin.dashboard'))
+            ->assertRedirect(route('admin.login'));
+
+        $this->assertAuthenticatedAs($user, 'web');
+        $this->assertGuest('admin');
+    }
+
+    public function test_super_admin_can_authenticate_using_the_admin_guard(): void
+    {
+        Role::findOrCreate('super_admin', 'web');
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+
+        $this->post(route('admin.login'), [
+            'email' => $admin->email,
+            'password' => 'password',
+        ])->assertRedirect(route('admin.dashboard', absolute: false));
+
+        $this->assertAuthenticatedAs($admin, 'admin');
+        $this->get(route('admin.dashboard'))->assertOk();
     }
 }

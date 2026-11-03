@@ -2,13 +2,11 @@
 
 namespace App\Traits;
 
-use App\Notifications\Channels\NotificationEmailChannel;
-
 trait EmailNotification
 {
     public function via(object $notifiable): array
     {
-        return ['database', NotificationEmailChannel::class];
+        return ['database'];
     }
 
     public function emailData(object $notifiable): array
@@ -19,15 +17,15 @@ trait EmailNotification
             'title' => (string) ($data['title'] ?? 'Account update'),
             'message' => (string) ($data['message'] ?? ''),
             'action_url' => $this->emailActionUrl($data),
+            'details' => method_exists($this, 'emailDetails')
+                ? $this->emailDetails($notifiable)
+                : [],
         ];
     }
 
     public function emailDeliveryKey(object $notifiable): string
     {
-        $data = $this->toDatabase($notifiable);
-        unset($data['created_at']);
-
-        return hash('sha256', static::class.'|'.$notifiable->getKey().'|'.json_encode($data, JSON_THROW_ON_ERROR));
+        return hash('sha256', static::class.'|'.$notifiable->getKey().'|'.$this->id);
     }
 
     protected function emailActionUrl(array $data): ?string

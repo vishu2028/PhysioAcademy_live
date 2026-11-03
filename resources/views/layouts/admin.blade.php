@@ -487,7 +487,7 @@
                             <li><a class="dropdown-item rounded-2 py-2" href="/"><i class="bi bi-globe me-2"></i>Main Site</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <form method="POST" action="{{ route('logout') }}">
+                                <form method="POST" action="{{ route('admin.logout') }}">
                                     @csrf
                                     <button class="dropdown-item rounded-2 text-danger py-2" type="submit"><i class="bi bi-box-arrow-right me-2"></i>Log Out</button>
                                 </form>

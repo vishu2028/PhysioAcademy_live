@@ -44,14 +44,14 @@
 <script>
     window.physioFirebaseConfig = @json($firebaseWebConfig);
     window.physioFirebaseConfigured = @json($firebaseWebConfigured);
-    window.physioFirebaseLoginUrl = @json(route('login.firebase'));
+    window.physioFirebaseLoginUrl = @json(route('login.firebase', absolute: false));
     window.physioFirebaseCsrf = @json(csrf_token());
     window.physioAppleConfig = {
         enabled: @json($appleConfigured),
         clientId: @json($appleConfig['client_id'] ?? ''),
         redirectUri: @json($appleConfig['redirect_uri'] ?? ''),
-        challengeUrl: @json(route('login.apple.challenge')),
-        loginUrl: @json(route('login.apple'))
+        challengeUrl: @json(route('login.apple.challenge', absolute: false)),
+        loginUrl: @json(route('login.apple', absolute: false))
     };
 </script>
 <script type="module" src="{{ asset('ui-physio/social-auth.js') }}?v={{ filemtime(public_path('ui-physio/social-auth.js')) }}"></script>

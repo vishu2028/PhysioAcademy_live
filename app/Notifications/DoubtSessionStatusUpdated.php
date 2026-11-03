@@ -76,4 +76,13 @@ class DoubtSessionStatusUpdated extends Notification
             $notifiable
         );
     }
+
+    public function emailDetails(object $notifiable): array
+    {
+        return array_filter([
+            'Booking reference' => $this->booking->booking_reference,
+            'Scheduled for' => $this->booking->scheduled_at?->format('M j, Y g:i A'),
+            'Meeting link' => $this->booking->meeting_link,
+        ], fn ($value): bool => filled($value));
+    }
 }

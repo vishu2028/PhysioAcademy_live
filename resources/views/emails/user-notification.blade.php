@@ -13,6 +13,14 @@
         <div style="background:#fff;padding:32px;border:1px solid #e3eaf3;border-top:0;border-radius:0 0 14px 14px;">
             <h1 style="font-size:22px;margin:0 0 16px;color:#172033;">{{ $title }}</h1>
             <p style="white-space:pre-line;margin:0 0 24px;">{{ $notificationMessage }}</p>
+            @if($details)
+                <dl style="margin:0 0 24px;">
+                    @foreach($details as $label => $value)
+                        <dt style="font-weight:700;">{{ $label }}</dt>
+                        <dd style="margin:0 0 12px;white-space:pre-line;">{{ $value }}</dd>
+                    @endforeach
+                </dl>
+            @endif
             @if($actionUrl)
                 <a href="{{ $actionUrl }}" style="display:inline-block;background:#004AAD;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:700;">View Details</a>
             @endif

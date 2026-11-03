@@ -225,9 +225,37 @@
                     </div>
 
                     <div class="exam-search-bar reveal-up" id="examLiveSearch">
-                        <input type="search" id="examSearchInput" autocomplete="off"
-                               placeholder="Search by title, subject or unit..." aria-label="Search exam aid">
-                        <div class="exam-search-dropdown" id="examSearchDropdown" hidden></div>
+                        <form action="{{ route('exam-aid') }}" method="GET" id="examSearchForm">
+                            @foreach(request()->only(['year', 'resource_type']) as $filter => $value)
+                                <input type="hidden" name="{{ $filter }}" value="{{ $value }}">
+                            @endforeach
+                            <div class="exam-search-controls">
+                                <input
+                                    type="search"
+                                    id="examSearchInput"
+                                    name="q"
+                                    value="{{ request('q') }}"
+                                    autocomplete="off"
+                                    placeholder="Search materials, subjects or topics..."
+                                    aria-label="Search learning materials"
+                                    aria-controls="examSearchDropdown"
+                                >
+                                <button type="submit" class="exam-search-submit">Search</button>
+                            </div>
+                            @if(request()->filled('q'))
+                                <a
+                                    class="exam-search-clear"
+                                    href="{{ route('exam-aid', request()->except(['q', 'page', 'exam_aid'])) }}"
+                                >Clear search</a>
+                            @endif
+                            <div
+                                class="exam-search-dropdown"
+                                id="examSearchDropdown"
+                                role="status"
+                                aria-live="polite"
+                                hidden
+                            ></div>
+                        </form>
                     </div>
 
                     <div class="exam-resource-grid reveal-stagger">
@@ -372,8 +400,14 @@
                             </article>
                         @empty
                             <div class="exam-empty-state">
-                                <h3>No Exam Aid found</h3>
-                                <p>Please try another year, learning material or subject search.</p>
+                                <h3>{{ request()->filled('q') ? 'No matching materials found' : 'No Exam Aid found' }}</h3>
+                                <p>
+                                    @if(request()->filled('q'))
+                                        No materials matched “{{ request('q') }}”. Try another keyword or clear the search.
+                                    @else
+                                        Please try another year, learning material or subject search.
+                                    @endif
+                                </p>
                             </div>
                         @endforelse
                     </div>
@@ -389,17 +423,25 @@
     </main>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('examSearchForm');
             const searchInput = document.getElementById('examSearchInput');
             const dropdown = document.getElementById('examSearchDropdown');
 
-            if (searchInput && dropdown) {
+            if (form && searchInput && dropdown) {
                 let timer = null;
                 let controller = null;
+                let activeSearch = 0;
 
                 const hide = () => { dropdown.hidden = true; dropdown.innerHTML = ''; };
+                const showMessage = (message) => {
+                    dropdown.textContent = message;
+                    dropdown.classList.add('exam-search-empty');
+                    dropdown.hidden = false;
+                };
 
                 const render = (items, term) => {
                     dropdown.innerHTML = '';
+                    dropdown.classList.remove('exam-search-empty');
 
                     if (!items.length) {
                         const empty = document.createElement('div');
@@ -430,16 +472,8 @@
                         }
 
                         row.addEventListener('click', function () {
-                            const card = document.getElementById('exam-aid-card-' + item.id);
-                            hide();
-
-                            if (card) {
-                                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                card.classList.add('exam-card-highlight');
-                                setTimeout(() => card.classList.remove('exam-card-highlight'), 2000);
-                            } else {
-                                window.location.href = @json(route('exam-aid')) + '?q=' + encodeURIComponent(item.title) + '#exam-resources';
-                            }
+                            searchInput.value = term;
+                            form.requestSubmit();
                         });
 
                         dropdown.appendChild(row);
@@ -451,21 +485,46 @@
                 searchInput.addEventListener('input', function () {
                     const term = this.value.trim();
                     clearTimeout(timer);
+                    activeSearch++;
 
-                    if (controller) { controller.abort(); }
+                    if (controller) {
+                        controller.abort();
+                        controller = null;
+                    }
 
                     if (!term) { hide(); return; }
 
-                    timer = setTimeout(function () {
+                    const searchId = activeSearch;
+                    timer = setTimeout(async function () {
                         controller = new AbortController();
+                        showMessage('Searching materials…');
 
-                        fetch(@json(route('exam-aid.search')) + '?q=' + encodeURIComponent(term), {
-                            headers: { 'Accept': 'application/json' },
-                            signal: controller.signal
-                        })
-                            .then(r => r.json())
-                            .then(items => render(items, term))
-                            .catch(function () {});
+                        const url = new URL(@json(route('exam-aid.search')), window.location.origin);
+                        url.searchParams.set('q', term);
+                        form.querySelectorAll('input[type="hidden"][name]').forEach((filter) => {
+                            url.searchParams.set(filter.name, filter.value);
+                        });
+
+                        try {
+                            const response = await fetch(url, {
+                                headers: { 'Accept': 'application/json' },
+                                credentials: 'same-origin',
+                                signal: controller.signal
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`Search failed (HTTP ${response.status}).`);
+                            }
+
+                            const items = await response.json();
+                            if (searchId === activeSearch) {
+                                render(items, term);
+                            }
+                        } catch (error) {
+                            if (error.name !== 'AbortError' && searchId === activeSearch) {
+                                showMessage('Search is temporarily unavailable. Press Enter or click Search to retry.');
+                            }
+                        }
                     }, 200);
                 });
 
@@ -505,6 +564,11 @@
                 max-width: 440px;
                 margin: 0 auto 24px;
             }
+            .exam-search-controls {
+                display: flex;
+                align-items: stretch;
+                gap: 8px;
+            }
             .exam-search-bar input[type="search"] {
                 width: 100%;
                 padding: 9px 16px;
@@ -513,6 +577,23 @@
                 background: #fff;
                 font-size: 14px;
                 outline: none;
+            }
+            .exam-search-submit {
+                flex: 0 0 auto;
+                padding: 0 18px;
+                border: 0;
+                border-radius: 999px;
+                background: #004AAD;
+                color: #fff;
+                font-weight: 700;
+            }
+            .exam-search-submit:hover { background: #003B8A; }
+            .exam-search-clear {
+                display: inline-block;
+                margin: 8px 0 0 12px;
+                color: #004AAD;
+                font-size: 13px;
+                text-decoration: underline;
             }
             .exam-search-bar input[type="search"]:focus {
                 border-color: #004AAD;

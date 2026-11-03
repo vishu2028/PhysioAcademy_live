@@ -36,4 +36,11 @@ class DoubtAnswered extends Notification
     {
         return $this->toDatabase($notifiable);
     }
+
+    public function emailDetails(object $notifiable): array
+    {
+        return array_filter([
+            'Answer' => $this->doubt->answer,
+        ], fn ($value): bool => filled($value));
+    }
 }

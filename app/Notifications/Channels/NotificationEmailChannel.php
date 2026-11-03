@@ -4,23 +4,27 @@ namespace App\Notifications\Channels;
 
 use App\Jobs\SendNotificationEmail;
 use App\Models\NotificationEmailDelivery;
-use Illuminate\Notifications\Notification;
 use Illuminate\Database\QueryException;
+use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Throwable;
 
 class NotificationEmailChannel
 {
-    public function send(object $notifiable, Notification $notification): void
+    public function send(object $notifiable, Notification $notification, ?array $notificationData = null): void
     {
-        if (! filled($notifiable->email) || ! method_exists($notification, 'emailData')) {
+        if (! filled($notifiable->email)) {
             return;
         }
 
-        $data = $notification->emailData($notifiable);
-        $key = $notification->emailDeliveryKey($notifiable);
-
+        $delivery = null;
+        $key = null;
         try {
-            [$delivery, $shouldDispatch] = DB::transaction(function () use ($key, $notifiable, $notification): array {
+            $data = $this->emailData($notifiable, $notification, $notificationData);
+            $key = $this->deliveryKey($notifiable, $notification);
+            [$delivery, $shouldSend] = DB::transaction(function () use ($key, $notifiable, $notification): array {
                 $existing = NotificationEmailDelivery::where('delivery_key', $key)
                     ->lockForUpdate()
                     ->first();
@@ -46,25 +50,108 @@ class NotificationEmailChannel
                 ]), true];
             });
         } catch (QueryException $exception) {
-            if (! str_contains(strtolower($exception->getMessage()), 'duplicate')) {
-                throw $exception;
+            if (! $key || ! $this->isUniqueConstraintViolation($exception)) {
+                $this->logFailure($notifiable, $notification, $exception);
+                return;
             }
 
-            $delivery = NotificationEmailDelivery::where('delivery_key', $key)->firstOrFail();
-            $shouldDispatch = false;
-        }
+            try {
+                $delivery = NotificationEmailDelivery::where('delivery_key', $key)->first();
+            } catch (Throwable $lookupException) {
+                $this->logFailure($notifiable, $notification, $lookupException);
+                return;
+            }
 
-        if ($delivery->sent_at || ! $shouldDispatch) {
+            if (! $delivery) {
+                $this->logFailure($notifiable, $notification, $exception);
+                return;
+            }
+
+            $shouldSend = false;
+        } catch (Throwable $exception) {
+            $this->logFailure($notifiable, $notification, $exception);
             return;
         }
 
-        SendNotificationEmail::dispatch(
-            deliveryId: $delivery->id,
-            recipient: $notifiable->email,
-            subject: $data['title'],
-            title: $data['title'],
-            message: $data['message'],
-            actionUrl: $data['action_url']
-        );
+        if ($delivery->sent_at || ! $shouldSend) {
+            return;
+        }
+
+        try {
+            DB::afterCommit(function () use ($delivery, $data, $notifiable, $notification): void {
+                try {
+                    SendNotificationEmail::dispatchSync(
+                        deliveryId: $delivery->id,
+                        subject: $data['title'],
+                        title: $data['title'],
+                        message: $data['message'],
+                        actionUrl: $data['action_url'],
+                        details: $data['details'] ?? []
+                    );
+                } catch (Throwable $exception) {
+                    try {
+                        NotificationEmailDelivery::whereKey($delivery->id)->update([
+                            'failed_at' => now(),
+                            'failure_message' => 'Email delivery failed ('.$exception::class.').',
+                        ]);
+                    } catch (Throwable $recordingException) {
+                        $this->logFailure($notifiable, $notification, $recordingException, $delivery->id);
+                    }
+
+                    $this->logFailure($notifiable, $notification, $exception, $delivery->id);
+                }
+            });
+        } catch (Throwable $exception) {
+            $this->logFailure($notifiable, $notification, $exception, $delivery->id);
+        }
+    }
+
+    private function emailData(object $notifiable, Notification $notification, ?array $notificationData): array
+    {
+        if (method_exists($notification, 'emailData')) {
+            return $notification->emailData($notifiable);
+        }
+
+        $data = $notificationData
+            ?? (method_exists($notification, 'toDatabase')
+                ? $notification->toDatabase($notifiable)
+                : $notification->toArray($notifiable));
+
+        return [
+            'title' => (string) ($data['title'] ?? class_basename($notification)),
+            'message' => (string) ($data['message'] ?? ''),
+            'action_url' => route('home'),
+            'details' => [],
+        ];
+    }
+
+    private function deliveryKey(object $notifiable, Notification $notification): string
+    {
+        if (method_exists($notification, 'emailDeliveryKey')) {
+            return $notification->emailDeliveryKey($notifiable);
+        }
+
+        $notification->id ??= (string) Str::uuid();
+
+        return hash('sha256', $notification::class.'|'.$notifiable->getKey().'|'.$notification->id);
+    }
+
+    private function isUniqueConstraintViolation(QueryException $exception): bool
+    {
+        return in_array((string) $exception->getCode(), ['23000', '23505'], true);
+    }
+
+    private function logFailure(
+        object $notifiable,
+        Notification $notification,
+        Throwable $exception,
+        ?int $deliveryId = null
+    ): void {
+        Log::error('Notification email could not be delivered.', [
+            'delivery_id' => $deliveryId,
+            'notifiable_id' => $notifiable->getKey(),
+            'notification_type' => $notification::class,
+            'exception' => $exception::class,
+        ]);
     }
 }

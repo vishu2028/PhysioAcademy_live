@@ -865,7 +865,7 @@
                                 <div class="mt-3">
                                     <a href="{{ route('doubts.mine') }}" class="btn-form-secondary d-inline-flex align-items-center justify-content-center text-decoration-none">
                                         <i class="bi bi-chat-dots me-2"></i>
-                                        View My Doubts
+                                        My Doubts
                                     </a>
                                 </div>
                             @endauth

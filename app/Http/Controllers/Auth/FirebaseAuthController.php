@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\FirebaseService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,8 +18,7 @@ class FirebaseAuthController extends Controller
 {
     public function __construct(
         protected FirebaseService $firebase
-    ) {
-    }
+    ) {}
 
     public function login(Request $request): JsonResponse
     {
@@ -67,21 +67,45 @@ class FirebaseAuthController extends Controller
         }
 
         if (! $user) {
-            $user = DB::transaction(function () use ($firebaseUser, $email): User {
-                $user = User::create([
-                    'name' => $firebaseUser->displayName ?: 'User',
-                    'email' => $email,
-                    'password' => Hash::make(Str::random(40)),
-                    'firebase_uid' => $firebaseUser->uid,
-                    'avatar' => $firebaseUser->photoUrl,
-                ]);
+            try {
+                $user = DB::transaction(function () use ($firebaseUser, $email): User {
+                    $user = User::create([
+                        'name' => $firebaseUser->displayName ?: 'User',
+                        'email' => $email,
+                        'password' => Hash::make(Str::random(40)),
+                        'firebase_uid' => $firebaseUser->uid,
+                        'avatar' => $firebaseUser->photoUrl,
+                    ]);
 
-                $user->forceFill(['email_verified_at' => now()])->save();
-                Role::findOrCreate('user', 'web');
-                $user->assignRole('user');
+                    $user->forceFill(['email_verified_at' => now()])->save();
+                    Role::findOrCreate('user', 'web');
+                    $user->assignRole('user');
 
-                return $user;
-            });
+                    return $user;
+                });
+            } catch (QueryException $exception) {
+                if (! $this->isUniqueConstraintViolation($exception)) {
+                    throw $exception;
+                }
+
+                $user = User::where('firebase_uid', $firebaseUser->uid)->first()
+                    ?? User::whereRaw('LOWER(email) = ?', [$email])->first();
+
+                if (
+                    ! $user
+                    || $user->hasAnyRole(['admin', 'super_admin'])
+                    || (filled($user->firebase_uid) && $user->firebase_uid !== $firebaseUser->uid)
+                ) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This Google account could not be linked safely. Please contact support.',
+                    ], 409);
+                }
+
+                if (! $user->firebase_uid) {
+                    $user->forceFill(['firebase_uid' => $firebaseUser->uid])->save();
+                }
+            }
         } else {
             $updates = [];
 
@@ -102,7 +126,7 @@ class FirebaseAuthController extends Controller
             }
         }
 
-        Auth::login($user);
+        Auth::guard('web')->login($user);
         $request->session()->regenerate();
 
         $redirect = $request->session()->pull(
@@ -119,6 +143,11 @@ class FirebaseAuthController extends Controller
         return response()->json([
             'success' => true,
             'redirect' => $redirect,
-        ]);
+        ])->header('Cache-Control', 'no-store');
+    }
+
+    private function isUniqueConstraintViolation(QueryException $exception): bool
+    {
+        return in_array((string) $exception->getCode(), ['23000', '23505'], true);
     }
 }

@@ -188,6 +188,26 @@ Route::middleware('auth')->group(function () {
         [DoubtController::class, 'myDoubts']
     )->name('doubts.mine');
 
+    Route::get(
+        '/my-doubts/{doubt}',
+        [DoubtController::class, 'show']
+    )->whereNumber('doubt')->name('doubts.show');
+
+    Route::post(
+        '/my-doubts/{doubt}/messages',
+        [DoubtController::class, 'storeMessage']
+    )->whereNumber('doubt')->middleware('throttle:10,1')->name('doubts.messages.store');
+
+    Route::post(
+        '/my-doubts/{doubt}/like',
+        [DoubtController::class, 'like']
+    )->whereNumber('doubt')->name('doubts.likes.store');
+
+    Route::delete(
+        '/my-doubts/{doubt}/like',
+        [DoubtController::class, 'unlike']
+    )->whereNumber('doubt')->name('doubts.likes.destroy');
+
     /*
      * One-on-One Doubt Session Bookings
      */
@@ -287,7 +307,7 @@ Route::middleware('auth')->group(function () {
 */
 
 Route::middleware([
-    'auth',
+    'auth:admin',
     'role:super_admin|admin',
 ])
     ->prefix('admin')

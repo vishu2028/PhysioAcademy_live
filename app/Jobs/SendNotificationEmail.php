@@ -21,11 +21,11 @@ class SendNotificationEmail implements ShouldQueue
 
     public function __construct(
         public readonly int $deliveryId,
-        public readonly string $recipient,
         public readonly string $subject,
         public readonly string $title,
         public readonly string $message,
-        public readonly ?string $actionUrl
+        public readonly ?string $actionUrl,
+        public readonly array $details = []
     ) {
     }
 
@@ -42,11 +42,12 @@ class SendNotificationEmail implements ShouldQueue
             return;
         }
 
-        Mail::mailer(config('mail.default'))->to($this->recipient)->send(new UserNotificationMail(
+        Mail::mailer(config('mail.default'))->to($delivery->email)->send(new UserNotificationMail(
             subjectLine: $this->subject,
             title: $this->title,
             notificationMessage: $this->message,
-            actionUrl: $this->actionUrl
+            actionUrl: $this->actionUrl,
+            details: $this->details
         ));
 
         $delivery->forceFill([

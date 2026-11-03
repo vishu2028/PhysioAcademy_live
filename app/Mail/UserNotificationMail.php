@@ -16,7 +16,8 @@ class UserNotificationMail extends Mailable
         public readonly string $subjectLine,
         public readonly string $title,
         public readonly string $notificationMessage,
-        public readonly ?string $actionUrl
+        public readonly ?string $actionUrl,
+        public readonly array $details = []
     ) {}
 
     public function envelope(): Envelope

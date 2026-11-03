@@ -31,8 +31,12 @@ class AuthenticatedSessionController extends Controller
         return view('auth.login');
     }
 
-    public function adminCreate(): View
+    public function adminCreate(): View|RedirectResponse
     {
+        if (Auth::guard('admin')->check()) {
+            return redirect()->route('admin.dashboard');
+        }
+
         return view('auth.admin-login');
     }
 
@@ -54,12 +58,10 @@ class AuthenticatedSessionController extends Controller
 
     public function adminStore(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        $request->authenticate('admin');
 
-        if (! $request->user()->hasAnyRole(['admin', 'super_admin'])) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+        if (! Auth::guard('admin')->user()->hasAnyRole(['admin', 'super_admin'])) {
+            Auth::guard('admin')->logout();
 
             throw ValidationException::withMessages([
                 'email' => 'These credentials are not authorized for administrator access.',
@@ -71,6 +73,15 @@ class AuthenticatedSessionController extends Controller
         return redirect()->intended(route('admin.dashboard', absolute: false));
     }
 
+    public function adminDestroy(Request $request): RedirectResponse
+    {
+        Auth::guard('admin')->logout();
+        $request->session()->regenerate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('admin.login');
+    }
+
     /**
      * Destroy an authenticated session.
      */
@@ -78,8 +89,7 @@ class AuthenticatedSessionController extends Controller
     {
         Auth::guard('web')->logout();
 
-        $request->session()->invalidate();
-
+        $request->session()->regenerate();
         $request->session()->regenerateToken();
 
         return redirect('/');

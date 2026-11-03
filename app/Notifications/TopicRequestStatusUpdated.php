@@ -41,4 +41,12 @@ class TopicRequestStatusUpdated extends Notification
     {
         return $this->toDatabase($notifiable);
     }
+
+    public function emailDetails(object $notifiable): array
+    {
+        return array_filter([
+            'Requested topic' => $this->topicRequest->topic_name,
+            'Admin response' => $this->topicRequest->admin_note,
+        ], fn ($value): bool => filled($value));
+    }
 }

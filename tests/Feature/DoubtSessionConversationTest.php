@@ -36,8 +36,11 @@ class DoubtSessionConversationTest extends TestCase
         ]);
         $this->get(route('doubt-sessions.history'))
             ->assertOk()
-            ->assertSee('Unlike')
-            ->assertSee('session-like-count">1', false);
+            ->assertSee('Booking Status')
+            ->assertSee('Helpful response')
+            ->assertDontSee('Like')
+            ->assertDontSee('Unlike')
+            ->assertDontSee('session-like-count');
 
         $this->delete(route('doubt-sessions.likes.destroy', $booking))
             ->assertRedirect();
@@ -96,11 +99,16 @@ class DoubtSessionConversationTest extends TestCase
         $this->assertDatabaseCount('doubt_session_follow_ups', 0);
     }
 
-    public function test_student_can_only_see_their_session_conversation(): void
+    public function test_session_history_keeps_admin_notes_but_does_not_render_follow_up_conversations(): void
     {
         $student = User::factory()->create();
         $otherStudent = User::factory()->create();
-        $ownBooking = $this->bookingFor($student, ['admin_notes' => 'My response']);
+        $ownBooking = $this->bookingFor($student, [
+            'admin_notes' => 'My response',
+            'booking_status' => DoubtSessionBooking::STATUS_CONFIRMED,
+            'scheduled_at' => now()->setDate(2026, 11, 15)->setTime(14, 30),
+            'meeting_link' => 'https://meet.example.com/my-session',
+        ]);
         $otherBooking = $this->bookingFor($otherStudent, ['admin_notes' => 'Private response']);
         $ownBooking->followUps()->create([
             'question' => 'My question',
@@ -112,8 +120,12 @@ class DoubtSessionConversationTest extends TestCase
         $this->actingAs($student)
             ->get(route('doubt-sessions.history'))
             ->assertOk()
+            ->assertSee('Confirmed')
+            ->assertSee('15 November 2026')
+            ->assertSee('Join Meeting')
+            ->assertSee('https://meet.example.com/my-session')
             ->assertSee('My response')
-            ->assertSee('My question')
+            ->assertDontSee('My question')
             ->assertDontSee('Private response')
             ->assertDontSee('Another student question');
 
@@ -134,7 +146,7 @@ class DoubtSessionConversationTest extends TestCase
             'question' => 'Can you clarify this step?',
         ]);
 
-        $this->actingAs($admin)
+        $this->actingAs($admin, 'admin')
             ->patch(route('admin.doubt-session-bookings.follow-ups.update', [$booking, $followUp]), [
                 'answer' => 'Here is a more detailed explanation.',
             ])
@@ -161,7 +173,8 @@ class DoubtSessionConversationTest extends TestCase
         $this->actingAs($student)
             ->get(route('doubt-sessions.history'))
             ->assertOk()
-            ->assertSee('Here is a more detailed explanation.');
+            ->assertDontSee('Here is a more detailed explanation.')
+            ->assertSee('Booking Status');
     }
 
     public function test_admin_cannot_reply_to_a_follow_up_through_a_different_booking(): void
@@ -176,7 +189,7 @@ class DoubtSessionConversationTest extends TestCase
             'question' => 'Session-specific question',
         ]);
 
-        $this->actingAs($admin)
+        $this->actingAs($admin, 'admin')
             ->patch(route('admin.doubt-session-bookings.follow-ups.update', [$otherBooking, $followUp]), [
                 'answer' => 'Wrong booking response.',
             ])

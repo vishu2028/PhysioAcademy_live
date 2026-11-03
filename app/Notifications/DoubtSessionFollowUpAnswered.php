@@ -35,4 +35,12 @@ class DoubtSessionFollowUpAnswered extends Notification
     {
         return $this->toDatabase($notifiable);
     }
+
+    public function emailDetails(object $notifiable): array
+    {
+        return array_filter([
+            'Booking reference' => $this->followUp->booking->booking_reference,
+            'Response' => $this->followUp->answer,
+        ], fn ($value): bool => filled($value));
+    }
 }

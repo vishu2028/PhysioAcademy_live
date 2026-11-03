@@ -24,15 +24,26 @@ class FirebaseGoogleLoginTest extends TestCase
             ->assertSee('Continue with Apple')
             ->assertSee('social-auth.js')
             ->assertSee('window.physioFirebaseLoginUrl')
+            ->assertSee(
+                'window.physioFirebaseLoginUrl = '.json_encode(route('login.firebase', absolute: false)),
+                false
+            )
+            ->assertSee(
+                'challengeUrl: '.json_encode(route('login.apple.challenge', absolute: false)),
+                false
+            )
             ->assertDontSee('Forgot Password?')
             ->assertDontSee('name="email"')
             ->assertDontSee('name="password"')
             ->assertDontSee('private_key');
 
         $this->assertIsString($socialAuthScript);
-        $this->assertStringContainsString('signInWithRedirect', $socialAuthScript);
-        $this->assertStringContainsString('getRedirectResult', $socialAuthScript);
-        $this->assertStringNotContainsString('signInWithPopup', $socialAuthScript);
+        $this->assertStringContainsString('signInWithPopup', $socialAuthScript);
+        $this->assertStringNotContainsString('signInWithRedirect', $socialAuthScript);
+        $this->assertStringNotContainsString('getRedirectResult', $socialAuthScript);
+        $this->assertStringContainsString('firebaseAuthReady', $socialAuthScript);
+        $this->assertStringContainsString('credentials: \'same-origin\'', $socialAuthScript);
+        $this->assertStringContainsString('credential.user.getIdToken()', $socialAuthScript);
 
         $this->assertStringContainsString(
             'https://apis.google.com',
@@ -42,6 +53,34 @@ class FirebaseGoogleLoginTest extends TestCase
             'https://appleid.cdn-apple.com',
             $response->headers->get('Content-Security-Policy')
         );
+
+        $contentSecurityPolicy = $response->headers->get('Content-Security-Policy');
+        preg_match('/(?:^|;)\s*connect-src\s+([^;]+)/', $contentSecurityPolicy, $connectSrcMatch);
+        preg_match('/(?:^|;)\s*script-src\s+([^;]+)/', $contentSecurityPolicy, $scriptSrcMatch);
+
+        $this->assertNotEmpty($connectSrcMatch[1] ?? null);
+        $this->assertNotEmpty($scriptSrcMatch[1] ?? null);
+        $this->assertStringContainsString('https://www.gstatic.com', $connectSrcMatch[1]);
+        $this->assertStringContainsString('https://www.gstatic.com', $scriptSrcMatch[1]);
+        foreach ([
+            'https://www.googleapis.com',
+            'https://securetoken.googleapis.com',
+            'https://identitytoolkit.googleapis.com',
+            'https://*.firebaseapp.com',
+            'https://appleid.apple.com',
+            'https://*.razorpay.com',
+            'https://cdn.ckeditor.com',
+        ] as $existingOrigin) {
+            $this->assertStringContainsString($existingOrigin, $connectSrcMatch[1]);
+        }
+        $this->assertSame(
+            1,
+            substr_count($contentSecurityPolicy, 'connect-src ')
+        );
+        $this->assertStringContainsString('https://apis.google.com', $scriptSrcMatch[1]);
+        $this->assertStringContainsString('https://appleid.cdn-apple.com', $scriptSrcMatch[1]);
+        $this->assertStringContainsString('https://checkout.razorpay.com', $scriptSrcMatch[1]);
+        $this->assertCount(1, $response->headers->all('content-security-policy'));
     }
 
     public function test_site_wide_auth_modal_only_displays_google_and_apple_options(): void
@@ -81,6 +120,9 @@ class FirebaseGoogleLoginTest extends TestCase
         $this->assertDatabaseCount('users', 1);
 
         $this->get(route('profile.edit'))->assertOk();
+        $this->assertAuthenticatedAs($user, 'web');
+        $this->get(route('admin.dashboard'))->assertRedirect(route('admin.login'));
+        $this->assertGuest('admin');
     }
 
     public function test_google_login_links_an_existing_account_by_email_without_creating_a_duplicate(): void
@@ -157,6 +199,29 @@ class FirebaseGoogleLoginTest extends TestCase
         $this->assertGuest();
         $this->assertDatabaseCount('users', 1);
         $this->assertNull($admin->fresh()->firebase_uid);
+    }
+
+    public function test_google_user_can_log_out_and_sign_in_again_without_creating_a_duplicate(): void
+    {
+        Role::findOrCreate('user', 'web');
+        $this->mockFirebaseUser();
+
+        $this->postJson(route('login.firebase'), [
+            'id_token' => 'valid-firebase-id-token',
+        ])->assertOk();
+        $user = User::where('firebase_uid', 'firebase-google-uid')->firstOrFail();
+        $this->get(route('profile.edit'))->assertOk();
+
+        $this->post(route('logout'))->assertRedirect('/');
+        $this->assertGuest('web');
+
+        $this->postJson(route('login.firebase'), [
+            'id_token' => 'valid-firebase-id-token',
+        ])->assertOk();
+
+        $this->assertAuthenticatedAs($user, 'web');
+        $this->get(route('profile.edit'))->assertOk();
+        $this->assertDatabaseCount('users', 1);
     }
 
     private function mockFirebaseUser(): void

@@ -31,4 +31,15 @@ class WebinarUpdated extends Notification
     {
         return $this->toDatabase($notifiable);
     }
+
+    public function emailDetails(object $notifiable): array
+    {
+        return array_filter([
+            'Webinar' => $this->webinar->title,
+            'Starts' => $this->webinar->starts_at?->format('M j, Y g:i A'),
+            'Ends' => $this->webinar->ends_at?->format('M j, Y g:i A'),
+            'Timezone' => $this->webinar->timezone,
+            'Meeting link' => $this->webinar->meeting_link,
+        ], fn ($value): bool => filled($value));
+    }
 }

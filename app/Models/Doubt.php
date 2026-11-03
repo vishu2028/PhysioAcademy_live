@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Doubt extends Model
 {
@@ -27,6 +28,16 @@ class Doubt extends Model
     public const STATUS_ANSWERED = 'answered';
     public const STATUS_REJECTED = 'rejected';
 
+    public function messages(): HasMany
+    {
+        return $this->hasMany(DoubtMessage::class)->orderBy('created_at')->orderBy('id');
+    }
+
+    public function likes(): HasMany
+    {
+        return $this->hasMany(DoubtLike::class);
+    }
+
     public static function sanitizeHtml(?string $html): string
     {
         if (! $html) {
@@ -38,7 +49,7 @@ class Doubt extends Model
 
         try {
             $loaded = $document->loadHTML(
-                '<div id="doubt-html-root">' . $html . '</div>',
+                '<?xml encoding="UTF-8"><div id="doubt-html-root">' . $html . '</div>',
                 LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET
             );
         } finally {

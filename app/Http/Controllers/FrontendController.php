@@ -16,6 +16,7 @@ use App\Models\AboutTimeline;
 use App\Models\ExamAidBanner;
 use App\Models\Webinar;
 use App\Services\CouponService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 class FrontendController extends Controller
 {
@@ -437,7 +438,10 @@ class FrontendController extends Controller
             return response()->json([]);
         }
 
-        $results = $this->examAidSearchQuery($search)
+        $results = $this->applyExamAidFilters(
+            $this->examAidSearchQuery($search),
+            $request
+        )
             ->limit(8)
             ->get()
             ->map(function ($aid) use ($search) {
@@ -554,64 +558,10 @@ class FrontendController extends Controller
 
         $years = AcademicYear::orderBy('name')->get();
         $examAidBanner = ExamAidBanner::latest()->first();
-        $examAids = ExamAid::with([
-            'subject',
-            'unit',
-            'academicYear',
-            'semester',
-            'materials' => function ($query) {
-                $query->orderBy('order');
-            },
-        ])
-            ->where('status', 1)
-
-            ->when($request->filled('exam_aid'), function ($query) use ($request) {
-                $query->whereKey($request->integer('exam_aid'));
-            })
-
-            // Academic Year filter
-            ->when($request->filled('year') && $request->year !== 'all', function ($query) use ($request) {
-                $query->where('academic_year_id', $request->year);
-            })
-
-            // Learning Material / Resource Type filter
-            ->when($request->filled('resource_type') && $request->resource_type !== 'all', function ($query) use ($request) {
-                if ($request->resource_type === 'viva') {
-                    $query->whereRaw("TRIM(COALESCE(viva_question, '')) <> ''");
-                } elseif ($request->resource_type === 'exam') {
-                    $query->whereRaw("TRIM(COALESCE(exam_question, '')) <> ''");
-                } elseif ($request->resource_type === 'guide') {
-                    $query->whereHas('materials', function ($materialQuery) {
-                        $materialQuery->whereIn('type', ['video', 'link']);
-                    });
-                } else {
-                    $query->whereHas('materials', function ($materialQuery) use ($request) {
-                        $materialQuery->where('type', $request->resource_type);
-                    });
-                }
-            })
-
-            // Subject / Title / Unit search
-            ->when($request->filled('q'), function ($query) use ($request) {
-                $search = trim($request->q);
-
-                $query->where(function ($query) use ($search) {
-                    $query->where('title', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%")
-                        ->orWhereHas('subject', function ($subjectQuery) use ($search) {
-                            $subjectQuery->where('name', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('unit', function ($unitQuery) use ($search) {
-                            $unitQuery->where('name', 'like', "%{$search}%");
-                        })
-                        ->orWhere('viva_question', 'like', "%{$search}%")
-                        ->orWhere('exam_question', 'like', "%{$search}%")
-                        ->orWhereHas('materials', function ($materialQuery) use ($search) {
-                            $materialQuery->where('title', 'like', "%{$search}%")
-                                ->orWhere('content', 'like', "%{$search}%");
-                        });
-                });
-            })
+        $examAids = $this->applyExamAidFilters(
+            $this->examAidSearchQuery((string) $request->query('q', '')),
+            $request
+        )
             ->latest()
             ->paginate(9)
             ->withQueryString();
@@ -964,23 +914,79 @@ class FrontendController extends Controller
 
     private function examAidSearchQuery(string $search)
     {
-        return ExamAid::with(['subject', 'unit', 'academicYear', 'materials'])
+        $query = mb_strtolower(trim($search));
+        $like = '%' . $query . '%';
+
+        return ExamAid::with([
+            'subject',
+            'unit',
+            'academicYear',
+            'semester',
+            'materials' => fn ($materials) => $materials->orderBy('order'),
+            'materials.category',
+        ])
             ->where('status', true)
-            ->where(function ($query) use ($search) {
-                $query->where('title', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhereHas('subject', function ($subjectQuery) use ($search) {
-                        $subjectQuery->where('name', 'like', "%{$search}%");
-                    })
-                    ->orWhereHas('unit', function ($unitQuery) use ($search) {
-                        $unitQuery->where('name', 'like', "%{$search}%");
-                    })
-                    ->orWhere('viva_question', 'like', "%{$search}%")
-                    ->orWhere('exam_question', 'like', "%{$search}%")
-                    ->orWhereHas('materials', function ($materialQuery) use ($search) {
-                        $materialQuery->where('title', 'like', "%{$search}%")
-                            ->orWhere('content', 'like', "%{$search}%");
-                    });
+            ->when($query !== '', function (Builder $aids) use ($like): void {
+                $aids->where(function (Builder $matches) use ($like): void {
+                    $matches
+                        ->whereRaw('LOWER(exam_aids.title) LIKE ?', [$like])
+                        ->orWhereRaw("LOWER(COALESCE(exam_aids.description, '')) LIKE ?", [$like])
+                        ->orWhereRaw("LOWER(COALESCE(exam_aids.viva_question, '')) LIKE ?", [$like])
+                        ->orWhereRaw("LOWER(COALESCE(exam_aids.exam_question, '')) LIKE ?", [$like])
+                        ->orWhereHas('subject', fn (Builder $subject) => $subject
+                            ->whereRaw('LOWER(name) LIKE ?', [$like]))
+                        ->orWhereHas('unit', fn (Builder $unit) => $unit
+                            ->whereRaw('LOWER(name) LIKE ?', [$like]))
+                        ->orWhereHas('unit.unitTopics.lmsTopics', function (Builder $topic) use ($like): void {
+                            $topic
+                                ->whereRaw('LOWER(title) LIKE ?', [$like])
+                                ->orWhereRaw("LOWER(COALESCE(description, '')) LIKE ?", [$like]);
+                        })
+                        ->orWhereHas('materials', function (Builder $material) use ($like): void {
+                            $material
+                                ->whereRaw('LOWER(title) LIKE ?', [$like])
+                                ->orWhereRaw("LOWER(COALESCE(content, '')) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(COALESCE(url, '')) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(COALESCE(file_path, '')) LIKE ?", [$like])
+                                ->orWhereRaw('LOWER(type) LIKE ?', [$like])
+                                ->orWhereHas('category', fn (Builder $category) => $category
+                                    ->whereRaw('LOWER(name) LIKE ?', [$like]));
+                        })
+                        ->orWhereHas('unit.unitTopics.lmsTopics.materials', function (Builder $material) use ($like): void {
+                            $material
+                                ->whereRaw('LOWER(title) LIKE ?', [$like])
+                                ->orWhereRaw("LOWER(COALESCE(content, '')) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(COALESCE(url, '')) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(COALESCE(file_path, '')) LIKE ?", [$like])
+                                ->orWhereRaw('LOWER(type) LIKE ?', [$like])
+                                ->orWhereHas('category', fn (Builder $category) => $category
+                                    ->whereRaw('LOWER(name) LIKE ?', [$like]));
+                        });
+                });
+            });
+    }
+
+    private function applyExamAidFilters(Builder $query, Request $request): Builder
+    {
+        return $query
+            ->when($request->filled('exam_aid'), fn (Builder $aids) => $aids
+                ->whereKey($request->integer('exam_aid')))
+            ->when($request->filled('year') && $request->query('year') !== 'all', fn (Builder $aids) => $aids
+                ->where('academic_year_id', $request->query('year')))
+            ->when($request->filled('resource_type') && $request->query('resource_type') !== 'all', function (Builder $aids) use ($request): void {
+                $resourceType = $request->query('resource_type');
+
+                if ($resourceType === 'viva') {
+                    $aids->whereRaw("TRIM(COALESCE(exam_aids.viva_question, '')) <> ''");
+                } elseif ($resourceType === 'exam') {
+                    $aids->whereRaw("TRIM(COALESCE(exam_aids.exam_question, '')) <> ''");
+                } elseif ($resourceType === 'guide') {
+                    $aids->whereHas('materials', fn (Builder $materials) => $materials
+                        ->whereIn('type', ['video', 'link']));
+                } else {
+                    $aids->whereHas('materials', fn (Builder $materials) => $materials
+                        ->where('type', $resourceType));
+                }
             });
     }
 

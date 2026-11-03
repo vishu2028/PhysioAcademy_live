@@ -309,7 +309,7 @@ class CouponServiceTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
-        $form = $this->actingAs($admin)
+        $form = $this->actingAs($admin, 'admin')
             ->get(route('admin.coupons.create'))
             ->assertOk()
             ->assertSee('Starts at (IST)')
@@ -358,7 +358,7 @@ class CouponServiceTest extends TestCase
             'page' => 1,
         ];
 
-        $this->actingAs($admin)
+        $this->actingAs($admin, 'admin')
             ->get(route('admin.coupons.edit', [$coupon, '_listing' => $filters]))
             ->assertOk()
             ->assertSee(e(route('admin.coupons.update', [$coupon, '_listing' => $filters])), false);
@@ -395,7 +395,7 @@ class CouponServiceTest extends TestCase
             'service' => 'webinar',
         ];
 
-        $this->actingAs($admin)
+        $this->actingAs($admin, 'admin')
             ->patch(route('admin.coupons.toggle', [$coupon, '_listing' => $filters]))
             ->assertRedirect(route('admin.coupons.index', $filters));
 
