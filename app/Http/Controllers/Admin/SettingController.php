@@ -124,31 +124,12 @@ class SettingController extends Controller
 
             'settings.webinar_group_enabled' => ['required', 'in:0,1'],
             'settings.webinar_group_allow_requests' => ['required', 'in:0,1'],
-            'settings.webinar_group_is_free' => ['required', 'in:0,1'],
-            'settings.webinar_group_price_per_person' => [
-                Rule::requiredIf(function () use ($request) {
-                    return (string) $request->input('settings.webinar_group_enabled', '0') === '1'
-                        && (string) $request->input('settings.webinar_group_is_free', '0') !== '1';
-                }),
-                'nullable',
-                'numeric',
-                'min:1',
-                'max:100000',
-            ],
-            'settings.webinar_group_min_participants' => [
-                Rule::requiredIf(fn () => (string) $request->input('settings.webinar_group_enabled', '0') === '1'),
-                'nullable',
-                'integer',
-                'min:1',
-                'max:100',
-            ],
             'settings.webinar_group_max_participants' => [
                 Rule::requiredIf(fn () => (string) $request->input('settings.webinar_group_enabled', '0') === '1'),
                 'nullable',
                 'integer',
                 'min:1',
                 'max:100',
-                'gte:settings.webinar_group_min_participants',
             ],
             'settings.webinar_group_duration_minutes' => [
                 Rule::requiredIf(fn () => (string) $request->input('settings.webinar_group_enabled', '0') === '1'),
@@ -204,7 +185,6 @@ class SettingController extends Controller
                 'doubt_session_is_free',
                 'webinar_group_enabled',
                 'webinar_group_allow_requests',
-                'webinar_group_is_free',
             ];
 
             foreach ($checkboxes as $checkbox) {
@@ -224,10 +204,6 @@ class SettingController extends Controller
                 $settingsData['doubt_session_price'] = '0';
             }
 
-            if ((string) ($settingsData['webinar_group_is_free'] ?? '0') === '1') {
-                $settingsData['webinar_group_price_per_person'] = '0';
-            }
-
             $doubtSessionSettingTypes = [
                 'doubt_session_enabled' => 'boolean',
                 'doubt_session_is_free' => 'boolean',
@@ -237,9 +213,6 @@ class SettingController extends Controller
             $webinarGroupSettingTypes = [
                 'webinar_group_enabled' => 'boolean',
                 'webinar_group_allow_requests' => 'boolean',
-                'webinar_group_is_free' => 'boolean',
-                'webinar_group_price_per_person' => 'number',
-                'webinar_group_min_participants' => 'number',
                 'webinar_group_max_participants' => 'number',
                 'webinar_group_duration_minutes' => 'number',
                 'webinar_group_invitation_expiry_hours' => 'number',

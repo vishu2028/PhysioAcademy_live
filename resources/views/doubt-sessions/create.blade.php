@@ -3,6 +3,7 @@
 @section('title', 'Book a Doubt Session')
 
 @section('content')
+    @php($isGroupBooking = ($bookingType ?? 'individual') === 'group')
     <main class="doubt-booking-page">
         <section class="doubt-booking-hero">
             <div class="doubt-booking-container">
@@ -17,20 +18,27 @@
                 <div class="booking-heading">
                     <span class="booking-badge">
                         <i class="bi bi-camera-video-fill"></i>
-                        One-on-One Academic Support
+                        {{ $isGroupBooking ? 'Group Webinar' : 'One-on-One Academic Support' }}
                     </span>
 
-                    <h1>Book a Doubt Session</h1>
+                    <h1>{{ $isGroupBooking ? 'Book a Group Webinar' : 'Book a Doubt Session' }}</h1>
 
                     <p>
-                        Submit your PhysioSource doubt and booking details.
-                        The admin will confirm your session date and time
-                        after your booking is completed.
+                        @if($isGroupBooking)
+                            Submit your topic, preferred schedule, and participant emails. You are the organizer and will pay the group total once.
+                        @else
+                            Submit your PhysioSource doubt and booking details.
+                            The admin will confirm your session date and time
+                            after your booking is completed.
+                        @endif
                     </p>
-                    @if(get_setting('webinar_group_enabled', '0') == '1' && get_setting('webinar_group_allow_requests', '1') == '1')
+                    @if($isGroupBooking)
+                        <a href="{{ route('doubt-sessions.create') }}" class="btn btn-outline-primary rounded-pill mt-2">
+                            <i class="bi bi-person me-1"></i>Book One-on-One instead
+                        </a>
+                    @elseif(get_setting('webinar_group_enabled', '0') == '1' && get_setting('webinar_group_allow_requests', '1') == '1')
                         <a href="{{ route('group-webinars.create') }}" class="btn btn-outline-primary rounded-pill mt-2">
-                            <i class="bi bi-people me-1"></i>
-                            Need a group session? Request a Webinar
+                            <i class="bi bi-people me-1"></i>Book for a Group instead
                         </a>
                     @endif
                 </div>
@@ -47,10 +55,10 @@
                         <div class="booking-card-header">
                             <div>
                                 <span class="booking-card-eyebrow">
-                                    Student Information
+                                    {{ $isGroupBooking ? 'Group Booking Information' : 'Student Information' }}
                                 </span>
 
-                                <h2>Session Booking Form</h2>
+                                <h2>{{ $isGroupBooking ? 'Group Session Booking Form' : 'Session Booking Form' }}</h2>
                             </div>
 
                             <div class="booking-security">
@@ -128,12 +136,112 @@
                         @endif
 
                         <form
-                            action="{{ route('doubt-sessions.store') }}"
+                            action="{{ $isGroupBooking ? route('group-webinars.store') : route('doubt-sessions.store') }}"
                             method="POST"
                             id="doubtSessionBookingForm"
                         >
                             @csrf
 
+                            @if($isGroupBooking)
+                                <div class="booking-form-grid">
+                                    <div class="booking-field">
+                                        <label for="studentName">Organizer</label>
+                                        <input type="text" id="studentName" value="{{ auth()->user()->name }}" readonly>
+                                        <small>Organizer is included as a participant.</small>
+                                    </div>
+                                    <div class="booking-field">
+                                        <label for="studentEmail">Organizer Email</label>
+                                        <input type="email" id="studentEmail" value="{{ mb_strtolower(auth()->user()->email) }}" readonly>
+                                    </div>
+                                    <div class="booking-field booking-field-full">
+                                        <label for="organizerWhatsapp">Organizer WhatsApp Number <span>*</span></label>
+                                        <input type="tel" name="organizer_whatsapp" id="organizerWhatsapp" value="{{ old('organizer_whatsapp') }}" class="@error('organizer_whatsapp') is-invalid @enderror" placeholder="+91 98765 43210" maxlength="16" autocomplete="tel" required>
+                                        @error('organizer_whatsapp')<div class="booking-error">{{ $message }}</div>@enderror
+                                    </div>
+                                    <div class="booking-field">
+                                        <label for="academicYear">Academic Year <span>*</span></label>
+                                        <select name="academic_year_id" id="academicYear" required>
+                                            <option value="">Select Academic Year</option>
+                                            @foreach($years as $year)
+                                                <option value="{{ $year->id }}" @selected(old('academic_year_id') == $year->id)>{{ $year->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('academic_year_id')<div class="booking-error">{{ $message }}</div>@enderror
+                                    </div>
+                                    <div class="booking-field">
+                                        <label for="subject">Subject <span>*</span></label>
+                                        <select name="subject_id" id="subject" required>
+                                            <option value="">Select Subject</option>
+                                            @foreach($subjects as $subject)
+                                                <option value="{{ $subject->id }}" @selected(old('subject_id') == $subject->id)>{{ $subject->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('subject_id')<div class="booking-error">{{ $message }}</div>@enderror
+                                    </div>
+                                    <div class="booking-field booking-field-full">
+                                        <label for="topic">Topic <span>*</span></label>
+                                        <input type="text" name="topic" id="topic" value="{{ old('topic') }}" class="@error('topic') is-invalid @enderror" maxlength="255" required>
+                                        @error('topic')<div class="booking-error">{{ $message }}</div>@enderror
+                                    </div>
+                                    <div class="booking-field booking-field-full">
+                                        <label for="preferredSchedule">Preferred Schedule <span>*</span></label>
+                                        <input type="text" name="preferred_schedule" id="preferredSchedule" value="{{ old('preferred_schedule') }}" class="@error('preferred_schedule') is-invalid @enderror" placeholder="Example: weekday evenings, 6–8 PM IST" maxlength="255" required>
+                                        @error('preferred_schedule')<div class="booking-error">{{ $message }}</div>@enderror
+                                    </div>
+                                    <div class="booking-field booking-field-full">
+                                        <label for="doubt">Describe the Group's Learning Goal <span>*</span></label>
+                                        <textarea name="description" id="doubt" rows="5" class="@error('description') is-invalid @enderror" minlength="10" maxlength="5000" required>{{ old('description') }}</textarea>
+                                        <div class="booking-field-footer"><small>Share what the instructor should cover.</small><small><span id="doubtCharacterCount">{{ mb_strlen(old('description', '')) }}</span> / 5,000 characters</small></div>
+                                        @error('description')<div class="booking-error">{{ $message }}</div>@enderror
+                                    </div>
+                                </div>
+
+                                <section class="coupon-entry-card mt-4">
+                                    <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
+                                        <div>
+                                            <h3 class="mb-1">Participants</h3>
+                                            <small class="text-secondary">Add each student's email. You are included automatically and will pay once for the group.</small>
+                                        </div>
+                                        <button class="btn btn-outline-primary rounded-pill flex-shrink-0" type="button" id="addGroupParticipant"><i class="bi bi-person-plus me-1"></i>Add email</button>
+                                    </div>
+                                    <div id="groupParticipants" class="d-grid gap-2">
+                                        @foreach(old('participants', []) as $index => $participant)
+                                            <div class="input-group group-participant-row">
+                                                <input class="form-control" type="email" name="participants[{{ $index }}][email]" value="{{ $participant['email'] ?? '' }}" placeholder="student@example.com" maxlength="255" autocomplete="email" required>
+                                                <button class="btn btn-outline-danger remove-group-participant" type="button" aria-label="Remove participant"><i class="bi bi-trash"></i></button>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    @error('participants')<div class="booking-error">{{ $message }}</div>@enderror
+                                    @foreach($errors->get('participants.*.email') as $messages)
+                                        @foreach($messages as $message)<div class="booking-error">{{ $message }}</div>@endforeach
+                                    @endforeach
+                                    <div class="d-flex justify-content-between align-items-center border-top mt-3 pt-3">
+                                        <span><strong><span id="groupParticipantCount">{{ count(old('participants', [])) + 1 }}</span></strong> participants including organizer</span>
+                                        <strong class="text-primary fs-5" id="groupTotal" data-base-total="{{ $price }}">₹{{ number_format((float) $price, 2) }}</strong>
+                                    </div>
+                                    <small class="text-secondary d-block mt-1">₹100 total for 1–10 participants; ₹10 per participant above 10.</small>
+                                </section>
+
+                                <div class="mt-4">
+                                    @include('group-webinars.policy')
+                                    <div class="form-check mt-3">
+                                        <input class="form-check-input" type="checkbox" name="terms_accepted" value="1" id="termsAccepted" @checked(old('terms_accepted')) required>
+                                        <label class="form-check-label" for="termsAccepted">I have read and agree to the Webinar Terms &amp; Conditions and Privacy Policy.</label>
+                                    </div>
+                                    @error('terms_accepted')<div class="booking-error">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="booking-submit-area mt-4">
+                                    <div class="booking-submit-summary">
+                                        <span class="summary-price" id="groupSubmitTotal">₹{{ number_format((float) $price, 2) }}</span>
+                                        <span class="summary-duration">{{ $durationMinutes }} Minutes · Admin schedule confirmation</span>
+                                    </div>
+                                    <button type="submit" class="booking-submit-button" id="bookingSubmitButton">
+                                        <span id="bookingSubmitText">Continue to Group Payment</span>
+                                        <i class="bi bi-arrow-right" id="bookingSubmitIcon"></i>
+                                    </button>
+                                </div>
+                            @else
                             <div class="booking-form-grid">
                                 <div class="booking-field">
                                     <label for="studentName">
@@ -160,7 +268,7 @@
                                     <input
                                         type="email"
                                         id="studentEmail"
-                                        value="{{ auth()->user()->email }}"
+                                        value="{{ mb_strtolower(auth()->user()->email) }}"
                                         readonly
                                     >
 
@@ -384,6 +492,7 @@
                                     ></i>
                                 </button>
                             </div>
+                            @endif
                         </form>
                     </div>
 
@@ -397,7 +506,7 @@
                                 Session Summary
                             </span>
 
-                            <h3>One-on-One Doubt Session</h3>
+                            <h3>{{ $isGroupBooking ? 'Group Webinar' : 'One-on-One Doubt Session' }}</h3>
 
                             <div class="summary-list">
                                 <div class="summary-row">
@@ -446,11 +555,11 @@
                             </h4>
 
                             <ol>
-                                <li>
-                                    Submit your doubt and contact details.
-                                </li>
+                                <li>{{ $isGroupBooking ? 'Submit the group topic, preferred schedule, and participant emails.' : 'Submit your doubt and contact details.' }}</li>
 
-                                @if(! $isFree)
+                                @if($isGroupBooking)
+                                    <li>Complete one payment for the full group total.</li>
+                                @elseif(! $isFree)
                                     <li>
                                         Complete the online payment through Razorpay.
                                     </li>
@@ -1100,6 +1209,44 @@
                 const doubtCharacterCount = document.getElementById(
                     'doubtCharacterCount'
                 );
+                const groupParticipants = document.getElementById('groupParticipants');
+                const addGroupParticipant = document.getElementById('addGroupParticipant');
+                const groupParticipantCount = document.getElementById('groupParticipantCount');
+                const groupTotal = document.getElementById('groupTotal');
+                const maxGroupParticipants = {{ (int) ($maximumParticipants ?? 0) }};
+                const money = (value) => `₹${Number(value).toFixed(2)}`;
+                const renderGroupTotal = () => {
+                    if (!groupParticipants || !groupTotal) return;
+                    const count = groupParticipants.querySelectorAll('.group-participant-row').length + 1;
+                    const total = 100 + Math.max(0, count - 10) * 10;
+                    groupParticipantCount.textContent = String(count);
+                    groupTotal.textContent = money(total);
+                    document.getElementById('groupSubmitTotal').textContent = money(total);
+                    addGroupParticipant.disabled = count >= maxGroupParticipants;
+                };
+                const nextParticipantIndex = () => Array.from(
+                    groupParticipants?.querySelectorAll('input[name^="participants["]') ?? []
+                ).reduce((highest, input) => {
+                    const match = input.name.match(/^participants\\[(\\d+)\\]/);
+                    return match ? Math.max(highest, Number(match[1]) + 1) : highest;
+                }, 0);
+                addGroupParticipant?.addEventListener('click', () => {
+                    if (!groupParticipants) return;
+                    const index = nextParticipantIndex();
+                    const row = document.createElement('div');
+                    row.className = 'input-group group-participant-row';
+                    row.innerHTML = `<input class="form-control" type="email" name="participants[${index}][email]" placeholder="student@example.com" maxlength="255" autocomplete="email" required><button class="btn btn-outline-danger remove-group-participant" type="button" aria-label="Remove participant"><i class="bi bi-trash"></i></button>`;
+                    groupParticipants.append(row);
+                    row.querySelector('input').focus();
+                    renderGroupTotal();
+                });
+                groupParticipants?.addEventListener('click', (event) => {
+                    const remove = event.target.closest('.remove-group-participant');
+                    if (!remove) return;
+                    remove.closest('.group-participant-row').remove();
+                    renderGroupTotal();
+                });
+                renderGroupTotal();
                 const couponInput = document.getElementById('sessionCouponInput');
                 const couponCode = document.getElementById('sessionCouponCode');
                 const couponApply = document.getElementById('sessionCouponApply');
@@ -1108,7 +1255,6 @@
                 const couponBreakdown = document.getElementById('sessionCouponBreakdown');
                 const baseAmount = Number(document.getElementById('sessionPayableSummary')?.dataset.baseAmount || 0);
 
-                const money = (value) => `₹${Number(value).toFixed(2)}`;
                 const updatePayable = (amount) => {
                     document.getElementById('sessionPayableSummary').textContent = money(amount);
                     document.getElementById('sessionSidebarPrice').textContent = money(amount);

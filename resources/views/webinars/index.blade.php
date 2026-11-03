@@ -10,7 +10,7 @@
                 @auth
                     <a class="btn btn-primary rounded-pill" href="{{ route('group-webinars.create') }}"><i class="bi bi-people me-1"></i>Request Group Webinar</a>
                 @else
-                    <a class="btn btn-primary rounded-pill" href="{{ route('login') }}"><i class="bi bi-people me-1"></i>Sign in to request a Group Webinar</a>
+                    <a class="btn btn-primary rounded-pill" href="{{ route('login', ['redirect' => route('group-webinars.create')]) }}"><i class="bi bi-people me-1"></i>Sign in to request a Group Webinar</a>
                 @endauth
             @endif
             @auth
@@ -26,7 +26,19 @@
                 <div class="card h-100 p-3 border-0 shadow-sm rounded-4">
                     <h2 class="h5 fw-bold">{{ $webinar->title }}</h2>
                     <p class="text-secondary">{{ Str::limit($webinar->description,120) }}</p>
-                    <p class="small"><i class="bi bi-calendar me-1"></i>{{ $webinar->starts_at->timezone($webinar->timezone)->format('d M Y, h:i A') }}</p>
+                    <div class="small text-secondary mb-3">
+                        <p class="mb-1"><i class="bi bi-person me-1"></i>{{ $webinar->speaker ?: 'PhysioSource' }}</p>
+                        <p class="mb-1"><i class="bi bi-calendar me-1"></i>{{ $webinar->starts_at->timezone($webinar->timezone)->format('d M Y, h:i A') }}</p>
+                        <p class="mb-1"><i class="bi bi-clock me-1"></i>{{ $webinar->duration_minutes }} minutes</p>
+                        <p class="mb-1"><i class="bi bi-cash me-1"></i>{{ $webinar->isPaid() ? '₹'.number_format((float) $webinar->price, 2) : 'Free' }}</p>
+                        <p class="mb-0"><i class="bi bi-people me-1"></i>
+                            @if($webinar->capacity)
+                                {{ max(0, $webinar->capacity - $webinar->active_registrations_count) }} seats available
+                            @else
+                                Registration open
+                            @endif
+                        </p>
+                    </div>
                     <a class="btn btn-outline-primary mt-auto" href="{{ route('webinars.show',$webinar) }}">View webinar</a>
                 </div>
             </div>

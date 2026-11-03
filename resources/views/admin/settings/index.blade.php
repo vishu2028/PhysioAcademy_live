@@ -423,7 +423,7 @@
                         <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
                             <div>
                                 <h5 class="fw-bold mb-1">Group Webinar Settings</h5>
-                                <p class="text-secondary small mb-0">Manage group requests, individual participant pricing and secure invitation expiry.</p>
+                                <p class="text-secondary small mb-0">Manage group requests, policy-based pricing, participant limits and secure invitation expiry.</p>
                             </div>
                             <span class="badge rounded-pill px-3 py-2 align-self-start {{ get_setting('webinar_group_enabled', '0') == '1' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' }}">
                                 {{ get_setting('webinar_group_enabled', '0') == '1' ? 'Bookings Enabled' : 'Bookings Disabled' }}
@@ -434,7 +434,6 @@
                             @foreach([
                                 'webinar_group_enabled' => ['Enable Group Webinar bookings', 'Students can submit a new group request.'],
                                 'webinar_group_allow_requests' => ['Allow new requests', 'Turn this off to pause new requests while retaining existing bookings.'],
-                                'webinar_group_is_free' => ['Offer group webinars for free', 'Free participant invitations do not create Razorpay orders.'],
                             ] as $key => [$label, $help])
                                 <div class="col-12">
                                     <div class="p-3 rounded-4 border bg-light">
@@ -451,28 +450,17 @@
                             @endforeach
 
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold text-muted" for="webinarGroupPrice">Price per participant (₹)</label>
-                                <input class="form-control rounded-3 @error('settings.webinar_group_price_per_person') is-invalid @enderror"
-                                       type="number" step="0.01" min="1" max="100000"
-                                       id="webinarGroupPrice" name="settings[webinar_group_price_per_person]"
-                                       value="{{ old('settings.webinar_group_price_per_person', get_setting('webinar_group_price_per_person', '500')) }}">
-                                @error('settings.webinar_group_price_per_person')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                <div class="form-text">Each participant receives an individual payment link and pays this amount.</div>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label small fw-bold text-muted" for="webinarGroupMinimum">Minimum participants</label>
-                                <input class="form-control rounded-3 @error('settings.webinar_group_min_participants') is-invalid @enderror"
-                                       type="number" min="1" max="100" id="webinarGroupMinimum"
-                                       name="settings[webinar_group_min_participants]"
-                                       value="{{ old('settings.webinar_group_min_participants', get_setting('webinar_group_min_participants', '2')) }}">
-                                @error('settings.webinar_group_min_participants')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                <div class="p-3 rounded-4 border bg-light h-100">
+                                    <div class="fw-bold">Group pricing</div>
+                                    <div class="small text-muted">₹100 for 1–10 students, plus ₹10 for each student above 10. Booking can be individual.</div>
+                                </div>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label small fw-bold text-muted" for="webinarGroupMaximum">Maximum participants</label>
                                 <input class="form-control rounded-3 @error('settings.webinar_group_max_participants') is-invalid @enderror"
                                        type="number" min="1" max="100" id="webinarGroupMaximum"
                                        name="settings[webinar_group_max_participants]"
-                                       value="{{ old('settings.webinar_group_max_participants', get_setting('webinar_group_max_participants', '10')) }}">
+                                       value="{{ old('settings.webinar_group_max_participants', get_setting('webinar_group_max_participants', '50')) }}">
                                 @error('settings.webinar_group_max_participants')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 <div class="form-text">Includes the organizer. This maximum is enforced by the server.</div>
                             </div>

@@ -35,6 +35,8 @@ class GroupWebinarParticipant extends Model
         'invitation_token_hash',
         'invitation_expires_at',
         'invitation_sent_at',
+        'policy_version',
+        'terms_accepted_at',
     ];
 
     protected $hidden = ['invitation_token_hash'];
@@ -46,6 +48,7 @@ class GroupWebinarParticipant extends Model
             'amount_due' => 'decimal:2',
             'invitation_expires_at' => 'datetime',
             'invitation_sent_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
         ];
     }
 
@@ -72,5 +75,10 @@ class GroupWebinarParticipant extends Model
     public function emailDeliveries(): HasMany
     {
         return $this->hasMany(GroupWebinarEmailDelivery::class, 'participant_id');
+    }
+
+    public function adjustments(): HasMany
+    {
+        return $this->hasMany(GroupWebinarAdjustmentRequest::class, 'participant_id');
     }
 }

@@ -1,5 +1,7 @@
 <?php
 namespace App\Http\Controllers;
+use App\Models\GroupWebinarParticipant;
+use App\Models\GroupWebinarRequest;
 use App\Models\Webinar;
 use App\Models\WebinarRegistration;
 use App\Services\RazorpayService;
@@ -16,15 +18,42 @@ class WebinarController extends Controller
         private readonly CouponService $coupons
     ) {}
 
-    public function index() { $webinars = Webinar::registrationOpen()->orderBy('starts_at')->paginate(12); return view('webinars.index', compact('webinars')); }
+    public function index() {
+        $webinars = Webinar::registrationOpen()
+            ->withCount(['registrations as active_registrations_count' => fn ($query) => $query
+                ->whereIn('registration_status', [
+                    WebinarRegistration::STATUS_PENDING,
+                    WebinarRegistration::STATUS_CONFIRMED,
+                ])])
+            ->orderBy('starts_at')
+            ->paginate(12);
+
+        return view('webinars.index', compact('webinars'));
+    }
     public function show(Webinar $webinar) {
         abort_unless($webinar->status === 'published', 404);
+        $webinar->loadCount(['registrations as active_registrations_count' => fn ($query) => $query
+            ->whereIn('registration_status', [
+                WebinarRegistration::STATUS_PENDING,
+                WebinarRegistration::STATUS_CONFIRMED,
+            ])]);
         $registration = auth()->user()?->webinarRegistrations()->where('webinar_id',$webinar->id)->first();
-        return view('webinars.show', compact('webinar','registration'));
+        $registrationOpen = $webinar->registrationIsOpen();
+
+        return view('webinars.show', compact('webinar', 'registration', 'registrationOpen'));
     }
     public function myWebinars(Request $request) {
         $registrations = $request->user()->webinarRegistrations()->with('webinar')->latest()->paginate(12);
-        return view('webinars.my', compact('registrations'));
+        $groupBookings = GroupWebinarParticipant::query()
+            ->where(function ($query) use ($request): void {
+                $query->where('user_id', $request->user()->id)
+                    ->orWhereHas('request', fn ($requestQuery) => $requestQuery->where('organizer_id', $request->user()->id));
+            })
+            ->with(['request.participants', 'request.adjustments'])
+            ->latest()
+            ->paginate(12, ['*'], 'group_page');
+
+        return view('webinars.my', compact('registrations', 'groupBookings'));
     }
     public function register(Request $request, Webinar $webinar) {
         $data = $request->validate([
@@ -116,5 +145,21 @@ class WebinarController extends Controller
         abort_unless(filled($registration->webinar->meeting_link), 404);
         $registration->update(['joined_at'=>now()]);
         return redirect()->away($registration->webinar->meeting_link);
+    }
+
+    public function joinGroupWebinar(Request $request, GroupWebinarRequest $groupWebinar)
+    {
+        $participant = $groupWebinar->participants()
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail();
+
+        abort_unless($groupWebinar->status === GroupWebinarRequest::STATUS_CONFIRMED, 403);
+        abort_unless(in_array($participant->payment_status, [
+            GroupWebinarParticipant::PAYMENT_PAID,
+            GroupWebinarParticipant::PAYMENT_NOT_REQUIRED,
+        ], true), 403);
+        abort_unless(filled($groupWebinar->meeting_link), 404);
+
+        return redirect()->away($groupWebinar->meeting_link);
     }
 }

@@ -28,6 +28,11 @@ class NotificationController extends Controller
         $topicId = $databaseNotification->data['topic_id'] ?? null;
         $topicLink = $databaseNotification->data['topic_link'] ?? null;
         $bookingId = $databaseNotification->data['booking_id'] ?? null;
+        $groupWebinarRequestId = $databaseNotification->data['group_webinar_request_id'] ?? null;
+
+        if (($databaseNotification->data['type'] ?? null) === 'group_webinar' && $groupWebinarRequestId) {
+            return redirect(url(route('webinars.my')).'#group-booking-'.$groupWebinarRequestId);
+        }
 
         if (
             ($databaseNotification->data['type'] ?? null) === 'doubt_session_follow_up_answered'

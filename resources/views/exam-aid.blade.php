@@ -64,6 +64,7 @@
                                     @endif
                                 </button>
                             @endforeach
+
                         </div> --}}
                     </div>
 
@@ -110,6 +111,10 @@
                         @endif
                     </div>
                 </section>
+            @endif
+
+            @if($section->type === 'exam_hero')
+                @include('partials.exam-aid-prep-cards')
             @endif
 
             {{-- @if($section->type === 'exam_filters')
@@ -404,6 +409,7 @@
                 </section>
             @endif
         @endforeach
+
     </main>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -1705,6 +1711,25 @@
 
                 .exam-shell-wrapper .exam-empty-state {
                     padding: 28px 16px;
+                }
+            }
+
+            /* Keep the hero close to the navigation while preserving mobile spacing. */
+            .exam-shell-wrapper {
+                padding-top: 20px;
+            }
+
+            .exam-shell-wrapper .exam-hero {
+                padding-top: 36px;
+            }
+
+            @media (max-width: 768px) {
+                .exam-shell-wrapper {
+                    padding-top: 40px;
+                }
+
+                .exam-shell-wrapper .exam-hero {
+                    padding-top: 28px;
                 }
             }
         </style>

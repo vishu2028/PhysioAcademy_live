@@ -161,7 +161,6 @@ class FrontendController extends Controller
             ),
             15
         );
-        $webinars = Webinar::registrationOpen()->orderBy('starts_at')->limit(3)->get();
         $couponServiceAmounts = [];
         if ($doubtSessionEnabled && ! $doubtSessionIsFree && $doubtSessionPrice > 0) {
             $couponServiceAmounts['doubt_session'] = [$doubtSessionPrice];
@@ -169,12 +168,17 @@ class FrontendController extends Controller
         if (
             (string) get_setting('webinar_group_enabled', '0') === '1'
             && (string) get_setting('webinar_group_allow_requests', '1') === '1'
-            && (string) get_setting('webinar_group_is_free', '0') !== '1'
         ) {
-            $groupWebinarPrice = max((float) get_setting('webinar_group_price_per_person', 0), 0);
-            if ($groupWebinarPrice > 0) {
-                $couponServiceAmounts['webinar'][] = $groupWebinarPrice;
-            }
+            $maximumParticipants = max(1, (int) get_setting('webinar_group_max_participants', 50));
+            $groupWebinarAmounts = collect(range(1, $maximumParticipants))
+                ->map(fn (int $count) => \App\Services\GroupWebinarPricing::totalFor($count))
+                ->unique()
+                ->values()
+                ->all();
+            $couponServiceAmounts['webinar'] = array_merge(
+                $couponServiceAmounts['webinar'] ?? [],
+                $groupWebinarAmounts
+            );
         }
         $paidWebinarPrices = Webinar::registrationOpen()
             ->where('is_free', false)
@@ -189,9 +193,7 @@ class FrontendController extends Controller
             );
         }
         $promotionalCoupons = $couponService->publicCoupons($couponServiceAmounts);
-        $hasOpenWebinars = $webinars->isNotEmpty();
         $hasPromotionalCoupons = $promotionalCoupons->isNotEmpty();
-        $featuredWebinar = $webinars->first();
 
         return view('welcome', compact(
             'hero',
@@ -225,11 +227,8 @@ class FrontendController extends Controller
             'doubtSessionIsFree',
             'doubtSessionPrice',
             'doubtSessionDuration',
-            'webinars',
             'promotionalCoupons',
-            'hasOpenWebinars',
-            'hasPromotionalCoupons',
-            'featuredWebinar'
+            'hasPromotionalCoupons'
 
         ));
     }
@@ -558,6 +557,12 @@ class FrontendController extends Controller
 
         $years = AcademicYear::orderBy('name')->get();
         $examAidBanner = ExamAidBanner::latest()->first();
+        $examPrepSettings = \App\Http\Controllers\Admin\ExamPrepController::settings();
+        $examPrepCards = $examPrepSettings['exam_prep_enabled']
+            ? \App\Models\ExamPrepCard::with('category')->active()->ordered()->get()
+            : collect();
+        $examTopicsCount = \App\Models\Topic::active()->count();
+        $examSubjectsCount = \App\Models\Subject::count();
         $examAids = $this->applyExamAidFilters(
             $this->examAidSearchQuery((string) $request->query('q', '')),
             $request
@@ -573,7 +578,11 @@ class FrontendController extends Controller
             'faqs',
             'years',
             'examAids',
-            'examAidBanner'
+            'examAidBanner',
+            'examPrepSettings',
+            'examPrepCards',
+            'examTopicsCount',
+            'examSubjectsCount'
         ));
     }
     public function examAidCategory(string $slug)

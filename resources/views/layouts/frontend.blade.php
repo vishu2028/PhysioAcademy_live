@@ -114,6 +114,30 @@
         <div class="nav-links" id="navLinks">
             @php
                 $mainMenu = \App\Models\Menu::getByLocation('header_menu');
+                $isWebinarMenuPath = static function ($url): bool {
+                    $path = trim(parse_url(url($url), PHP_URL_PATH), '/');
+
+                    return $path === 'webinars'
+                        || str_starts_with($path, 'webinars/')
+                        || $path === 'group-webinars'
+                        || str_starts_with($path, 'group-webinars/');
+                };
+                $mainMenuItems = $mainMenu?->items->reject(function ($item) use ($isWebinarMenuPath) {
+                    if ($isWebinarMenuPath($item->url)) {
+                        return true;
+                    }
+
+                    if ($item->children->isNotEmpty()) {
+                        $visibleChildren = $item->children->reject(
+                            fn ($child) => $isWebinarMenuPath($child->url)
+                        );
+                        $item->setRelation('children', $visibleChildren);
+
+                        return $visibleChildren->isEmpty();
+                    }
+
+                    return false;
+                }) ?? collect();
 
                 /*
                  * Guest user restriction
@@ -149,7 +173,7 @@
             @endphp
 
             @if($mainMenu)
-                @foreach($mainMenu->items as $item)
+                @foreach($mainMenuItems as $item)
                     @if($item->children->count() > 0)
                         @php
                             $itemActive = false;
@@ -297,6 +321,12 @@
                     @endrole
 
                     @if(! auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                        <a
+                            href="{{ route('webinars.my') }}"
+                            class="nav-mobile-action nav-mobile-action-secondary"
+                        >
+                            My Webinars
+                        </a>
                         <a
                             href="{{ route('doubt-sessions.history') }}"
                             class="nav-mobile-action nav-mobile-action-secondary"
@@ -575,6 +605,16 @@
                             <div class="nav-user-divider"></div>
 
                             @if($isStudent)
+                                <a
+                                    href="{{ route('webinars.my') }}"
+                                    class="nav-user-menu-link {{ request()->routeIs('webinars.my') ? 'active' : '' }}"
+                                >
+                                    <i class="bi bi-camera-video" aria-hidden="true"></i>
+                                    <span>My Webinars</span>
+                                </a>
+
+                                <div class="nav-user-divider"></div>
+
                                 <a
                                     href="{{ route(
                                 'doubt-sessions.history'
@@ -967,6 +1007,7 @@
         </script>
     @endif
 @endauth
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 @stack('scripts')
 
 @if (filled(config('services.firebase.web.apiKey')))

@@ -43,8 +43,14 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" for="organizerEmail">Email</label>
-                            <input class="form-control" id="organizerEmail" type="email" value="{{ auth()->user()->email }}" readonly>
+                            <input class="form-control" id="organizerEmail" type="email" value="{{ mb_strtolower(auth()->user()->email) }}" readonly>
                             <div class="form-text">You are included as participant 1.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="organizerWhatsapp">WhatsApp number <span class="text-danger">*</span></label>
+                            <input class="form-control" id="organizerWhatsapp" name="organizer_whatsapp" type="tel" value="{{ old('organizer_whatsapp') }}" maxlength="16" placeholder="+919876543210" autocomplete="tel" required>
+                            <div class="form-text">Include your country code so the admin can coordinate the webinar schedule with you.</div>
+                            @error('organizer_whatsapp')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                         </div>
                     </div>
                 </div>
@@ -71,7 +77,7 @@
                         <button class="btn btn-outline-primary rounded-pill" type="button" id="addParticipant"><i class="bi bi-person-plus me-1"></i>Add participant</button>
                     </div>
                     <div id="participantsList" class="d-grid gap-3">
-                        @foreach(old('participants', [['name' => '', 'email' => '']]) as $index => $entry)
+                        @foreach(old('participants', []) as $index => $entry)
                             <div class="participant-row row g-2 align-items-end rounded-4 border p-3 mx-0">
                                 <div class="col-md-5">
                                     <label class="form-label small fw-semibold">Name (optional)</label>
@@ -94,27 +100,36 @@
                         <div class="row g-3 align-items-center">
                             <div class="col-md-4">
                                 <div class="small text-secondary">Price per participant</div>
-                                <div class="h4 fw-bold mb-0 group-webinar-accent">{{ $isFree ? 'Free' : '₹'.number_format($price, 2) }}</div>
+                                <div class="h4 fw-bold mb-0 group-webinar-accent">₹100 for up to 10 students</div>
                             </div>
                             <div class="col-md-4">
                                 <div class="small text-secondary">Participants (organizer included)</div>
-                                <div class="h4 fw-bold mb-0"><span id="participantCount">2</span> <span class="small fw-normal text-secondary">/ {{ $maximumParticipants }}</span></div>
+                                <div class="h4 fw-bold mb-0"><span id="participantCount">1</span> <span class="small fw-normal text-secondary">/ {{ $maximumParticipants }}</span></div>
                             </div>
                             <div class="col-md-4">
                                 <div class="small text-secondary">Expected total collection</div>
-                                <div class="h4 fw-bold mb-0 group-webinar-accent" id="expectedTotal">{{ $isFree ? 'Free' : '₹'.number_format($price * 2, 2) }}</div>
+                                <div class="h4 fw-bold mb-0 group-webinar-accent" id="expectedTotal">₹100.00</div>
                             </div>
                         </div>
                         <hr>
                         <div class="fw-semibold mb-2">Participant review</div>
                         <ol id="participantReview" class="small text-secondary mb-2">
-                            <li>{{ auth()->user()->name }} — {{ auth()->user()->email }} (Organizer)</li>
+                            <li>{{ auth()->user()->name }} — {{ mb_strtolower(auth()->user()->email) }} (Organizer)</li>
                         </ol>
                         <div class="small text-secondary">
-                            Each person gets their own invitation and payment link. The organizer is not charged for other participants.
-                            Minimum group size: {{ $minimumParticipants }}. Each individual invitation expires after the configured period.
+                            The organizer and invited participants pay their allocated share by individual invitation. The total is ₹100 for 1–10 students, plus ₹10 for each student above 10. The organizer covers any rounding remainder.
+                            Maximum group size: {{ $maximumParticipants }} including the organizer. Each invitation expires after the configured period.
                         </div>
                     </div>
+                </div>
+
+                <div class="col-12">
+                    @include('group-webinars.policy')
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" name="terms_accepted" value="1" id="termsAccepted" @checked(old('terms_accepted')) required>
+                        <label class="form-check-label" for="termsAccepted">I have read and agree to the Webinar Terms &amp; Conditions and Privacy Policy.</label>
+                    </div>
+                    @error('terms_accepted')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-12 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
@@ -134,10 +149,8 @@
     const review = document.getElementById('participantReview');
     const maxParticipants = {{ (int) $maximumParticipants }};
     const minParticipants = {{ (int) $minimumParticipants }};
-    const price = {{ (float) $price }};
-    const isFree = @json($isFree);
     const organizerName = @json(auth()->user()->name);
-    const organizerEmail = @json(auth()->user()->email);
+    const organizerEmail = @json(mb_strtolower(auth()->user()->email));
     const formatMoney = amount => '₹' + amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     function renumber() {
@@ -152,7 +165,8 @@
         const rows = [...list.querySelectorAll('.participant-row')];
         const totalParticipants = rows.length + 1;
         count.textContent = totalParticipants;
-        total.textContent = isFree ? 'Free' : formatMoney(price * totalParticipants);
+        const totalAmount = 100 + Math.max(0, totalParticipants - 10) * 10;
+        total.textContent = formatMoney(totalAmount);
         review.replaceChildren();
         const organizerItem = document.createElement('li');
         organizerItem.textContent = `${organizerName} — ${organizerEmail} (Organizer)`;

@@ -226,6 +226,50 @@ class RazorpayService
         }
     }
 
+    public function refundGroupWebinarParticipantPayment(
+        GroupWebinarParticipantPayment $payment,
+        float $amount,
+        string $receipt
+    ): array {
+        if (
+            $payment->status !== GroupWebinarParticipantPayment::STATUS_PAID
+            || blank($payment->razorpay_payment_id)
+            || $amount <= 0
+            || $amount > (float) $payment->amount
+        ) {
+            throw new RuntimeException('The group webinar payment is not eligible for this refund amount.');
+        }
+
+        $refund = $this->api()->payment->fetch($payment->razorpay_payment_id)->refund([
+            'amount' => $this->amountToSubunits($amount),
+            'receipt' => substr($receipt, 0, 40),
+        ]);
+        $refundId = (string) ($refund['id'] ?? '');
+        if (blank($refundId)) {
+            throw new UnexpectedValueException('Razorpay did not return a refund reference.');
+        }
+
+        $status = strtolower((string) ($refund['status'] ?? 'pending'));
+        if ($status === 'failed') {
+            throw new RuntimeException('Razorpay reported that the refund failed.');
+        }
+
+        return [
+            'id' => $refundId,
+            'status' => $status,
+        ];
+    }
+
+    public function fetchGroupWebinarRefund(string $refundId): array
+    {
+        $refund = $this->api()->refund->fetch($refundId);
+
+        return [
+            'id' => (string) $refund['id'],
+            'status' => strtolower((string) $refund['status']),
+        ];
+    }
+
     /**
      * Fetch payment details directly from Razorpay.
      */

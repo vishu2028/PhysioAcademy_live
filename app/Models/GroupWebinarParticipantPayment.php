@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class GroupWebinarParticipantPayment extends Model
 {
@@ -51,5 +52,10 @@ class GroupWebinarParticipantPayment extends Model
     public function coupon(): BelongsTo
     {
         return $this->belongsTo(Coupon::class);
+    }
+
+    public function adjustments(): HasMany
+    {
+        return $this->hasMany(GroupWebinarAdjustmentRequest::class, 'payment_id');
     }
 }

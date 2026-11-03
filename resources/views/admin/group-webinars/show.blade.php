@@ -46,7 +46,13 @@
                         <div class="detail-info-grid">
                             <div><span>Name</span><strong>{{ $groupWebinar->organizer_name }}</strong></div>
                             <div><span>Email</span><a href="mailto:{{ $groupWebinar->organizer_email }}">{{ $groupWebinar->organizer_email }}</a></div>
-                            <div><span>Phone</span><strong class="text-secondary">Not provided</strong></div>
+                            <div><span>WhatsApp</span>
+                                @if($groupWebinar->organizer_whatsapp)
+                                    <a href="https://wa.me/{{ ltrim($groupWebinar->organizer_whatsapp, '+') }}?text={{ rawurlencode('Hello '.$groupWebinar->organizer_name.', let us coordinate the schedule for Group Webinar '.$groupWebinar->reference.'.') }}" target="_blank" rel="noopener noreferrer">{{ $groupWebinar->organizer_whatsapp }} <i class="bi bi-box-arrow-up-right ms-1"></i></a>
+                                @else
+                                    <strong class="text-secondary">Not provided</strong>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -59,7 +65,8 @@
                             <div><span>Request date</span><strong>{{ $groupWebinar->created_at->format('d M Y, h:i A') }}</strong></div>
                             <div><span>Topic</span><strong>{{ $groupWebinar->topic }}</strong></div>
                             <div><span>Webinar status</span><strong><span class="booking-status-badge {{ $statusClasses[$groupWebinar->status] ?? 'status-pending' }}">{{ ucfirst($groupWebinar->status) }}</span></strong></div>
-                            <div><span>Price per person</span><strong>{{ $groupWebinar->is_free ? 'Free' : '₹'.number_format((float) $groupWebinar->price_per_person, 2) }}</strong></div>
+                            <div><span>Group total</span><strong>₹{{ number_format((float) $groupWebinar->total_amount, 2) }}</strong></div>
+                            <div><span>Organizer policy acceptance</span><strong>{{ $groupWebinar->policy_version ? 'Version '.$groupWebinar->policy_version.' · '.$groupWebinar->terms_accepted_at?->format('d M Y, h:i A') : 'Not required for this existing booking' }}</strong></div>
                             <div><span>Duration</span><strong>{{ $groupWebinar->duration_minutes }} minutes</strong></div>
                             <div class="detail-full"><span>Description</span><p>{{ $groupWebinar->description }}</p></div>
                             <div><span>Scheduled date and time</span><strong>{{ $groupWebinar->scheduled_at?->format('d M Y, h:i A') ?? 'Not scheduled' }}</strong></div>
@@ -113,6 +120,12 @@
                                         <div class="participant-name">{{ $participant->name ?: ($participant->role === 'organizer' ? $groupWebinar->organizer_name : 'Name not provided') }}</div>
                                         <a href="mailto:{{ $participant->email }}">{{ $participant->email }}</a>
                                         @if($participant->role === 'organizer')<span class="organizer-tag">Organizer</span>@endif
+                                        @if($participant->policy_version)
+                                            <div class="table-subtext">
+                                                Policy {{ $participant->policy_version }}:
+                                                {{ $participant->terms_accepted_at?->format('d M Y, h:i A') ?? 'Not yet accepted' }}
+                                            </div>
+                                        @endif
                                     </td>
                                     <td>
                                         @if($participant->payment_status !== 'paid' && $participant->status !== 'cancelled')
@@ -221,6 +234,53 @@
                         @if($groupWebinar->confirmedBy)<div class="small text-secondary mt-3">Last confirmed by {{ $groupWebinar->confirmedBy->name }}.</div>@endif
                     </div>
                 </section>
+
+                @if($groupWebinar->adjustments->isNotEmpty())
+                    <section class="card border-0 shadow-sm rounded-4 detail-card mt-4">
+                        <div class="card-body p-4">
+                            <h2 class="mb-3">Dropout Refunds &amp; Session Credits</h2>
+                            @foreach($groupWebinar->adjustments as $adjustment)
+                                <div class="border rounded-3 p-3 mb-3">
+                                    <div class="d-flex justify-content-between gap-2">
+                                        <strong>{{ $adjustment->type === \App\Models\GroupWebinarAdjustmentRequest::TYPE_DROPOUT_REFUND ? 'Dropout refund' : 'Future session credit' }}</strong>
+                                        <span class="badge bg-secondary">{{ ucwords(str_replace('_', ' ', $adjustment->status)) }}</span>
+                                    </div>
+                                    <div class="small text-secondary mt-2">
+                                        @if($adjustment->participant)
+                                            Participant: {{ $adjustment->participant->name ?: $adjustment->participant->email }}<br>
+                                        @endif
+                                        Requested by: {{ $adjustment->requester?->email ?? 'Account unavailable' }}<br>
+                                        Amount: ₹{{ number_format((float) $adjustment->amount, 2) }}
+                                        @if($adjustment->provider_reference)<br>Provider/credit reference: {{ $adjustment->provider_reference }}@endif
+                                    </div>
+                                    @if($adjustment->admin_response)
+                                        <p class="small mt-2 mb-0">{{ $adjustment->admin_response }}</p>
+                                    @endif
+                                    @if($adjustment->status === \App\Models\GroupWebinarAdjustmentRequest::STATUS_PENDING)
+                                        <form method="POST" action="{{ route('admin.group-webinars.adjustments.update', $adjustment) }}" class="mt-3">
+                                            @csrf
+                                            @method('PATCH')
+                                            <label class="form-label small fw-semibold" for="adjustmentResponse{{ $adjustment->id }}">Admin response</label>
+                                            <textarea class="form-control form-control-sm mb-2" id="adjustmentResponse{{ $adjustment->id }}" name="admin_response" rows="2" maxlength="2000"></textarea>
+                                            <div class="d-flex gap-2">
+                                                <button class="btn btn-sm btn-success" name="decision" value="approve" type="submit">
+                                                    {{ $adjustment->type === \App\Models\GroupWebinarAdjustmentRequest::TYPE_DROPOUT_REFUND ? 'Process ₹10 refund' : 'Grant session credit' }}
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" name="decision" value="reject" type="submit">Reject</button>
+                                            </div>
+                                        </form>
+                                    @elseif($adjustment->status === \App\Models\GroupWebinarAdjustmentRequest::STATUS_PROCESSING && $adjustment->type === \App\Models\GroupWebinarAdjustmentRequest::TYPE_DROPOUT_REFUND)
+                                        <form method="POST" action="{{ route('admin.group-webinars.adjustments.update', $adjustment) }}" class="mt-3">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button class="btn btn-sm btn-outline-primary" name="decision" value="refresh" type="submit">Refresh Razorpay refund status</button>
+                                        </form>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
             </div>
         </div>
     </div>

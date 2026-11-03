@@ -245,6 +245,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/group-webinars/request', [GroupWebinarBookingController::class, 'store'])
         ->middleware('throttle:5,1')
         ->name('group-webinars.store');
+    Route::post('/group-webinars/{groupWebinar}/adjustments', [GroupWebinarBookingController::class, 'requestAdjustment'])
+        ->whereNumber('groupWebinar')->middleware('throttle:5,1')
+        ->name('group-webinars.adjustments.store');
 
     Route::post(
         '/doubt-sessions',
@@ -272,6 +275,8 @@ Route::middleware('auth')->group(function () {
     )->name('doubt-sessions.success');
 
     Route::get('/my-webinars', [WebinarController::class, 'myWebinars'])->name('webinars.my');
+    Route::get('/group-webinars/{groupWebinar}/join', [WebinarController::class, 'joinGroupWebinar'])
+        ->whereNumber('groupWebinar')->name('group-webinars.join');
     Route::post('/webinars/{webinar:slug}/register', [WebinarController::class, 'register'])->name('webinars.register');
     Route::post('/webinar-registrations/{registration}/payment/verify', [WebinarController::class, 'verify'])->name('webinars.payment.verify');
     Route::get('/webinar-registrations/{registration}/join', [WebinarController::class, 'join'])->name('webinars.join');
@@ -573,6 +578,8 @@ Route::middleware([
             ->name('group-webinars.update');
         Route::post('group-webinar-participants/{participant}/resend', [\App\Http\Controllers\Admin\GroupWebinarRequestController::class, 'resendInvitation'])
             ->name('group-webinars.participants.resend');
+        Route::patch('group-webinar-adjustments/{adjustment}', [\App\Http\Controllers\Admin\GroupWebinarRequestController::class, 'updateAdjustment'])
+            ->whereNumber('adjustment')->name('group-webinars.adjustments.update');
 
         Route::resource('coupons', \App\Http\Controllers\Admin\CouponController::class)
             ->except(['show']);

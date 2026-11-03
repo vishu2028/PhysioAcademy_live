@@ -18,6 +18,7 @@ class GroupWebinarRequest extends Model
         'reference',
         'organizer_name',
         'organizer_email',
+        'organizer_whatsapp',
         'topic',
         'description',
         'participant_count',
@@ -25,6 +26,7 @@ class GroupWebinarRequest extends Model
         'maximum_participants',
         'duration_minutes',
         'price_per_person',
+        'total_amount',
         'currency',
         'is_free',
         'status',
@@ -32,6 +34,8 @@ class GroupWebinarRequest extends Model
         'meeting_link',
         'admin_response',
         'confirmed_by',
+        'policy_version',
+        'terms_accepted_at',
     ];
 
     protected function casts(): array
@@ -42,8 +46,10 @@ class GroupWebinarRequest extends Model
             'maximum_participants' => 'integer',
             'duration_minutes' => 'integer',
             'price_per_person' => 'decimal:2',
+            'total_amount' => 'decimal:2',
             'is_free' => 'boolean',
             'scheduled_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
         ];
     }
 
@@ -60,5 +66,10 @@ class GroupWebinarRequest extends Model
     public function participants(): HasMany
     {
         return $this->hasMany(GroupWebinarParticipant::class);
+    }
+
+    public function adjustments(): HasMany
+    {
+        return $this->hasMany(GroupWebinarAdjustmentRequest::class, 'group_webinar_request_id');
     }
 }

@@ -1,16 +1,33 @@
 @extends('layouts.frontend')
 @section('title',brand_text($webinar->title))
 @section('content')
-<div class="container py-5"><div class="card p-4"><h1>{{ brand_text($webinar->title) }}</h1><p class="lead">{{ brand_text($webinar->description) }}</p><p>By {{ brand_text($webinar->speaker ?: 'PhysioSource') }} · {{ $webinar->starts_at->timezone($webinar->timezone)->format('d M Y, h:i A') }}</p><p class="fw-bold">{{ $webinar->isPaid() ? '₹'.number_format($webinar->price,2) : 'Free' }}</p>
+<div class="container py-5"><div class="card p-4 rounded-4 border-0 shadow-sm">
+<a href="{{ route('webinars.index') }}" class="small text-secondary text-decoration-none mb-3">← All Webinars</a>
+<h1 class="fw-bold">{{ brand_text($webinar->title) }}</h1>
+@if($webinar->subject)<p class="text-primary fw-semibold">{{ brand_text($webinar->subject) }}</p>@endif
+<p class="lead">{{ brand_text($webinar->description) }}</p>
+<div class="row g-3 my-2">
+    <div class="col-sm-6"><strong>Instructor</strong><br>{{ brand_text($webinar->speaker ?: 'PhysioSource') }}</div>
+    <div class="col-sm-6"><strong>Schedule</strong><br>{{ $webinar->starts_at->timezone($webinar->timezone)->format('d M Y, h:i A') }} ({{ $webinar->timezone }})</div>
+    <div class="col-sm-6"><strong>Duration</strong><br>{{ $webinar->duration_minutes }} minutes</div>
+    <div class="col-sm-6"><strong>Price</strong><br>{{ $webinar->isPaid() ? '₹'.number_format($webinar->price,2) : 'Free' }}</div>
+    <div class="col-sm-6"><strong>Registration</strong><br>{{ $registrationOpen ? 'Open' : 'Closed' }}</div>
+    <div class="col-sm-6"><strong>Available seats</strong><br>{{ $webinar->capacity ? max(0, $webinar->capacity - $webinar->active_registrations_count) : 'Open capacity' }}</div>
+    @if($webinar->learning_objectives)
+        <div class="col-12"><strong>Learning objectives</strong><br>{{ $webinar->learning_objectives }}</div>
+    @endif
+</div>
 @if(session('webinar_error'))<div class="alert alert-danger">{{ session('webinar_error') }}</div>@endif
 @if($errors->has('coupon_code'))<div class="alert alert-danger">{{ $errors->first('coupon_code') }}</div>@endif
-@if($registration)<div class="alert alert-success">You are {{ $registration->registration_status }}.</div>@elseif(auth()->check())
+@if($registration)<div class="alert alert-success">You are {{ $registration->registration_status }}.</div>@elseif(! $registrationOpen)
+<div class="alert alert-light border">Registration is closed for this webinar.</div>
+@elseif(auth()->check())
 <form method="post" action="{{ route('webinars.register',$webinar) }}" id="webinarRegisterForm">@csrf
 @if($webinar->isPaid())
 <section class="coupon-entry-card mb-3"><h3>Apply Coupon</h3><div class="input-group"><input id="webinarCouponInput" class="form-control text-uppercase" maxlength="64" placeholder="Enter coupon code"><button id="webinarCouponApply" class="btn btn-outline-primary" type="button">Apply</button></div><input type="hidden" name="coupon_code" id="webinarCouponCode" value="{{ old('coupon_code') }}"><p id="webinarCouponMessage" class="small mt-2 mb-0" role="status" aria-live="polite"></p><div id="webinarCouponBreakdown" class="mt-2" hidden><div>Original price: <strong id="webinarCouponOriginal"></strong></div><div>Applied coupon: <strong id="webinarCouponApplied"></strong></div><div>Discount type: <strong id="webinarCouponType"></strong></div><div>Discount amount: <strong id="webinarCouponDiscount"></strong></div><div>Final payable: <strong id="webinarCouponFinal"></strong></div><button id="webinarCouponRemove" class="btn btn-link btn-sm px-0" type="button">Remove coupon</button></div></section>
 @endif
 <button class="btn btn-primary" type="submit">{{ $webinar->isPaid() ? 'Continue to payment' : 'Register now' }}</button></form>
-@else<a class="btn btn-primary" href="{{ route('login') }}">Login to register</a>@endif</div></div>
+@else<a class="btn btn-primary" href="{{ route('login', ['redirect' => route('webinars.show', $webinar)]) }}">Login to register</a>@endif</div></div>
 @if($webinar->isPaid())
 <style>.coupon-entry-card{padding:18px;border:1px solid rgba(0,74,173,.16);border-radius:16px;background:#f7faff}.coupon-entry-card h3{font-size:1rem;font-weight:800;color:#0f172a}.coupon-entry-card strong{color:#004AAD}</style>
 <script>

@@ -732,24 +732,36 @@
                                 The admin will confirm your session date and time afterward.
                             </small>
                         </div>
-                        @if($hasOpenWebinars)
+
+                        @if(get_setting('webinar_group_enabled', '0') === '1' && get_setting('webinar_group_allow_requests', '1') === '1')
                             <div class="doubt-session-promo mt-4">
                                 <div class="dsp-header">
-                                    <div class="dsp-icon"><i class="bi bi-broadcast-pin"></i></div>
+                                    <div class="dsp-icon">
+                                        <i class="bi bi-people-fill"></i>
+                                    </div>
                                     <div>
-                                        <span class="dsp-eyebrow">Live Learning</span>
-                                        <h3>Attend a Webinar</h3>
+                                        <span class="dsp-eyebrow">Collaborative Learning</span>
+                                        <h3>Group Webinar</h3>
                                     </div>
                                 </div>
-                                <p class="dsp-description">{{ $featuredWebinar->title }}</p>
+
+                                <p class="dsp-description">
+                                    Book one focused webinar for your group and invite additional students by email.
+                                </p>
+
                                 <div class="dsp-meta">
-                                    <span><i class="bi bi-calendar-event"></i>{{ $featuredWebinar->starts_at->timezone($featuredWebinar->timezone)->format('d M Y, h:i A') }}</span>
-                                    <span class="dsp-price {{ $featuredWebinar->isPaid() ? '' : 'free' }}">{{ $featuredWebinar->isPaid() ? '₹'.number_format($featuredWebinar->price, 2) : 'Free Webinar' }}</span>
+                                    <span><i class="bi bi-cash-coin"></i> From ₹100 per group</span>
+                                    <span><i class="bi bi-person-plus"></i> Add participants</span>
                                 </div>
-                                <a href="{{ route('webinars.show', $featuredWebinar) }}" class="dsp-book-button">
-                                    <span>{{ auth()->check() ? 'Register for Webinar' : 'View Webinar' }}</span>
+
+                                <a href="{{ route('group-webinars.create') }}" class="dsp-book-button">
+                                    <span>Book a Group Webinar</span>
                                     <i class="bi bi-arrow-right"></i>
                                 </a>
+
+                                <small class="dsp-note">
+                                    The organizer completes one payment for everyone included.
+                                </small>
                             </div>
                         @endif
                     </div>
@@ -880,24 +892,6 @@
                 </div>
             </div>
         </section>
-
-        @if($hasOpenWebinars)
-        <section class="section" id="webinars">
-            <div class="section-container">
-                <span class="section-tag">Live Learning</span>
-                <h2 class="section-title">Upcoming <span class="text-gradient">Webinars</span></h2>
-                <div class="row g-4 mt-2">
-                    @foreach($webinars as $webinar)
-                        <div class="col-md-4"><div class="glass-card p-4 h-100">
-                            <h3>{{ $webinar->title }}</h3>
-                            <p>{{ $webinar->starts_at->timezone($webinar->timezone)->format('d M Y, h:i A') }}</p>
-                            <a class="btn-form-primary text-decoration-none" href="{{ route('webinars.show',$webinar) }}">View webinar</a>
-                        </div></div>
-                    @endforeach
-                </div>
-            </div>
-        </section>
-        @endif
 
         @if($hasPromotionalCoupons)
             <section class="section coupon-promo-section" aria-labelledby="coupon-promo-title">
