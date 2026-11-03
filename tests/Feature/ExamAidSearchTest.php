@@ -12,6 +12,7 @@ use App\Models\Subject;
 use App\Models\Topic;
 use App\Models\Unit;
 use App\Models\UnitTopic;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -94,6 +95,44 @@ class ExamAidSearchTest extends TestCase
             ->assertDontSee('No matching materials found');
     }
 
+    public function test_exam_resource_cards_keep_view_without_a_download_action_for_any_resource_type(): void
+    {
+        $records = $this->createSearchRecords();
+        $records['aid']->materials()->createMany([
+            [
+                'title' => 'Document handout',
+                'type' => 'document',
+                'file_path' => 'exam-aids/document.docx',
+            ],
+            [
+                'title' => 'Reference link',
+                'type' => 'link',
+                'url' => 'https://example.test/reference',
+            ],
+        ]);
+        $records['aid']->materials()->where('type', 'pdf')->update([
+            'file_path' => 'exam-aids/reference.pdf',
+        ]);
+
+        $response = $this->actingAs(User::factory()->create())
+            ->get(route('exam-aid'))
+            ->assertOk()
+            ->assertSee('View')
+            ->assertSee('Cardiac Resource Bundle')
+            ->assertSee('Respiratory Resource Bundle');
+
+        $this->assertSame(
+            2,
+            preg_match_all('/<div class="exam-card-actions">(.*?)<\/div>/s', $response->getContent(), $actionGroups)
+        );
+
+        foreach ($actionGroups[1] as $actions) {
+            $this->assertSame(1, preg_match('/>\s*View\s*<\/button>/', $actions));
+            $this->assertStringNotContainsString('Download', $actions);
+            $this->assertStringNotContainsString('window.open(', $actions);
+        }
+    }
+
     private function createSearchRecords(): array
     {
         $year = AcademicYear::create([
@@ -138,6 +177,7 @@ class ExamAidSearchTest extends TestCase
             'exam_aid_category_id' => $category->id,
             'title' => 'ECG Waveform Reference',
             'type' => 'pdf',
+            'file_path' => 'exam-aids/waveform.pdf',
             'content' => 'Ventricular tracing manual',
         ]);
         $topic->materials()->create([

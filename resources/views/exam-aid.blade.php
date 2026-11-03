@@ -260,10 +260,6 @@
 
                     <div class="exam-resource-grid reveal-stagger">
                         @forelse($examAids as $examAid)
-                            @php
-                                $firstPdf = $examAid->materials->firstWhere('type', 'pdf');
-                            @endphp
-
                             <article class="exam-subject-card" id="exam-aid-card-{{ $examAid->id }}">
                                 <div class="exam-card-top">
                                 <span class="exam-difficulty medium">
@@ -321,18 +317,6 @@
                                             <i class="bi bi-lock-fill me-1"></i> Unlock
                                         </button>
                                     @endauth
-
-                                    @if($firstPdf && $firstPdf->file_path)
-                                        @auth
-                                            <button type="button" onclick="window.open('{{ asset('storage/' . $firstPdf->file_path) }}', '_blank')">
-                                                Download
-                                            </button>
-                                        @else
-                                            <button type="button" onclick="window.location.href='{{ route('login') }}'">
-                                                <i class="bi bi-lock-fill me-1"></i> Download
-                                            </button>
-                                        @endauth
-                                    @endif
                                 </div>
 
                                 @auth
@@ -1189,11 +1173,6 @@
                 font-weight: 800;
             }
 
-            .exam-card-actions button:nth-child(2) {
-                background: #D9D9D9;
-                color: #0f172a;
-            }
-
             .exam-card-details {
                 margin-top: 22px;
                 padding-top: 20px;
@@ -1303,7 +1282,6 @@
                 border-color: rgba(0, 74, 173, 0.12);
             }
 
-            .exam-shell-wrapper .exam-card-actions button:nth-child(2),
             .exam-shell-wrapper .exam-progress-stack b {
                 background: rgba(217, 217, 217, 0.45);
             }
