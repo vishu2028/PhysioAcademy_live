@@ -17,10 +17,13 @@
         .admin-auth-field input { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 10px; }
         .admin-auth-submit { width: 100%; border: 0; border-radius: 10px; padding: 13px; background: #004aad; color: white; font-weight: 700; }
         .admin-auth-error { color: #b42318; font-size: .9rem; }
+        .admin-auth-back { display: inline-block; margin-bottom: 22px; color: #004aad; font-weight: 600; text-decoration: none; }
+        .admin-auth-back:hover { text-decoration: underline; }
     </style>
 </head>
 <body class="pauth-body">
     <main class="admin-auth-card">
+        <a class="admin-auth-back" href="{{ route('login') }}">← Back to User Login</a>
         <h1>Administrator Login</h1>
         <p>Sign in with your administrator account.</p>
         @if (session('status'))
@@ -29,7 +32,7 @@
         <form method="POST" action="{{ route('admin.login') }}">
             @csrf
             <label class="admin-auth-field">
-                <span>Email address</span>
+                <span>Registered Admin Email</span>
                 <input type="email" name="email" value="{{ old('email') }}" autocomplete="username" required autofocus>
                 @error('email')<span class="admin-auth-error">{{ $message }}</span>@enderror
             </label>

@@ -17,6 +17,8 @@ class AuthenticationTest extends TestCase
 
         $response
             ->assertOk()
+            ->assertSee('Continue as User')
+            ->assertSee('href="'.route('admin.login').'"', false)
             ->assertSee('Continue with Google')
             ->assertSee('Continue with Apple')
             ->assertDontSee('Forgot Password?')
@@ -65,7 +67,11 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'web');
 
-        $this->get(route('admin.login'))->assertOk();
+        $this->get(route('admin.login'))
+            ->assertOk()
+            ->assertSee('Registered Admin Email')
+            ->assertSee('Back to User Login')
+            ->assertSee('href="'.route('login').'"', false);
         $this->post(route('admin.login'), [
             'email' => $user->email,
             'password' => 'password',
