@@ -21,14 +21,11 @@ class SupportPageController extends Controller
     {
         abort_unless(array_key_exists($slug, self::PAGE_TITLES), 404);
 
-        $pageRecord = Page::query()
-            ->where('slug', $slug)
-            ->first();
+        $pageRecord = $slug === 'faq'
+            ? null
+            : Page::query()->where('slug', $slug)->first();
         $page = $pageRecord?->status ? $pageRecord : null;
-
-        $faqs = $slug === 'faq' && ! $pageRecord
-            ? FAQ::active()->ordered()->get()
-            : collect();
+        $faqs = $slug === 'faq' ? FAQ::active()->ordered()->get() : collect();
 
         return view('support.page', [
             'page' => $page,

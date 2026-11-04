@@ -68,37 +68,60 @@
 <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/super-build/ckeditor.js"></script>
 <script>
 (() => {
+    const fields = [document.querySelector('#editor')].filter(Boolean);
     const Editor = window.CKEDITOR?.ClassicEditor;
-    const textarea = document.querySelector('#editor');
 
-    if (!Editor || !textarea) {
-        console.error('Support page editor initialization failed.');
+    if (!Editor) {
+        console.error('Support page CKEditor initialization failed: CKEditor 5 super-build did not load.');
         return;
     }
 
-    Editor.create(textarea, {
+    const config = {
         removePlugins: [
-            'RealTimeCollaborativeComments', 'RealTimeCollaborativeTrackChanges',
-            'RealTimeCollaborativeRevisionHistory', 'PresenceList', 'Comments',
-            'TrackChanges', 'TrackChangesData', 'RevisionHistory', 'Users',
-            'CommentsRepository', 'WProofreader', 'Pagination', 'DocumentOutline',
-            'AIAssistant', 'AIAssistantUI', 'AIAssistantEditing', 'AIAdapter',
-            'TableOfContents', 'FormatPainter', 'Template', 'SlashCommand',
-            'PasteFromOfficeEnhanced', 'CaseChange', 'MathType'
+            'RealTimeCollaborativeComments',
+            'RealTimeCollaborativeTrackChanges',
+            'RealTimeCollaborativeRevisionHistory',
+            'PresenceList',
+            'Comments',
+            'TrackChanges',
+            'TrackChangesData',
+            'RevisionHistory',
+            'Users',
+            'CommentsRepository',
+            'WProofreader',
+            'Pagination',
+            'DocumentOutline',
+            'AIAssistant',
+            'AIAssistantUI',
+            'AIAssistantEditing',
+            'AIAdapter',
+            'TableOfContents',
+            'FormatPainter',
+            'Template',
+            'SlashCommand',
+            'PasteFromOfficeEnhanced',
+            'CaseChange',
+            'MathType'
         ],
         ckfinder: {
-            uploadUrl: '{{ route("admin.pages.upload_image") }}?_token={{ csrf_token() }}'
+            uploadUrl: '{{ route("admin.topics.upload_image") }}?_token={{ csrf_token() }}'
         },
         toolbar: {
             items: [
-                'heading', '|', 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
+                'heading', '|',
+                'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
                 'bold', 'italic', 'underline', 'strikethrough', 'removeFormat', '|',
                 'link', 'bulletedList', 'numberedList', 'outdent', 'indent', '|',
-                'alignment', 'blockQuote', 'imageUpload', 'insertTable', 'mediaEmbed', '|',
+                'blockQuote', 'imageUpload', 'insertTable', 'mediaEmbed', '|',
                 'undo', 'redo'
             ]
         }
-    }).catch(error => console.error('Support page editor failed:', error));
+    };
+
+    fields.forEach(textarea => {
+        Editor.create(textarea, config)
+            .catch(error => console.error(`Support page CKEditor failed for ${textarea.name}:`, error));
+    });
 })();
 </script>
 @endpush

@@ -236,11 +236,30 @@ class Doubt extends Model
 
     private static function isAllowedLinkUrl(string $url): bool
     {
-        return $url !== ''
-            && ! preg_match('/[\x00-\x20]/', $url)
-            && (str_starts_with($url, '/') && ! str_starts_with($url, '//')
-                || str_starts_with($url, '#')
-                || preg_match('/^(https?:|mailto:)/i', $url));
+        $url = trim($url);
+
+        if ($url === '' || preg_match('/[\x00-\x20\x7f]/', $url)) {
+            return false;
+        }
+
+        if (str_starts_with($url, '#')) {
+            return (bool) preg_match('/^#[a-zA-Z][a-zA-Z0-9._:-]*$/', $url);
+        }
+
+        if (str_starts_with($url, '/') && ! str_starts_with($url, '//')) {
+            return true;
+        }
+
+        $parts = parse_url($url);
+        $scheme = strtolower((string) ($parts['scheme'] ?? ''));
+
+        if ($scheme === 'mailto') {
+            return filter_var(substr($url, 7), FILTER_VALIDATE_EMAIL) !== false;
+        }
+
+        return in_array($scheme, ['http', 'https'], true)
+            && ! empty($parts['host'])
+            && filter_var($url, FILTER_VALIDATE_URL) !== false;
     }
 
     private static function isAllowedImageUrl(string $url): bool

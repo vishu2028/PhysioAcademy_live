@@ -374,8 +374,17 @@
                 <a href="{{ route('admin.pages.index') }}" class="nav-link-admin @if(request()->routeIs('admin.pages.*')) active @endif">
                     <i class="bi bi-file-earmark-richtext"></i> CMS Pages
                 </a>
-                <a href="{{ route('admin.support-legal-pages.index') }}" class="nav-link-admin @if(request()->routeIs('admin.support-legal-pages.*')) active @endif">
-                    <i class="bi bi-life-preserver"></i> Support &amp; Legal Pages
+                <a href="{{ route('admin.support-legal-pages.edit', 'feedback') }}" class="nav-link-admin @if(request()->routeIs('admin.support-legal-pages.*') && request()->route('slug') === 'feedback') active @endif">
+                    <i class="bi bi-chat-left-text"></i> Feedback
+                </a>
+                <a href="{{ route('admin.support-legal-pages.edit', 'help-center') }}" class="nav-link-admin @if(request()->routeIs('admin.support-legal-pages.*') && request()->route('slug') === 'help-center') active @endif">
+                    <i class="bi bi-life-preserver"></i> Help Center
+                </a>
+                <a href="{{ route('admin.support-legal-pages.edit', 'privacy-policy') }}" class="nav-link-admin @if(request()->routeIs('admin.support-legal-pages.*') && request()->route('slug') === 'privacy-policy') active @endif">
+                    <i class="bi bi-shield-check"></i> Privacy Policy
+                </a>
+                <a href="{{ route('admin.support-legal-pages.edit', 'terms-and-conditions') }}" class="nav-link-admin @if(request()->routeIs('admin.support-legal-pages.*') && request()->route('slug') === 'terms-and-conditions') active @endif">
+                    <i class="bi bi-file-earmark-text"></i> Terms &amp; Conditions
                 </a>
                 <a href="{{ route('admin.media.index') }}" class="nav-link-admin @if(request()->routeIs('admin.media.*')) active @endif">
                     <i class="bi bi-images"></i> Media Library

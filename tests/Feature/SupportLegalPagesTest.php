@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Message;
 use App\Models\Page;
+use App\Models\FAQ;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
@@ -54,6 +55,42 @@ class SupportLegalPagesTest extends TestCase
         $this->get(route('support.privacy-policy'))
             ->assertOk()
             ->assertSee('<h2>Our promise</h2><p>Your privacy matters.</p>', false);
+    }
+
+    public function test_each_non_faq_support_page_has_an_admin_editor(): void
+    {
+        Role::findOrCreate('admin', 'web');
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        foreach ([
+            'feedback',
+            'help-center',
+            'privacy-policy',
+            'terms-and-conditions',
+        ] as $slug) {
+            $this->actingAs($admin, 'admin')
+                ->get(route('admin.support-legal-pages.edit', $slug))
+                ->assertOk()
+                ->assertSee('name="title"', false)
+                ->assertSee('name="content"', false)
+                ->assertSee('name="status"', false);
+        }
+    }
+
+    public function test_faq_uses_the_existing_faq_management_records(): void
+    {
+        FAQ::create([
+            'question' => 'How does the existing FAQ work?',
+            'answer' => 'It is managed through the existing FAQ administration.',
+            'status' => true,
+            'order' => 1,
+        ]);
+
+        $this->get(route('faq'))
+            ->assertOk()
+            ->assertSee('How does the existing FAQ work?')
+            ->assertSee('It is managed through the existing FAQ administration.');
     }
 
     public function test_unpublished_support_content_is_not_rendered(): void

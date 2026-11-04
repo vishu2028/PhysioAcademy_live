@@ -363,6 +363,20 @@
                     ckfinder: {
                         uploadUrl: '{{ route("admin.topics.upload_image") }}?_token={{ csrf_token() }}'
                     },
+                    link: {
+                        defaultProtocol: 'https://',
+                        addTargetToExternalLinks: true,
+                        decorators: {
+                            openInNewTab: {
+                                mode: 'automatic',
+                                callback: url => /^https?:\/\//i.test(url),
+                                attributes: {
+                                    target: '_blank',
+                                    rel: 'noopener noreferrer'
+                                }
+                            }
+                        }
+                    },
                     toolbar: {
                         items: [
                             'heading', '|',

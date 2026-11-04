@@ -4634,7 +4634,7 @@ img { max-width: 100%; display: block; }
         width: 42px;
         min-width: 42px;
         min-height: 42px;
-        margin-left: auto;
+        margin-left: 0;
         padding: 8px 6px;
         justify-content: center;
         border-radius: 10px;
@@ -4742,6 +4742,27 @@ img { max-width: 100%; display: block; }
 
     .nav-cta {
         display: none;
+    }
+
+    /*
+     * Keep the existing student notification control available beside the
+     * mobile menu button without exposing the desktop CTA/account controls.
+     */
+    .nav-cta:has(> .student-notification-menu) {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+    }
+
+    .nav-cta:has(> .student-notification-menu) > :not(.student-notification-menu) {
+        display: none;
+    }
+
+    .nav-cta .student-notification-button {
+        width: 42px;
+        height: 42px;
+        font-size: 1.05rem;
     }
 
     .nav-mobile-actions {

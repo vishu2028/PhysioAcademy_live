@@ -27,15 +27,15 @@
             <div class="support-kicker">PhysioSource Support</div>
             <h1 class="support-title">{{ brand_text($pageTitle) }}</h1>
 
-            @if($page?->content)
-                <div class="support-content">{!! brand_text($page->content) !!}</div>
-            @elseif($slug === 'faq' && $faqs->isNotEmpty())
+            @if($slug === 'faq' && $faqs->isNotEmpty())
                 <div class="support-content">
                     @foreach($faqs as $faq)
                         <h3>{{ brand_text($faq->question) }}</h3>
                         <p>{!! nl2br(e(brand_text($faq->answer))) !!}</p>
                     @endforeach
                 </div>
+            @elseif($page?->content)
+                <div class="support-content">{!! brand_text($page->content) !!}</div>
             @else
                 <div class="support-empty">This page is being prepared. Please check back soon.</div>
             @endif

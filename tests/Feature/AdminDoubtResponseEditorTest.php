@@ -25,6 +25,8 @@ class AdminDoubtResponseEditorTest extends TestCase
             ->assertSee('https://cdn.ckeditor.com/ckeditor5/41.1.0/super-build/ckeditor.js')
             ->assertSee("'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor'", false)
             ->assertSee("'blockQuote', 'imageUpload', 'insertTable', 'mediaEmbed'", false)
+            ->assertSee("defaultProtocol: 'https://'", false)
+            ->assertSee('addTargetToExternalLinks: true', false)
             ->assertSee('new TextDecoder().decode(Uint8Array.from(atob(value)', false)
             ->assertSee('pendingResponseHtml = decodeUtf8(button.dataset.answer)', false)
             ->assertSee('Cancel')
@@ -103,5 +105,32 @@ class AdminDoubtResponseEditorTest extends TestCase
             ->assertDontSee('onerror', false)
             ->assertDontSee('javascript:', false)
             ->assertDontSee('attacker.example', false);
+    }
+
+    public function test_response_links_allow_safe_urls_and_reject_unsafe_or_invalid_urls(): void
+    {
+        $safe = Doubt::sanitizeHtml(
+            '<p><a href="https://example.test/guide?a=1&amp;b=2">Guide</a> ' .
+            '<a href="/help-center">Help</a> <a href="#details">Details</a> ' .
+            '<a href="mailto:student@example.test">Email</a></p>'
+        );
+
+        $this->assertStringContainsString('href="https://example.test/guide?a=1&amp;b=2"', $safe);
+        $this->assertStringContainsString('href="/help-center"', $safe);
+        $this->assertStringContainsString('href="#details"', $safe);
+        $this->assertStringContainsString('href="mailto:student@example.test"', $safe);
+
+        $unsafe = Doubt::sanitizeHtml(
+            '<p><a href="javascript:alert(1)">Unsafe</a>' .
+            '<a href="data:text/html,alert(1)">Data</a>' .
+            '<a href="https://">Invalid</a></p>'
+        );
+
+        $this->assertStringNotContainsString('href="javascript:', $unsafe);
+        $this->assertStringNotContainsString('href="data:', $unsafe);
+        $this->assertStringNotContainsString('href="https://" ', $unsafe);
+        $this->assertStringContainsString('Unsafe', $unsafe);
+        $this->assertStringContainsString('Data', $unsafe);
+        $this->assertStringContainsString('Invalid', $unsafe);
     }
 }

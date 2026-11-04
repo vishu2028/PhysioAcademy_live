@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 class SupportLegalPageController extends Controller
 {
     private const PAGE_DEFINITIONS = [
-        'faq' => 'FAQ',
         'feedback' => 'Feedback',
         'help-center' => 'Help Center',
         'privacy-policy' => 'Privacy Policy',
@@ -22,7 +21,7 @@ class SupportLegalPageController extends Controller
 
         $pages = Page::query()
             ->whereIn('slug', array_keys(self::PAGE_DEFINITIONS))
-            ->orderByRaw("CASE slug WHEN 'faq' THEN 1 WHEN 'feedback' THEN 2 WHEN 'help-center' THEN 3 WHEN 'privacy-policy' THEN 4 WHEN 'terms-and-conditions' THEN 5 END")
+            ->orderByRaw("CASE slug WHEN 'feedback' THEN 1 WHEN 'help-center' THEN 2 WHEN 'privacy-policy' THEN 3 WHEN 'terms-and-conditions' THEN 4 END")
             ->get();
 
         return view('admin.support-legal-pages.index', compact('pages'));
