@@ -21,6 +21,7 @@ class GroupWebinarRequest extends Model
         'organizer_whatsapp',
         'topic',
         'description',
+        'preferred_slots',
         'participant_count',
         'minimum_participants',
         'maximum_participants',
@@ -49,6 +50,7 @@ class GroupWebinarRequest extends Model
             'total_amount' => 'decimal:2',
             'is_free' => 'boolean',
             'scheduled_at' => 'datetime',
+            'preferred_slots' => 'array',
             'terms_accepted_at' => 'datetime',
         ];
     }

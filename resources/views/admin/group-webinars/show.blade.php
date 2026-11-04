@@ -68,6 +68,19 @@
                             <div><span>Group total</span><strong>₹{{ number_format((float) $groupWebinar->total_amount, 2) }}</strong></div>
                             <div><span>Organizer policy acceptance</span><strong>{{ $groupWebinar->policy_version ? 'Version '.$groupWebinar->policy_version.' · '.$groupWebinar->terms_accepted_at?->format('d M Y, h:i A') : 'Not required for this existing booking' }}</strong></div>
                             <div><span>Duration</span><strong>{{ $groupWebinar->duration_minutes }} minutes</strong></div>
+                            <div class="detail-full"><span>Preferred Date &amp; Time Slots</span>
+                                @if($groupWebinar->preferred_slots)
+                                    <div class="d-flex flex-wrap gap-2 mt-1">
+                                        @foreach($groupWebinar->preferred_slots as $index => $slot)
+                                            <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">
+                                                Slot {{ $index + 1 }}: {{ $slot['label'] ?? trim(($slot['date'] ?? '').' '.($slot['time'] ?? '')) }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <strong class="text-secondary">Not provided on this booking</strong>
+                                @endif
+                            </div>
                             <div class="detail-full"><span>Description</span><p>{{ $groupWebinar->description }}</p></div>
                             <div><span>Scheduled date and time</span><strong>{{ $groupWebinar->scheduled_at?->format('d M Y, h:i A') ?? 'Not scheduled' }}</strong></div>
                             <div><span>Meeting link</span>

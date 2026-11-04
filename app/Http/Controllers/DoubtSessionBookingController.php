@@ -8,6 +8,7 @@ use App\Models\DoubtSessionFollowUp;
 use App\Models\Subject;
 use App\Services\RazorpayService;
 use App\Services\CouponService;
+use App\Services\PreferredSlotService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -179,6 +180,9 @@ class DoubtSessionBookingController extends Controller
                 'min:10',
                 'max:5000',
             ],
+            'preferred_slots' => ['required', 'array', 'size:3'],
+            'preferred_slots.*.date' => ['required', 'date_format:Y-m-d'],
+            'preferred_slots.*.time' => ['required', 'date_format:H:i'],
             'coupon_code' => ['nullable', 'string', 'max:64'],
         ], [
             'phone.regex' =>
@@ -193,6 +197,7 @@ class DoubtSessionBookingController extends Controller
             'doubt.min' =>
                 'Please describe your doubt in at least 10 characters.',
         ]);
+        $validated['preferred_slots'] = PreferredSlotService::validate($validated['preferred_slots']);
 
         /*
          * Always obtain price, duration and free/paid status
@@ -243,6 +248,7 @@ class DoubtSessionBookingController extends Controller
 
                     'topic' => $validated['topic'],
                     'doubt' => $validated['doubt'],
+                    'preferred_slots' => $validated['preferred_slots'],
 
                     'duration_minutes' =>
                         $durationMinutes,
@@ -340,6 +346,7 @@ class DoubtSessionBookingController extends Controller
 
                 'topic' => $validated['topic'],
                 'doubt' => $validated['doubt'],
+                'preferred_slots' => $validated['preferred_slots'],
 
                 'duration_minutes' =>
                     $durationMinutes,

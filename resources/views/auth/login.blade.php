@@ -10,15 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('ui-physio/style.css') }}">
     <style>
-        .auth-role-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 24px; }
-        .auth-role-option {
-            display: flex; justify-content: center; align-items: center; min-height: 44px;
-            padding: 10px 12px; border: 1px solid #dbe3ee; border-radius: 12px;
-            color: #475569; background: #fff; text-align: center; text-decoration: none;
-            font: 600 14px/1.3 Outfit, sans-serif;
-        }
-        .auth-role-option[aria-current="page"] { color: #004aad; border-color: #004aad; background: #eff6ff; }
-        .auth-role-option:hover { color: #004aad; border-color: #004aad; }
     </style>
 </head>
 <body class="pauth-body">
@@ -33,10 +24,6 @@
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
                     </a>
-                    <nav class="auth-role-options" aria-label="Choose account type">
-                        <a class="auth-role-option" href="{{ route('login') }}" aria-current="page">Continue as User</a>
-                        <a class="auth-role-option" href="{{ route('admin.login') }}">Admin Login</a>
-                    </nav>
                     <div class="pauth-form-head">
                         <h1 id="loginTitle">Welcome Back</h1>
                         <p>Continue your academic journey with PhysioSource.</p>

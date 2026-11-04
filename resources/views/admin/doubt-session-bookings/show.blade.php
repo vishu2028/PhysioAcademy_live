@@ -230,6 +230,21 @@
                         </div>
                     </div>
 
+                    <div class="mb-4">
+                        <div class="small text-secondary mb-2">Preferred Date &amp; Time Slots</div>
+                        @if($booking->preferred_slots)
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach($booking->preferred_slots as $index => $slot)
+                                    <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">
+                                        Slot {{ $index + 1 }}: {{ $slot['label'] ?? trim(($slot['date'] ?? '').' '.($slot['time'] ?? '')) }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-secondary">Not provided on this booking.</div>
+                        @endif
+                    </div>
+
                     <div>
                         <div class="small text-secondary mb-2">
                             Student's Doubt

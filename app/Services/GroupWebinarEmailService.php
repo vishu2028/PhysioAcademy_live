@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Jobs\SendGroupWebinarEmail;
 use App\Models\GroupWebinarEmailDelivery;
 use App\Models\GroupWebinarParticipant;
+use App\Services\PreferredSlotService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -128,6 +129,7 @@ class GroupWebinarEmailService
             'Organizer: '.$request->organizer_name.' ('.$request->organizer_email.')',
             'Reference: '.$request->reference,
             'Participants: '.$request->participant_count,
+            'Preferred date and time slots: '.PreferredSlotService::summary($request->preferred_slots),
             'The organizer has paid the group total of ₹'.number_format((float) $request->total_amount, 2).'. No separate participant payment is required.',
         ];
 
@@ -161,6 +163,7 @@ class GroupWebinarEmailService
                 'You are the Organizer for a Group Webinar booking.',
                 'Topic: '.$request->topic,
                 'Reference: '.$request->reference,
+                'Preferred date and time slots: '.PreferredSlotService::summary($request->preferred_slots),
                 'Participants: '.$request->participant_count,
                 'Group total: ₹'.number_format((float) $request->total_amount, 2).'. The Organizer completes one payment for everyone included.',
             ]),
@@ -176,6 +179,7 @@ class GroupWebinarEmailService
             $message,
             'Topic: '.$request->topic,
             'Reference: '.$request->reference,
+            'Preferred date and time slots: '.PreferredSlotService::summary($request->preferred_slots),
         ];
         if ($request->scheduled_at) {
             $details[] = 'Scheduled: '.$request->scheduled_at->format('d M Y, h:i A');

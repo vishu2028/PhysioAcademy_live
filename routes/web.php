@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\AboutTimelineController;
 use App\Http\Controllers\Admin\AboutContentController;
 use App\Http\Controllers\Admin\AboutController;
 use App\Http\Controllers\Admin\ExamAidBannerController;
+use App\Http\Controllers\SupportPageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -96,8 +97,33 @@ Route::get(
 
 Route::get(
     '/faq',
-    [FrontendController::class, 'faq']
-)->name('faq');
+    [SupportPageController::class, 'show']
+)->defaults('slug', 'faq')->name('faq');
+
+Route::get(
+    '/feedback',
+    [SupportPageController::class, 'show']
+)->defaults('slug', 'feedback')->name('support.feedback');
+
+Route::post(
+    '/feedback',
+    [SupportPageController::class, 'feedbackSubmit']
+)->middleware('throttle:10,1')->name('support.feedback.submit');
+
+Route::get(
+    '/help-center',
+    [SupportPageController::class, 'show']
+)->defaults('slug', 'help-center')->name('support.help-center');
+
+Route::get(
+    '/privacy-policy',
+    [SupportPageController::class, 'show']
+)->defaults('slug', 'privacy-policy')->name('support.privacy-policy');
+
+Route::get(
+    '/terms-and-conditions',
+    [SupportPageController::class, 'show']
+)->defaults('slug', 'terms-and-conditions')->name('support.terms');
 
 Route::get('/webinars', [WebinarController::class, 'index'])->name('webinars.index');
 Route::get('/webinars/{webinar:slug}', [WebinarController::class, 'show'])->name('webinars.show');
@@ -341,6 +367,21 @@ Route::middleware([
             'pages',
             \App\Http\Controllers\Admin\PageController::class
         );
+
+        Route::get(
+            'support-legal-pages',
+            [\App\Http\Controllers\Admin\SupportLegalPageController::class, 'index']
+        )->name('support-legal-pages.index');
+
+        Route::get(
+            'support-legal-pages/{slug}/edit',
+            [\App\Http\Controllers\Admin\SupportLegalPageController::class, 'edit']
+        )->name('support-legal-pages.edit');
+
+        Route::put(
+            'support-legal-pages/{slug}',
+            [\App\Http\Controllers\Admin\SupportLegalPageController::class, 'update']
+        )->name('support-legal-pages.update');
 
         Route::resource(
             'page-sections',

@@ -39,6 +39,7 @@ class DoubtSessionBooking extends Model
         'subject_id',
         'topic',
         'doubt',
+        'preferred_slots',
         'duration_minutes',
         'amount',
         'coupon_id',
@@ -74,6 +75,7 @@ class DoubtSessionBooking extends Model
             'is_free' => 'boolean',
             'paid_at' => 'datetime',
             'scheduled_at' => 'datetime',
+            'preferred_slots' => 'array',
         ];
     }
 

@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\CouponService;
 use App\Services\GroupWebinarEmailService;
 use App\Services\GroupWebinarPricing;
+use App\Services\PreferredSlotService;
 use App\Services\RazorpayService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -63,7 +64,10 @@ class GroupWebinarBookingController extends Controller
         $validated = $request->validate([
             'topic' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'min:10', 'max:5000'],
-            'preferred_schedule' => ['required', 'string', 'min:3', 'max:255'],
+            'preferred_schedule' => ['nullable', 'string', 'max:255'],
+            'preferred_slots' => ['required', 'array', 'size:3'],
+            'preferred_slots.*.date' => ['required', 'date_format:Y-m-d'],
+            'preferred_slots.*.time' => ['required', 'date_format:H:i'],
             'academic_year_id' => ['required', 'integer', 'exists:academic_years,id'],
             'subject_id' => ['required', 'integer', 'exists:subjects,id'],
             'organizer_whatsapp' => ['required', 'string', 'max:16', 'regex:/^\+?[1-9][0-9]{7,14}$/'],
@@ -75,6 +79,7 @@ class GroupWebinarBookingController extends Controller
             'participants.max' => 'The maximum group size is '.$maxParticipants.' participants, including you as the organizer.',
             'terms_accepted.accepted' => 'You must accept the Webinar Terms & Conditions and Privacy Policy before continuing.',
         ]);
+        $validated['preferred_slots'] = PreferredSlotService::validate($validated['preferred_slots']);
 
         $user = $request->user();
         $emails = array_map(
@@ -102,9 +107,13 @@ class GroupWebinarBookingController extends Controller
         $description = implode("\n\n", [
             'Academic year: '.AcademicYear::findOrFail($validated['academic_year_id'])->name,
             'Subject: '.Subject::findOrFail($validated['subject_id'])->name,
-            'Preferred schedule: '.trim($validated['preferred_schedule']),
+            filled($validated['preferred_schedule'] ?? null)
+                ? 'Scheduling notes: '.trim($validated['preferred_schedule'])
+                : null,
+            'Preferred date and time slots: '.PreferredSlotService::summary($validated['preferred_slots']),
             trim($validated['description']),
         ]);
+        $description = implode("\n\n", array_filter(explode("\n\n", $description), static fn (string $line): bool => $line !== ''));
 
         $groupRequest = null;
         $organizerInvitation = null;
@@ -126,6 +135,7 @@ class GroupWebinarBookingController extends Controller
                 'organizer_whatsapp' => $validated['organizer_whatsapp'],
                 'topic' => $validated['topic'],
                 'description' => $description,
+                'preferred_slots' => $validated['preferred_slots'],
                 'participant_count' => $participantCount,
                 'minimum_participants' => $minParticipants,
                 'maximum_participants' => $maxParticipants,

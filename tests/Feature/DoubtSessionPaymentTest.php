@@ -189,6 +189,10 @@ class DoubtSessionPaymentTest extends TestCase
             'subject_id' => $subject->id,
             'topic' => 'Knee rehabilitation',
             'doubt' => 'How should this clinical issue be assessed?',
+            'preferred_slots' => collect([1, 2, 3])->map(fn (int $days): array => [
+                'date' => now()->addDays($days)->format('Y-m-d'),
+                'time' => '18:00',
+            ])->all(),
         ], $overrides);
     }
 }

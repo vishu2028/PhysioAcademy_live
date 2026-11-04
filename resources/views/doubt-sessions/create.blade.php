@@ -183,9 +183,10 @@
                                         <input type="text" name="topic" id="topic" value="{{ old('topic') }}" class="@error('topic') is-invalid @enderror" maxlength="255" required>
                                         @error('topic')<div class="booking-error">{{ $message }}</div>@enderror
                                     </div>
+                                    @include('partials.preferred-slots')
                                     <div class="booking-field booking-field-full">
                                         <label for="preferredSchedule">Preferred Schedule <span>*</span></label>
-                                        <input type="text" name="preferred_schedule" id="preferredSchedule" value="{{ old('preferred_schedule') }}" class="@error('preferred_schedule') is-invalid @enderror" placeholder="Example: weekday evenings, 6–8 PM IST" maxlength="255" required>
+                                        <input type="text" name="preferred_schedule" id="preferredSchedule" value="{{ old('preferred_schedule') }}" class="@error('preferred_schedule') is-invalid @enderror" placeholder="Optional scheduling notes, e.g. weekday evenings">
                                         @error('preferred_schedule')<div class="booking-error">{{ $message }}</div>@enderror
                                     </div>
                                     <div class="booking-field booking-field-full">
@@ -397,6 +398,8 @@
                                     </div>
                                     @enderror
                                 </div>
+
+                                @include('partials.preferred-slots')
 
                                 <div class="booking-field booking-field-full">
                                     <label for="doubt">
@@ -813,6 +816,45 @@
                 grid-column: 1 / -1;
             }
 
+            .preferred-slots-card {
+                grid-column: 1 / -1;
+            }
+
+            .preferred-slots-grid {
+                display: grid;
+                gap: 12px;
+            }
+
+            .preferred-slot-row {
+                border: 1px solid #dbe5f1;
+                border-radius: 14px;
+                padding: 14px;
+                background: #f8fbff;
+            }
+
+            .preferred-slot-row > strong {
+                display: block;
+                color: #0f172a;
+                margin-bottom: 10px;
+            }
+
+            .preferred-slot-inputs {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+            }
+
+            .preferred-slot-inputs label {
+                margin: 0;
+            }
+
+            .preferred-slot-inputs label span {
+                display: block;
+                color: #64748b;
+                font-size: .78rem;
+                margin-bottom: 5px;
+            }
+
             .booking-field label {
                 display: block;
                 margin-bottom: 8px;
@@ -1214,6 +1256,39 @@
                 const groupParticipantCount = document.getElementById('groupParticipantCount');
                 const groupTotal = document.getElementById('groupTotal');
                 const maxGroupParticipants = {{ (int) ($maximumParticipants ?? 0) }};
+                const preferredSlotInputs = Array.from(document.querySelectorAll('.preferred-slots-card input'));
+                const validatePreferredSlots = () => {
+                    const combinations = preferredSlotInputs
+                        .reduce((slots, input, index) => {
+                            const slotIndex = Math.floor(index / 2);
+                            slots[slotIndex] ??= {};
+                            slots[slotIndex][input.type] = input.value;
+                            return slots;
+                        }, []);
+                    const seen = new Set();
+                    let valid = true;
+                    combinations.forEach((slot, index) => {
+                        const dateInput = preferredSlotInputs[index * 2];
+                        const timeInput = preferredSlotInputs[index * 2 + 1];
+                        dateInput.setCustomValidity('');
+                        timeInput.setCustomValidity('');
+                        if (!slot.date || !slot.time) {
+                            valid = false;
+                            return;
+                        }
+                        const key = `${slot.date} ${slot.time}`;
+                        if (seen.has(key)) {
+                            timeInput.setCustomValidity('Choose a different date and time for each slot.');
+                            valid = false;
+                        }
+                        seen.add(key);
+                    });
+                    return valid;
+                };
+                preferredSlotInputs.forEach(input => input.addEventListener('change', validatePreferredSlots));
+                bookingForm?.addEventListener('submit', event => {
+                    if (!validatePreferredSlots()) event.preventDefault();
+                });
                 const money = (value) => `₹${Number(value).toFixed(2)}`;
                 const renderGroupTotal = () => {
                     if (!groupParticipants || !groupTotal) return;

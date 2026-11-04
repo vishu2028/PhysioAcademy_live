@@ -374,6 +374,9 @@
                 <a href="{{ route('admin.pages.index') }}" class="nav-link-admin @if(request()->routeIs('admin.pages.*')) active @endif">
                     <i class="bi bi-file-earmark-richtext"></i> CMS Pages
                 </a>
+                <a href="{{ route('admin.support-legal-pages.index') }}" class="nav-link-admin @if(request()->routeIs('admin.support-legal-pages.*')) active @endif">
+                    <i class="bi bi-life-preserver"></i> Support &amp; Legal Pages
+                </a>
                 <a href="{{ route('admin.media.index') }}" class="nav-link-admin @if(request()->routeIs('admin.media.*')) active @endif">
                     <i class="bi bi-images"></i> Media Library
                 </a>

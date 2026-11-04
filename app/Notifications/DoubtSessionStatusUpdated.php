@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\DoubtSessionBooking;
+use App\Services\PreferredSlotService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use App\Traits\EmailNotification;
@@ -81,6 +82,7 @@ class DoubtSessionStatusUpdated extends Notification
     {
         return array_filter([
             'Booking reference' => $this->booking->booking_reference,
+            'Preferred slots' => PreferredSlotService::summary($this->booking->preferred_slots),
             'Scheduled for' => $this->booking->scheduled_at?->format('M j, Y g:i A'),
             'Meeting link' => $this->booking->meeting_link,
         ], fn ($value): bool => filled($value));

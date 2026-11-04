@@ -733,37 +733,6 @@
                             </small>
                         </div>
 
-                        @if(get_setting('webinar_group_enabled', '0') === '1' && get_setting('webinar_group_allow_requests', '1') === '1')
-                            <div class="doubt-session-promo mt-4">
-                                <div class="dsp-header">
-                                    <div class="dsp-icon">
-                                        <i class="bi bi-people-fill"></i>
-                                    </div>
-                                    <div>
-                                        <span class="dsp-eyebrow">Collaborative Learning</span>
-                                        <h3>Group Webinar</h3>
-                                    </div>
-                                </div>
-
-                                <p class="dsp-description">
-                                    Book one focused webinar for your group and invite additional students by email.
-                                </p>
-
-                                <div class="dsp-meta">
-                                    <span><i class="bi bi-cash-coin"></i> From ₹100 per group</span>
-                                    <span><i class="bi bi-person-plus"></i> Add participants</span>
-                                </div>
-
-                                <a href="{{ route('group-webinars.create') }}" class="dsp-book-button">
-                                    <span>Book a Group Webinar</span>
-                                    <i class="bi bi-arrow-right"></i>
-                                </a>
-
-                                <small class="dsp-note">
-                                    The organizer completes one payment for everyone included.
-                                </small>
-                            </div>
-                        @endif
                     </div>
 
                     <div class="ask-doubt-form glass-card">

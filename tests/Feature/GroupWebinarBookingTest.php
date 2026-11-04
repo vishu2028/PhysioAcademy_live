@@ -933,6 +933,10 @@ class GroupWebinarBookingTest extends TestCase
             'topic' => 'Knee rehabilitation',
             'description' => 'Discuss shared rehabilitation questions and clinical approach.',
             'preferred_schedule' => 'Weekday evenings, 6-8 PM IST',
+            'preferred_slots' => collect([1, 2, 3])->map(fn (int $days): array => [
+                'date' => now()->addDays($days)->format('Y-m-d'),
+                'time' => '18:00',
+            ])->all(),
             'academic_year_id' => $academicYear->id,
             'subject_id' => $subject->id,
             'organizer_whatsapp' => '+919876543210',
