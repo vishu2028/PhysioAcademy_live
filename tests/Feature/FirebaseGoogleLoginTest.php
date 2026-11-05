@@ -22,6 +22,9 @@ class FirebaseGoogleLoginTest extends TestCase
             ->assertOk()
             ->assertSee('Continue with Google')
             ->assertSee('Continue with Apple')
+            ->assertSee('data-auth-consent', false)
+            ->assertSee(route('support.terms'), false)
+            ->assertSee(route('support.privacy-policy'), false)
             ->assertSee('social-auth.js')
             ->assertSee('window.physioFirebaseLoginUrl')
             ->assertSee(
@@ -104,6 +107,7 @@ class FirebaseGoogleLoginTest extends TestCase
 
         $response = $this->postJson(route('login.firebase'), [
             'id_token' => 'valid-firebase-id-token',
+            'accepted_terms' => true,
         ]);
 
         $response->assertOk()->assertJson([
@@ -125,6 +129,16 @@ class FirebaseGoogleLoginTest extends TestCase
         $this->assertGuest('admin');
     }
 
+    public function test_google_login_requires_terms_consent(): void
+    {
+        $this->postJson(route('login.firebase'), [
+            'id_token' => 'valid-firebase-id-token',
+        ])->assertStatus(422)
+            ->assertJsonValidationErrors(['accepted_terms']);
+
+        $this->assertGuest();
+    }
+
     public function test_google_login_links_an_existing_account_by_email_without_creating_a_duplicate(): void
     {
         $existingUser = User::factory()->create([
@@ -137,6 +151,7 @@ class FirebaseGoogleLoginTest extends TestCase
 
         $this->postJson(route('login.firebase'), [
             'id_token' => 'valid-firebase-id-token',
+            'accepted_terms' => true,
         ])->assertOk();
 
         $this->assertAuthenticatedAs($existingUser);
@@ -151,13 +166,13 @@ class FirebaseGoogleLoginTest extends TestCase
         $this->mockFirebaseUser();
 
         $this->withSession(['url.intended' => '/topics'])
-            ->postJson(route('login.firebase'), ['id_token' => 'valid-firebase-id-token'])
+            ->postJson(route('login.firebase'), ['id_token' => 'valid-firebase-id-token', 'accepted_terms' => true])
             ->assertOk()
             ->assertJsonPath('redirect', '/topics');
 
         auth()->logout();
         $this->withSession(['url.intended' => '/admin/dashboard'])
-            ->postJson(route('login.firebase'), ['id_token' => 'valid-firebase-id-token'])
+            ->postJson(route('login.firebase'), ['id_token' => 'valid-firebase-id-token', 'accepted_terms' => true])
             ->assertOk()
             ->assertJsonPath('redirect', route('home', absolute: false));
 
@@ -176,6 +191,7 @@ class FirebaseGoogleLoginTest extends TestCase
 
         $this->postJson(route('login.firebase'), [
             'id_token' => 'invalid-firebase-id-token',
+            'accepted_terms' => true,
         ])->assertUnauthorized()->assertJson([
             'success' => false,
             'message' => 'Google sign-in could not verify your account. Please try again.',
@@ -194,6 +210,7 @@ class FirebaseGoogleLoginTest extends TestCase
 
         $this->postJson(route('login.firebase'), [
             'id_token' => 'valid-firebase-id-token',
+            'accepted_terms' => true,
         ])->assertForbidden();
 
         $this->assertGuest();
@@ -208,6 +225,7 @@ class FirebaseGoogleLoginTest extends TestCase
 
         $this->postJson(route('login.firebase'), [
             'id_token' => 'valid-firebase-id-token',
+            'accepted_terms' => true,
         ])->assertOk();
         $user = User::where('firebase_uid', 'firebase-google-uid')->firstOrFail();
         $this->get(route('profile.edit'))->assertOk();
@@ -217,6 +235,7 @@ class FirebaseGoogleLoginTest extends TestCase
 
         $this->postJson(route('login.firebase'), [
             'id_token' => 'valid-firebase-id-token',
+            'accepted_terms' => true,
         ])->assertOk();
 
         $this->assertAuthenticatedAs($user, 'web');

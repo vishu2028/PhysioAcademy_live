@@ -60,6 +60,7 @@ class AppleLoginTest extends TestCase
             'id_token' => $token,
             'state' => $challenge['state'],
             'name' => 'Apple Student',
+            'accepted_terms' => true,
         ])->assertOk()->assertJson([
             'success' => true,
             'redirect' => route('home', absolute: false),
@@ -93,6 +94,7 @@ class AppleLoginTest extends TestCase
         $this->postJson(route('login.apple'), [
             'id_token' => $token,
             'state' => $challenge['state'],
+            'accepted_terms' => true,
         ])->assertOk();
 
         $this->assertAuthenticatedAs($existing);
@@ -115,6 +117,7 @@ class AppleLoginTest extends TestCase
         $this->postJson(route('login.apple'), [
             'id_token' => $token,
             'state' => $challenge['state'],
+            'accepted_terms' => true,
         ])->assertOk();
 
         $this->assertAuthenticatedAs($existing);
@@ -139,6 +142,7 @@ class AppleLoginTest extends TestCase
         $this->postJson(route('login.apple'), [
             'id_token' => $token,
             'state' => $challenge['state'],
+            'accepted_terms' => true,
         ])->assertForbidden();
 
         $this->assertGuest();
@@ -158,11 +162,13 @@ class AppleLoginTest extends TestCase
         $this->postJson(route('login.apple'), [
             'id_token' => $token,
             'state' => $challenge['state'],
+            'accepted_terms' => true,
         ])->assertUnauthorized();
 
         $this->postJson(route('login.apple'), [
             'id_token' => $token,
             'state' => $challenge['state'],
+            'accepted_terms' => true,
         ])->assertStatus(419);
 
         $this->assertGuest();
@@ -181,6 +187,7 @@ class AppleLoginTest extends TestCase
         $this->postJson(route('login.apple'), [
             'id_token' => $token,
             'state' => $challenge['state'],
+            'accepted_terms' => true,
         ])->assertOk();
         $user = User::where('apple_sub', 'apple-sub-repeat')->firstOrFail();
 
@@ -195,6 +202,7 @@ class AppleLoginTest extends TestCase
         $this->postJson(route('login.apple'), [
             'id_token' => $token,
             'state' => $challenge['state'],
+            'accepted_terms' => true,
         ])->assertOk();
 
         $this->assertAuthenticatedAs($user);
@@ -206,12 +214,19 @@ class AppleLoginTest extends TestCase
         config()->set('services.apple.client_id', null);
         config()->set('services.apple.redirect_uri', null);
 
-        $this->postJson(route('login.apple.challenge'))
+        $this->postJson(route('login.apple.challenge'), ['accepted_terms' => true])
             ->assertServiceUnavailable()
             ->assertJson([
                 'success' => false,
                 'message' => 'Apple sign-in is not configured for this website yet.',
             ]);
+    }
+
+    public function test_apple_challenge_requires_terms_consent(): void
+    {
+        $this->postJson(route('login.apple.challenge'))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['accepted_terms']);
     }
 
     private function challengeAndToken(array $claims): array
@@ -221,7 +236,7 @@ class AppleLoginTest extends TestCase
             'https://appleid.apple.com/auth/keys' => Http::response($this->jwks),
         ]);
 
-        $challenge = $this->postJson(route('login.apple.challenge'))
+        $challenge = $this->postJson(route('login.apple.challenge'), ['accepted_terms' => true])
             ->assertOk()
             ->json();
 

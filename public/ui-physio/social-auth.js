@@ -1,5 +1,6 @@
 const config = window.physioFirebaseConfig || {};
 const errorElements = [...document.querySelectorAll('[data-provider-error]')];
+const consentCheckbox = document.querySelector('[data-auth-consent]');
 let firebaseAuth = null;
 let firebaseInitializationError = null;
 let firebaseSdkPromise = null;
@@ -51,6 +52,16 @@ function clearError() {
         element.textContent = '';
         element.classList.remove('is-visible');
     });
+}
+
+function hasConsent() {
+    if (consentCheckbox?.checked) {
+        return true;
+    }
+
+    showError('Please agree to the Terms & Conditions and Privacy Policy to continue.');
+    consentCheckbox?.focus();
+    return false;
 }
 
 function setLoading(button, loading, label) {
@@ -135,6 +146,10 @@ googleButtons.forEach((button) => {
     button.addEventListener('click', async () => {
         clearError();
 
+        if (!hasConsent()) {
+            return;
+        }
+
         if (!window.physioFirebaseConfigured) {
             showError(firebaseInitializationError
                 ? 'Google sign-in could not be initialized. Please contact support.'
@@ -154,7 +169,8 @@ googleButtons.forEach((button) => {
             provider.setCustomParameters({ prompt: 'select_account' });
             const credential = await firebaseAuthSdk.signInWithPopup(auth, provider);
             const data = await postJson(window.physioFirebaseLoginUrl, {
-                id_token: await credential.user.getIdToken()
+                id_token: await credential.user.getIdToken(),
+                accepted_terms: true
             });
 
             window.location.assign(data.redirect);
@@ -188,6 +204,10 @@ document.querySelectorAll('[data-apple-action]').forEach((button) => {
     button.addEventListener('click', async () => {
         clearError();
 
+        if (!hasConsent()) {
+            return;
+        }
+
         if (!window.physioAppleConfig?.enabled) {
             showError('Apple sign-in is not configured for this website yet.');
             return;
@@ -197,7 +217,9 @@ document.querySelectorAll('[data-apple-action]').forEach((button) => {
 
         try {
             await loadAppleSdk();
-            const challenge = await postJson(window.physioAppleConfig.challengeUrl, {});
+            const challenge = await postJson(window.physioAppleConfig.challengeUrl, {
+                accepted_terms: true
+            });
 
             window.AppleID.auth.init({
                 clientId: window.physioAppleConfig.clientId,
@@ -216,7 +238,8 @@ document.querySelectorAll('[data-apple-action]').forEach((button) => {
             const data = await postJson(window.physioAppleConfig.loginUrl, {
                 id_token: result?.authorization?.id_token,
                 state: result?.authorization?.state,
-                name
+                name,
+                accepted_terms: true
             });
 
             window.location.assign(data.redirect);

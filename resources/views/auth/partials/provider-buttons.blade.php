@@ -14,6 +14,15 @@
         </svg>
         <span>Continue with Apple</span>
     </button>
+    <div class="social-auth-consent">
+        <input id="socialAuthConsent" class="social-auth-consent-checkbox" type="checkbox" data-auth-consent>
+        <label for="socialAuthConsent">
+            I agree to PhysioSource's
+            <a href="{{ route('support.terms') }}" target="_blank" rel="noopener">Terms &amp; Conditions</a>
+            and
+            <a href="{{ route('support.privacy-policy') }}" target="_blank" rel="noopener">Privacy Policy</a>.
+        </label>
+    </div>
     <p class="social-auth-error" data-provider-error role="alert" aria-live="polite"></p>
 </div>
 
@@ -28,6 +37,17 @@
     .social-auth-button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(15, 23, 42, .1); }
     .social-auth-button:disabled { cursor: wait; opacity: .65; }
     .social-auth-apple { background: #000; border-color: #000; color: #fff; }
+    .social-auth-consent {
+        display: flex; align-items: flex-start; gap: 9px; margin: 2px 2px 0;
+        color: #64748b; font-size: .82rem; line-height: 1.5;
+    }
+    .social-auth-consent-checkbox {
+        flex: 0 0 auto; width: 15px; height: 15px; margin-top: 2px;
+        accent-color: #2563eb; cursor: pointer;
+    }
+    .social-auth-consent label { cursor: pointer; }
+    .social-auth-consent a { color: #2563eb; font-weight: 600; text-decoration: none; }
+    .social-auth-consent a:hover { text-decoration: underline; }
     .social-auth-error { display: none; margin: 0; color: #b42318; font-size: .88rem; line-height: 1.5; }
     .social-auth-error.is-visible { display: block; }
     .auth-modal .social-auth-options { padding: 8px 0 20px; }

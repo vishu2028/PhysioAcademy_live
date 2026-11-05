@@ -21,8 +21,14 @@ class AppleAuthController extends Controller
     ) {
     }
 
-    public function challenge(): JsonResponse
+    public function challenge(Request $request): JsonResponse
     {
+        $request->validate([
+            'accepted_terms' => ['accepted'],
+        ], [
+            'accepted_terms.accepted' => 'You must agree to the Terms & Conditions and Privacy Policy before signing in.',
+        ]);
+
         if (! $this->apple->isConfigured()) {
             return response()->json([
                 'success' => false,
@@ -52,6 +58,9 @@ class AppleAuthController extends Controller
             'id_token' => ['required', 'string', 'max:10000'],
             'state' => ['required', 'string', 'max:128'],
             'name' => ['nullable', 'string', 'max:255'],
+            'accepted_terms' => ['accepted'],
+        ], [
+            'accepted_terms.accepted' => 'You must agree to the Terms & Conditions and Privacy Policy before signing in.',
         ]);
 
         $state = session()->pull('apple_login_state');

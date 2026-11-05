@@ -24,6 +24,9 @@ class FirebaseAuthController extends Controller
     {
         $validated = $request->validate([
             'id_token' => ['required', 'string'],
+            'accepted_terms' => ['accepted'],
+        ], [
+            'accepted_terms.accepted' => 'You must agree to the Terms & Conditions and Privacy Policy before signing in.',
         ]);
 
         try {
