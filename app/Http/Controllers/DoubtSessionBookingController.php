@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Razorpay\Api\Errors\ServerError;
 use Razorpay\Api\Errors\SignatureVerificationError;
 use Throwable;
 use UnexpectedValueException;
@@ -160,44 +159,39 @@ class DoubtSessionBookingController extends Controller
                 'regex:/^[0-9+\-\s()]+$/',
             ],
             'academic_year_id' => [
-                'required',
+                'nullable',
                 'integer',
                 'exists:academic_years,id',
             ],
             'subject_id' => [
-                'required',
+                'nullable',
                 'integer',
                 'exists:subjects,id',
             ],
             'topic' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
             'doubt' => [
-                'required',
+                'nullable',
                 'string',
-                'min:10',
-                'max:5000',
             ],
-            'preferred_slots' => ['required', 'array', 'size:3'],
-            'preferred_slots.*.date' => ['required', 'date_format:Y-m-d'],
-            'preferred_slots.*.time' => ['required', 'date_format:H:i'],
+            'preferred_slots' => ['nullable', 'array'],
+            'preferred_slots.*.date' => ['nullable', 'date_format:Y-m-d'],
+            'preferred_slots.*.time' => ['nullable', 'date_format:H:i'],
             'coupon_code' => ['nullable', 'string', 'max:64'],
         ], [
             'phone.regex' =>
                 'Please enter a valid phone number.',
-
-            'academic_year_id.required' =>
-                'Please select your academic year.',
-
-            'subject_id.required' =>
-                'Please select a subject.',
-
-            'doubt.min' =>
-                'Please describe your doubt in at least 10 characters.',
         ]);
-        $validated['preferred_slots'] = PreferredSlotService::validate($validated['preferred_slots']);
+        $submittedSlots = $validated['preferred_slots'] ?? [];
+        $hasSubmittedSlot = collect($submittedSlots)->contains(
+            fn (array $slot): bool => filled($slot['date'] ?? null) || filled($slot['time'] ?? null)
+        );
+        $validated['preferred_slots'] = $hasSubmittedSlot
+            ? PreferredSlotService::validate($submittedSlots)
+            : null;
 
         /*
          * Always obtain price, duration and free/paid status
@@ -241,13 +235,13 @@ class DoubtSessionBookingController extends Controller
                     'phone' => $validated['phone'],
 
                     'academic_year_id' =>
-                        $validated['academic_year_id'],
+                        $validated['academic_year_id'] ?? null,
 
                     'subject_id' =>
-                        $validated['subject_id'],
+                        $validated['subject_id'] ?? null,
 
-                    'topic' => $validated['topic'],
-                    'doubt' => $validated['doubt'],
+                    'topic' => $validated['topic'] ?? '',
+                    'doubt' => $validated['doubt'] ?? '',
                     'preferred_slots' => $validated['preferred_slots'],
 
                     'duration_minutes' =>
@@ -339,13 +333,13 @@ class DoubtSessionBookingController extends Controller
                 'phone' => $validated['phone'],
 
                 'academic_year_id' =>
-                    $validated['academic_year_id'],
+                    $validated['academic_year_id'] ?? null,
 
                 'subject_id' =>
-                    $validated['subject_id'],
+                    $validated['subject_id'] ?? null,
 
-                'topic' => $validated['topic'],
-                'doubt' => $validated['doubt'],
+                'topic' => $validated['topic'] ?? '',
+                'doubt' => $validated['doubt'] ?? '',
                 'preferred_slots' => $validated['preferred_slots'],
 
                 'duration_minutes' =>
@@ -394,9 +388,11 @@ class DoubtSessionBookingController extends Controller
                 'razorpay_order_id' => $order['id'],
                 'payment_error' => null,
             ]);
-        } catch (ServerError $exception) {
+        } catch (Throwable $exception) {
             $this->coupons->release($booking);
-            $httpStatus = (int) $exception->getHttpStatusCode();
+            $httpStatus = method_exists($exception, 'getHttpStatusCode')
+                ? (int) $exception->getHttpStatusCode()
+                : 0;
 
             Log::error('Razorpay order creation failed.', [
                 'booking_id' => $booking->id,
@@ -517,6 +513,7 @@ class DoubtSessionBookingController extends Controller
         }
 
         $razorpayKeyId = $this->razorpay->keyId();
+        $razorpayTestMode = str_starts_with($razorpayKeyId, 'rzp_test_');
         $booking->loadMissing('coupon');
 
         $amountSubunits =
@@ -549,6 +546,7 @@ class DoubtSessionBookingController extends Controller
             compact(
                 'booking',
                 'razorpayKeyId',
+                'razorpayTestMode',
                 'amountSubunits',
                 'siteName',
                 'paymentDescription'

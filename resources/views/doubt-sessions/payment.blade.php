@@ -29,6 +29,17 @@
                     </div>
                 @endif
 
+                @if($razorpayTestMode)
+                    <div class="payment-alert">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span>
+                            Test mode is active. Do not scan the UPI QR code with a real payment app.
+                            Use Razorpay's test UPI ID <strong>success@razorpay</strong> in Checkout,
+                            or configure live Razorpay keys for real payments.
+                        </span>
+                    </div>
+                @endif
+
                 <div
                     id="checkoutMessage"
                     class="payment-alert d-none"

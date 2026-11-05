@@ -161,6 +161,33 @@ class DoubtSessionPaymentTest extends TestCase
         $this->assertNotSame(DoubtSessionBooking::PAYMENT_PAID, $booking->fresh()->payment_status);
     }
 
+    public function test_one_on_one_booking_accepts_only_the_mandatory_contact_fields(): void
+    {
+        $user = User::factory()->create();
+        $this->mock(RazorpayService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('isConfigured')->once()->andReturn(true);
+            $mock->shouldReceive('createOrder')->once()->andReturn([
+                'id' => 'order_session_minimal',
+                'amount' => 100000,
+                'currency' => 'INR',
+                'status' => 'created',
+            ]);
+        });
+
+        $response = $this->actingAs($user)
+            ->post(route('doubt-sessions.store'), [
+                'phone' => '+911234567890',
+            ]);
+
+        $booking = DoubtSessionBooking::firstOrFail();
+        $response->assertRedirect(route('doubt-sessions.payment', $booking));
+        $this->assertNull($booking->academic_year_id);
+        $this->assertNull($booking->subject_id);
+        $this->assertSame('', $booking->topic);
+        $this->assertSame('', $booking->doubt);
+        $this->assertNull($booking->preferred_slots);
+    }
+
     private function coupon(string $type, float $value, string $code): Coupon
     {
         return Coupon::create([

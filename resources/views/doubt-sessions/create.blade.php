@@ -306,14 +306,12 @@
                                 <div class="booking-field">
                                     <label for="academicYear">
                                         Academic Year
-                                        <span>*</span>
                                     </label>
 
                                     <select
                                         name="academic_year_id"
                                         id="academicYear"
                                         class="@error('academic_year_id') is-invalid @enderror"
-                                        required
                                     >
                                         <option value="">
                                             Select Academic Year
@@ -342,14 +340,12 @@
                                 <div class="booking-field">
                                     <label for="subject">
                                         Subject
-                                        <span>*</span>
                                     </label>
 
                                     <select
                                         name="subject_id"
                                         id="subject"
                                         class="@error('subject_id') is-invalid @enderror"
-                                        required
                                     >
                                         <option value="">
                                             Select Subject
@@ -378,7 +374,6 @@
                                 <div class="booking-field booking-field-full">
                                     <label for="topic">
                                         Topic
-                                        <span>*</span>
                                     </label>
 
                                     <input
@@ -389,7 +384,6 @@
                                         class="@error('topic') is-invalid @enderror"
                                         placeholder="For example: Brachial Plexus"
                                         maxlength="255"
-                                        required
                                     >
 
                                     @error('topic')
@@ -404,7 +398,6 @@
                                 <div class="booking-field booking-field-full">
                                     <label for="doubt">
                                         Describe Your Doubt
-                                        <span>*</span>
                                     </label>
 
                                     <textarea
@@ -413,21 +406,17 @@
                                         rows="7"
                                         class="@error('doubt') is-invalid @enderror"
                                         placeholder="Explain the concept or question you need help with..."
-                                        maxlength="5000"
-                                        required
                                     >{{ old('doubt') }}</textarea>
 
                                     <div class="booking-field-footer">
                                         <small>
-                                            Add enough detail so the session can be
-                                            prepared properly.
+                                            Add enough detail so the session can be prepared properly.
                                         </small>
 
                                         <small>
                                             <span id="doubtCharacterCount">
                                                 {{ mb_strlen(old('doubt', '')) }}
                                             </span>
-                                            / 5,000 characters
                                         </small>
                                     </div>
 
@@ -1256,7 +1245,7 @@
                 const groupParticipantCount = document.getElementById('groupParticipantCount');
                 const groupTotal = document.getElementById('groupTotal');
                 const maxGroupParticipants = {{ (int) ($maximumParticipants ?? 0) }};
-                const preferredSlotInputs = Array.from(document.querySelectorAll('.preferred-slots-card input'));
+                const preferredSlotInputs = Array.from(document.querySelectorAll('.preferred-slots-card input[required]'));
                 const validatePreferredSlots = () => {
                     const combinations = preferredSlotInputs
                         .reduce((slots, input, index) => {
@@ -1285,9 +1274,10 @@
                     });
                     return valid;
                 };
+                const slotsRequired = preferredSlotInputs.length > 0;
                 preferredSlotInputs.forEach(input => input.addEventListener('change', validatePreferredSlots));
                 bookingForm?.addEventListener('submit', event => {
-                    if (!validatePreferredSlots()) event.preventDefault();
+                    if (slotsRequired && !validatePreferredSlots()) event.preventDefault();
                 });
                 const money = (value) => `₹${Number(value).toFixed(2)}`;
                 const renderGroupTotal = () => {
