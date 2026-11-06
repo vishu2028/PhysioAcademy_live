@@ -9,12 +9,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class GroupWebinarRequest extends Model
 {
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_CONFIRMED = 'confirmed';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     protected $fillable = [
         'organizer_id',
+        'submission_key',
         'reference',
         'organizer_name',
         'organizer_email',

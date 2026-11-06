@@ -32,13 +32,13 @@
                 <p class="text-secondary">{{ $participant->request->description }}</p>
                 <div class="row g-3 my-3">
                     <div class="col-md-6"><div class="bg-light rounded-3 p-3"><div class="small text-secondary">Webinar reference</div><strong>{{ $participant->request->reference }}</strong></div></div>
-                    <div class="col-md-6"><div class="bg-light rounded-3 p-3"><div class="small text-secondary">Organizer</div><strong>{{ $participant->request->organizer_name }}</strong><div class="small">{{ $participant->request->organizer_email }}</div></div></div>
+                    <div class="col-md-6"><div class="bg-light rounded-3 p-3"><div class="small text-secondary">Student Representative</div><strong>{{ $participant->request->organizer_name }}</strong>@if($participant->role === 'organizer')<div class="small">{{ $participant->email }}</div>@endif</div></div>
                     <div class="col-md-6"><div class="bg-light rounded-3 p-3"><div class="small text-secondary">Your participant email</div><strong>{{ $participant->email }}</strong></div></div>
-                    <div class="col-md-6"><div class="bg-light rounded-3 p-3"><div class="small text-secondary">{{ $organizerPayment ? ($participant->role === 'organizer' ? 'Group amount payable by organizer' : 'Your payment') : 'Your allocated amount' }}</div><strong id="participantAmount">
+                    <div class="col-md-6"><div class="bg-light rounded-3 p-3"><div class="small text-secondary">{{ $organizerPayment ? 'Combined group amount' : ($participant->role === 'organizer' ? 'Group amount payable by Student Representative' : 'Your allocated amount') }}</div><strong id="participantAmount">
                         @if($participant->request->is_free)
                             Free
                         @elseif($organizerPayment && $participant->role !== 'organizer')
-                            Included in organizer payment
+                            Included in Student Representative payment
                         @else
                             ₹{{ number_format($organizerPayment ? (float) $participant->request->total_amount : (float) $participant->amount_due, 2) }}
                         @endif
@@ -47,18 +47,18 @@
                 <p class="mb-3">Your payment status: <span class="badge {{ $participant->payment_status === 'paid' ? 'bg-success' : ($participant->payment_status === 'not_required' ? 'bg-info' : 'bg-warning text-dark') }}">{{ ucwords(str_replace('_', ' ', $participant->payment_status)) }}</span></p>
                 <div class="alert alert-primary rounded-3">
                     @if($organizerPayment)
-                        The group total is ₹{{ number_format((float) $participant->request->total_amount, 2) }}. The Organizer completes one payment for everyone included.
+                        The group total is ₹{{ number_format((float) $participant->request->total_amount, 2) }}. The Student Representative completes one payment for everyone included.
                     @else
                         The group total is ₹{{ number_format((float) $participant->request->total_amount, 2) }}. Each person pays their allocated share through their own invitation.
                     @endif
                 </div>
 
                 @if($participant->payment_status === 'paid' || $participant->payment_status === 'not_required')
-                    <div class="alert alert-success rounded-3 mb-0">{{ $organizerPayment ? 'The organizer’s group payment has been verified. Your place is included in this booking.' : ($participant->payment_status === 'paid' ? 'Your payment has been verified.' : 'No payment is required for this webinar.') }}</div>
+                    <div class="alert alert-success rounded-3 mb-0">{{ $participant->request->is_free ? 'No payment is required for this free webinar.' : ($organizerPayment ? 'The Student Representative’s group payment has been verified. Your place is included in this booking.' : ($participant->payment_status === 'paid' ? 'Your payment has been verified.' : 'No payment is required for this webinar.')) }}</div>
                 @elseif($participant->status === 'cancelled')
                     <div class="alert alert-danger rounded-3 mb-0">Your participant registration has been cancelled.</div>
                 @elseif($organizerPayment && $participant->role !== 'organizer')
-                    <div class="alert alert-warning rounded-3 mb-0">The Organizer’s group payment is pending. No separate payment is required from you.</div>
+                    <div class="alert alert-warning rounded-3 mb-0">The Student Representative’s group payment is pending. No separate payment is required from you.</div>
                 @else
                     <form method="POST" action="{{ route('group-webinars.payment.start', $token) }}" class="mt-4">
                         @csrf

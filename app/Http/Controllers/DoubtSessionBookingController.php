@@ -177,21 +177,15 @@ class DoubtSessionBookingController extends Controller
                 'nullable',
                 'string',
             ],
-            'preferred_slots' => ['nullable', 'array'],
-            'preferred_slots.*.date' => ['nullable', 'date_format:Y-m-d'],
-            'preferred_slots.*.time' => ['nullable', 'date_format:H:i'],
+            'preferred_slots' => ['required', 'array', 'size:3'],
+            'preferred_slots.*.date' => ['required', 'date_format:Y-m-d'],
+            'preferred_slots.*.time' => ['required', 'date_format:H:i'],
             'coupon_code' => ['nullable', 'string', 'max:64'],
         ], [
             'phone.regex' =>
                 'Please enter a valid phone number.',
         ]);
-        $submittedSlots = $validated['preferred_slots'] ?? [];
-        $hasSubmittedSlot = collect($submittedSlots)->contains(
-            fn (array $slot): bool => filled($slot['date'] ?? null) || filled($slot['time'] ?? null)
-        );
-        $validated['preferred_slots'] = $hasSubmittedSlot
-            ? PreferredSlotService::validate($submittedSlots)
-            : null;
+        $validated['preferred_slots'] = PreferredSlotService::validate($validated['preferred_slots']);
 
         /*
          * Always obtain price, duration and free/paid status

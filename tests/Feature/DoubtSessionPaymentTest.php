@@ -177,6 +177,10 @@ class DoubtSessionPaymentTest extends TestCase
         $response = $this->actingAs($user)
             ->post(route('doubt-sessions.store'), [
                 'phone' => '+911234567890',
+                'preferred_slots' => collect([1, 2, 3])->map(fn (int $days): array => [
+                    'date' => now()->addDays($days)->format('Y-m-d'),
+                    'time' => '18:00',
+                ])->all(),
             ]);
 
         $booking = DoubtSessionBooking::firstOrFail();
@@ -185,7 +189,7 @@ class DoubtSessionPaymentTest extends TestCase
         $this->assertNull($booking->subject_id);
         $this->assertSame('', $booking->topic);
         $this->assertSame('', $booking->doubt);
-        $this->assertNull($booking->preferred_slots);
+        $this->assertCount(3, $booking->preferred_slots);
     }
 
     private function coupon(string $type, float $value, string $code): Coupon

@@ -4,8 +4,8 @@ namespace Tests\Feature;
 
 use App\Jobs\SendGroupWebinarEmail;
 use App\Mail\UserNotificationMail;
-use App\Models\Coupon;
 use App\Models\AcademicYear;
+use App\Models\Coupon;
 use App\Models\GroupWebinarAdjustmentRequest;
 use App\Models\GroupWebinarParticipant;
 use App\Models\GroupWebinarParticipantPayment;
@@ -13,6 +13,7 @@ use App\Models\GroupWebinarRequest;
 use App\Models\Setting;
 use App\Models\Subject;
 use App\Models\User;
+use App\Services\GroupWebinarEmailService;
 use App\Services\GroupWebinarPricing;
 use App\Services\RazorpayService;
 use Illuminate\Database\Schema\Blueprint;
@@ -117,11 +118,34 @@ class GroupWebinarBookingTest extends TestCase
             'email_normalized' => 'guest@example.com',
             'user_id' => null,
         ]);
-        Queue::assertPushed(SendGroupWebinarEmail::class, 4);
+        Queue::assertPushed(SendGroupWebinarEmail::class, 3);
 
         $participant = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
         $delivery = $participant->emailDeliveries()->firstOrFail();
+        $this->assertSame('Your Group Webinar Booking Request – PhysioSource', $delivery->subject);
+        $this->assertStringContainsString('booking request', strtolower($delivery->message));
+        $this->assertStringContainsString('not confirmed until it has been officially approved', $delivery->message);
+        $this->assertStringContainsString('Student Representative is responsible for making the combined group payment', $delivery->message);
+        $this->assertStringNotContainsString('organizer@example.com', $delivery->message);
+        $this->assertStringNotContainsString('second@example.com', $delivery->message);
+        $organizerDelivery = $groupRequest->participants->firstWhere('role', 'organizer')->emailDeliveries()->firstOrFail();
+        $this->assertSame('Your Group Webinar Booking Request – PhysioSource', $organizerDelivery->subject);
+        $this->assertStringContainsString($groupRequest->reference, $organizerDelivery->message);
+        $this->assertStringContainsString('one combined group payment of ₹100.00', $organizerDelivery->message);
+        $this->assertStringNotContainsString('guest@example.com', $organizerDelivery->message);
+        $this->assertStringNotContainsString('second@example.com', $organizerDelivery->message);
+        $allRequestDeliveries = $groupRequest->participants->flatMap->emailDeliveries;
+        $this->assertCount(3, $allRequestDeliveries);
+        $this->assertSame(
+            ['guest@example.com', 'organizer@example.com', 'second@example.com'],
+            $allRequestDeliveries->pluck('recipient')->sort()->values()->all()
+        );
+        $this->assertSame(0, $allRequestDeliveries
+            ->where('notification_type', 'group_booking_confirmation')->count());
         $this->assertNotSame($participant->invitation_token_hash, $delivery->action_url);
+        $token = basename(parse_url($delivery->action_url, PHP_URL_PATH));
+        app(GroupWebinarEmailService::class)->sendBookingRequestConfirmation($participant, $token, false, true);
+        Queue::assertPushed(SendGroupWebinarEmail::class, 3);
         Mail::fake();
         $emailJob = new SendGroupWebinarEmail($delivery->id);
         $emailJob->handle();
@@ -132,10 +156,100 @@ class GroupWebinarBookingTest extends TestCase
         $this->get($delivery->action_url)
             ->assertOk()
             ->assertSee('guest@example.com')
-            ->assertSee('₹33.33')
+            ->assertSee('Included in Student Representative payment')
             ->assertSee('The group total is ₹100.00')
             ->assertSee($groupRequest->reference)
+            ->assertDontSee('organizer@example.com')
+            ->assertDontSee('second@example.com')
             ->assertDontSee('group_webinar_participants/'.$participant->id);
+    }
+
+    public function test_retried_booking_submission_reuses_request_without_duplicate_email_jobs(): void
+    {
+        $organizer = User::factory()->create(['email' => 'organizer@example.com']);
+        $payload = $this->requestData([
+            ['email' => 'guest@example.com'],
+        ]);
+
+        $this->actingAs($organizer)->post(route('group-webinars.store'), $payload)->assertRedirect();
+        $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
+        $organizerDelivery = $groupRequest->participants->firstWhere('role', 'organizer')
+            ->emailDeliveries->firstWhere('notification_type', 'group_payment_link');
+        $invitationToken = basename(parse_url($organizerDelivery->action_url, PHP_URL_PATH));
+
+        $this->post(route('group-webinars.store'), $payload)
+            ->assertRedirect(route('group-webinars.invitation', $invitationToken));
+
+        $this->assertDatabaseCount('group_webinar_requests', 1);
+        $this->assertSame(1, $organizer->notifications()->count());
+        $this->assertSame(2, $groupRequest->participants()->count());
+        $this->assertSame(2, $groupRequest->participants()->withCount('emailDeliveries')->get()->sum('email_deliveries_count'));
+        Queue::assertPushed(SendGroupWebinarEmail::class, 2);
+    }
+
+    public function test_booking_email_queue_failure_is_reported_without_claiming_delivery(): void
+    {
+        $organizer = User::factory()->create(['email' => 'organizer@example.com']);
+        $this->mock(GroupWebinarEmailService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('notifyInApp')->once();
+            $mock->shouldReceive('sendBookingRequestConfirmation')
+                ->twice()
+                ->andThrow(new \RuntimeException('Queue unavailable'));
+        });
+
+        $this->actingAs($organizer)
+            ->post(route('group-webinars.store'), $this->requestData([
+                ['email' => 'guest@example.com'],
+            ]))
+            ->assertRedirect()
+            ->assertSessionHas('webinar_error')
+            ->assertSessionMissing('success');
+
+        $this->assertDatabaseCount('group_webinar_requests', 1);
+        Queue::assertNothingPushed();
+    }
+
+    public function test_free_group_booking_sends_individual_request_emails_without_payment_amounts(): void
+    {
+        Setting::where('key', 'webinar_group_is_free')->update(['value' => '1']);
+        $organizer = User::factory()->create(['email' => 'organizer@example.com']);
+        $this->actingAs($organizer)->get(route('group-webinars.create'))
+            ->assertOk()
+            ->assertSee('Submit Free Booking')
+            ->assertSee('This Group Webinar is free; no payment is required.')
+            ->assertDontSee('Continue to Group Payment');
+
+        $this->actingAs($organizer)->post(route('group-webinars.store'), $this->requestData([
+            ['email' => 'guest@example.com'],
+        ]))->assertRedirect();
+
+        $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
+        $this->assertTrue($groupRequest->is_free);
+        $this->assertSame(0.0, (float) $groupRequest->total_amount);
+        $this->assertSame(2, $groupRequest->participants->count());
+
+        foreach ($groupRequest->participants as $participant) {
+            $delivery = $participant->emailDeliveries->sole();
+            $this->assertSame('Your Group Webinar Booking Request – PhysioSource', $delivery->subject);
+            $this->assertStringContainsString('This session is free; no payment is required.', $delivery->message);
+            $this->assertStringNotContainsString('₹', $delivery->message);
+            $this->assertStringNotContainsString('payable', strtolower($delivery->message));
+        }
+
+        $guest = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
+        $invitationToken = basename(parse_url($guest->emailDeliveries->sole()->action_url, PHP_URL_PATH));
+        $this->get(route('group-webinars.invitation', $invitationToken))
+            ->assertOk()
+            ->assertSee('No payment is required for this free webinar.')
+            ->assertDontSee('group payment has been verified');
+
+        $this->assertSame(
+            GroupWebinarParticipant::PAYMENT_NOT_REQUIRED,
+            $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com')->payment_status
+        );
+        $this->assertSame(0, $groupRequest->participants->flatMap->emailDeliveries
+            ->where('notification_type', 'group_payment_link')->count());
+        Queue::assertPushed(SendGroupWebinarEmail::class, 2);
     }
 
     public function test_group_booking_form_requires_and_links_the_terms_checkbox(): void
@@ -152,35 +266,25 @@ class GroupWebinarBookingTest extends TestCase
             ->assertDontSee('(optional)');
     }
 
-    public function test_group_booking_accepts_empty_and_partial_preferred_slots(): void
+    public function test_group_booking_requires_three_complete_preferred_slots(): void
     {
         $organizer = User::factory()->create(['email' => 'organizer@example.com']);
-        $slotVariants = [
-            [],
-            [['date' => now()->addDay()->format('Y-m-d'), 'time' => '18:00']],
-            [[], ['date' => now()->addDays(2)->format('Y-m-d'), 'time' => '19:00']],
-            [[], [], ['date' => now()->addDays(3)->format('Y-m-d'), 'time' => '20:00']],
-            [
-                ['date' => now()->addDay()->format('Y-m-d'), 'time' => '18:00'],
-                ['date' => now()->addDays(2)->format('Y-m-d'), 'time' => '19:00'],
-                ['date' => now()->addDays(3)->format('Y-m-d'), 'time' => '20:00'],
-            ],
+        $data = [
+            'submission_key' => (string) Str::uuid(),
+            'organizer_whatsapp' => '+919876543210',
+            'terms_accepted' => '1',
         ];
+        $this->actingAs($organizer)->post(route('group-webinars.store'), $data)
+            ->assertSessionHasErrors('preferred_slots');
 
-        foreach ($slotVariants as $slots) {
-            $data = [
-                'organizer_whatsapp' => '+919876543210',
-                'terms_accepted' => '1',
-            ];
-            if ($slots !== []) {
-                $data['preferred_slots'] = $slots;
-            }
-
-            $this->actingAs($organizer)
-                ->post(route('group-webinars.store'), $data)
-                ->assertRedirect()
-                ->assertSessionHasNoErrors();
-        }
+        $data['preferred_slots'] = [
+            ['date' => now()->addDay()->format('Y-m-d'), 'time' => '18:00'],
+            ['date' => now()->addDays(2)->format('Y-m-d'), 'time' => '19:00'],
+            ['date' => now()->addDays(3)->format('Y-m-d'), 'time' => '20:00'],
+        ];
+        $this->actingAs($organizer)->post(route('group-webinars.store'), $data)
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
     }
 
     public function test_duplicate_emails_and_capacity_are_validated_including_the_organizer(): void
@@ -268,7 +372,20 @@ class GroupWebinarBookingTest extends TestCase
 
         $this->assertSame('paid', $organizerParticipant->fresh()->payment_status);
         $this->assertSame('paid', $guest->fresh()->payment_status);
-        $this->assertSame(3, $groupRequest->participants()->whereHas('emailDeliveries', fn ($query) => $query->where('notification_type', 'group_booking_confirmation'))->count());
+        $confirmations = $groupRequest->participants()
+            ->with(['emailDeliveries' => fn ($query) => $query->where('notification_type', 'group_booking_confirmation')])
+            ->get()
+            ->map(fn (GroupWebinarParticipant $participant) => $participant->emailDeliveries->sole());
+        $this->assertCount(3, $confirmations);
+        $this->assertSame(
+            ['guest@example.com', 'organizer@example.com', 'second@example.com'],
+            $confirmations->pluck('recipient')->sort()->values()->all()
+        );
+        foreach ($confirmations as $delivery) {
+            $this->assertStringContainsString('combined payment of ₹100.00 has been verified', $delivery->message);
+            $this->assertStringNotContainsString('guest@example.com', $delivery->message);
+            $this->assertStringNotContainsString('second@example.com', $delivery->message);
+        }
         Queue::assertPushed(SendGroupWebinarEmail::class, 6);
     }
 
@@ -292,8 +409,10 @@ class GroupWebinarBookingTest extends TestCase
     {
         $organizer = User::factory()->create(['email' => 'organizer@example.com']);
         $data = [
+            'submission_key' => (string) Str::uuid(),
             'organizer_whatsapp' => '+919876543210',
             'terms_accepted' => '1',
+            'preferred_slots' => $this->futureSlots(),
         ];
 
         $this->actingAs($organizer)->post(route('group-webinars.store'), $data)
@@ -301,8 +420,8 @@ class GroupWebinarBookingTest extends TestCase
 
         $groupRequest = GroupWebinarRequest::firstOrFail();
         $this->assertSame('', $groupRequest->topic);
-        $this->assertSame('', $groupRequest->description);
-        $this->assertNull($groupRequest->preferred_slots);
+        $this->assertStringContainsString('Preferred date and time slots:', $groupRequest->description);
+        $this->assertCount(3, $groupRequest->preferred_slots);
         $this->assertSame(1, $groupRequest->participant_count);
     }
 
@@ -312,9 +431,11 @@ class GroupWebinarBookingTest extends TestCase
         $description = str_repeat('Long clinical discussion. ', 400);
 
         $this->actingAs($organizer)->post(route('group-webinars.store'), [
+            'submission_key' => (string) Str::uuid(),
             'organizer_whatsapp' => '+919876543210',
             'description' => $description,
             'terms_accepted' => '1',
+            'preferred_slots' => $this->futureSlots(),
         ])->assertRedirect();
 
         $storedDescription = GroupWebinarRequest::firstOrFail()->description;
@@ -327,8 +448,10 @@ class GroupWebinarBookingTest extends TestCase
         $organizer = User::factory()->create(['email' => 'not-an-email']);
 
         $this->actingAs($organizer)->post(route('group-webinars.store'), [
+            'submission_key' => (string) Str::uuid(),
             'organizer_whatsapp' => '+919876543210',
             'terms_accepted' => '1',
+            'preferred_slots' => $this->futureSlots(),
         ])->assertSessionHasErrors('organizer_email');
 
         $this->assertDatabaseCount('group_webinar_requests', 0);
@@ -346,43 +469,34 @@ class GroupWebinarBookingTest extends TestCase
         $this->assertDatabaseCount('group_webinar_requests', 0);
     }
 
-    public function test_each_invited_participant_must_accept_before_payment(): void
+    public function test_organizer_policy_acceptance_is_saved_and_used_for_combined_payment(): void
     {
         $organizer = User::factory()->create(['email' => 'organizer@example.com']);
         $this->mock(RazorpayService::class, function (MockInterface $mock): void {
             $mock->shouldReceive('isConfigured')->andReturn(true);
             $mock->shouldReceive('createGroupWebinarParticipantOrder')
                 ->once()
-                ->andReturn(['id' => 'order_guest_consent', 'amount' => 5000, 'currency' => 'INR', 'status' => 'created']);
+                ->andReturn(['id' => 'order_guest_consent', 'amount' => 10000, 'currency' => 'INR', 'status' => 'created']);
         });
 
         $this->actingAs($organizer)->post(route('group-webinars.store'), $this->requestData([
             ['email' => 'guest@example.com'],
         ]))->assertRedirect();
 
+        $representative = GroupWebinarParticipant::where('role', 'organizer')->firstOrFail();
         $guest = GroupWebinarParticipant::where('email_normalized', 'guest@example.com')->firstOrFail();
-        $this->assertSame(50.0, (float) $guest->amount);
-        $this->assertFalse($guest->request->is_free);
-        $token = basename(parse_url($guest->emailDeliveries()->firstOrFail()->action_url, PHP_URL_PATH));
-        $this->app['auth']->guard()->logout();
-        $this->get(route('group-webinars.invitation', $token))
-            ->assertOk()
-            ->assertSee('The session fee is based on the current hourly rate displayed on the booking page.')
-            ->assertSee('Refunds for individual dropouts are strictly limited to groups larger than 10.')
-            ->assertSee('The final session date and time are not locked until officially confirmed by the admin via WhatsApp.')
-            ->assertSee('I have read and agree to the Webinar Terms &amp; Conditions and Privacy Policy.', false);
+        $this->assertSame(100.0, (float) $representative->amount);
+        $this->assertSame(0.0, (float) $guest->amount);
+        $token = basename(parse_url($representative->emailDeliveries()->firstOrFail()->action_url, PHP_URL_PATH));
+        $this->assertNotNull($representative->terms_accepted_at);
 
-        $this->post(route('group-webinars.payment.start', $token))
-            ->assertSessionHasErrors('terms_accepted');
-        $this->assertSame(0, $guest->payments()->count());
-
-        $paymentResponse = $this->post(route('group-webinars.payment.start', $token), ['terms_accepted' => '1']);
+        $paymentResponse = $this->post(route('group-webinars.payment.start', $token));
         $paymentResponse->assertSessionHasNoErrors()->assertRedirect();
         $this->assertFalse(session()->has('webinar_error'));
-        $this->assertSame(1, $guest->payments()->count());
-        $this->assertSame(50.0, (float) $guest->payments()->firstOrFail()->amount);
-        $this->assertNotNull($guest->fresh()->terms_accepted_at);
-        $this->assertSame(config('webinar.group_policy_version'), $guest->fresh()->policy_version);
+        $this->assertSame(1, $representative->payments()->count());
+        $this->assertSame(100.0, (float) $representative->payments()->firstOrFail()->amount);
+        $this->assertNotNull($representative->fresh()->terms_accepted_at);
+        $this->assertSame(config('webinar.group_policy_version'), $representative->fresh()->policy_version);
     }
 
     public function test_my_webinars_is_private_and_group_meeting_access_requires_payment_and_confirmation(): void
@@ -562,7 +676,7 @@ class GroupWebinarBookingTest extends TestCase
         ]);
     }
 
-    public function test_each_participant_uses_an_independent_coupon_quote_and_razorpay_order(): void
+    public function test_coupon_is_applied_to_the_combined_group_total_and_one_razorpay_order(): void
     {
         $organizer = User::factory()->create(['email' => 'organizer@example.com']);
         $coupon = Coupon::create([
@@ -577,8 +691,8 @@ class GroupWebinarBookingTest extends TestCase
             $mock->shouldReceive('isConfigured')->andReturn(true);
             $mock->shouldReceive('createGroupWebinarParticipantOrder')
                 ->once()
-                ->withArgs(fn ($payment) => (float) $payment->amount === 40.0)
-                ->andReturn(['id' => 'order_guest_1', 'amount' => 4000, 'currency' => 'INR', 'status' => 'created']);
+                ->withArgs(fn ($payment) => (float) $payment->amount === 80.0)
+                ->andReturn(['id' => 'order_guest_1', 'amount' => 8000, 'currency' => 'INR', 'status' => 'created']);
         });
 
         $this->actingAs($organizer)->post(route('group-webinars.store'), $this->requestData([
@@ -586,22 +700,21 @@ class GroupWebinarBookingTest extends TestCase
         ]))->assertRedirect();
 
         $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
-        $guest = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
-        $token = basename(parse_url($guest->emailDeliveries->first()->action_url, PHP_URL_PATH));
+        $representative = $groupRequest->participants->firstWhere('role', 'organizer');
+        $token = basename(parse_url($representative->emailDeliveries->first()->action_url, PHP_URL_PATH));
         $response = $this->post(route('group-webinars.payment.start', $token), ['coupon_code' => $coupon->code, 'terms_accepted' => '1']);
 
-        $payment = $guest->payments()->firstOrFail();
-        $this->assertSame(40.0, (float) $payment->amount);
-        $this->assertSame(10.0, (float) $payment->discount_amount);
+        $payment = $representative->payments()->firstOrFail();
+        $this->assertSame(80.0, (float) $payment->amount);
+        $this->assertSame(20.0, (float) $payment->discount_amount);
         $this->assertSame('order_guest_1', $payment->razorpay_order_id);
-        $this->assertSame(1, $guest->payments()->count());
-        $this->assertSame(0, $groupRequest->participants->firstWhere('role', 'organizer')->payments()->count());
-        $this->assertSame('pending', $groupRequest->participants->firstWhere('role', 'organizer')->payment_status);
+        $this->assertSame(1, $representative->payments()->count());
+        $this->assertSame('pending', $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com')->payment_status);
         $this->assertDatabaseHas('coupon_redemptions', [
             'coupon_id' => $coupon->id,
             'redeemable_type' => $payment::class,
             'redeemable_id' => $payment->id,
-            'email' => 'guest@example.com',
+            'email' => 'organizer@example.com',
             'status' => 'reserved',
         ]);
         $response->assertRedirect(route('group-webinars.payment', ['token' => $token, 'payment' => $payment->public_reference]));
@@ -621,10 +734,10 @@ class GroupWebinarBookingTest extends TestCase
             $mock->shouldReceive('isConfigured')->andReturn(true);
             $mock->shouldReceive('createGroupWebinarParticipantOrder')
                 ->once()
-                ->withArgs(fn ($payment) => (float) $payment->amount === 30.0)
-                ->andReturn(['id' => 'order_guest_fixed', 'amount' => 3000, 'currency' => 'INR', 'status' => 'created']);
+                ->withArgs(fn ($payment) => (float) $payment->amount === 80.0)
+                ->andReturn(['id' => 'order_guest_fixed', 'amount' => 8000, 'currency' => 'INR', 'status' => 'created']);
             $mock->shouldReceive('keyId')->once()->andReturn('rzp_test_public');
-            $mock->shouldReceive('amountToSubunits')->once()->with(30)->andReturn(3000);
+            $mock->shouldReceive('amountToSubunits')->once()->with(80)->andReturn(8000);
         });
 
         $this->actingAs($organizer)->post(route('group-webinars.store'), $this->requestData([
@@ -632,26 +745,26 @@ class GroupWebinarBookingTest extends TestCase
         ]))->assertRedirect();
 
         $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
-        $guest = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
-        $token = basename(parse_url($guest->emailDeliveries->first()->action_url, PHP_URL_PATH));
+        $representative = $groupRequest->participants->firstWhere('role', 'organizer');
+        $token = basename(parse_url($representative->emailDeliveries->first()->action_url, PHP_URL_PATH));
         $this->post(route('group-webinars.payment.start', $token), ['coupon_code' => $coupon->code, 'terms_accepted' => '1'])
             ->assertRedirect();
 
-        $payment = $guest->payments()->firstOrFail();
-        $this->assertSame(50.0, (float) $payment->original_amount);
+        $payment = $representative->payments()->firstOrFail();
+        $this->assertSame(100.0, (float) $payment->original_amount);
         $this->assertSame(20.0, (float) $payment->discount_amount);
-        $this->assertSame(30.0, (float) $payment->amount);
+        $this->assertSame(80.0, (float) $payment->amount);
         $this->assertSame('order_guest_fixed', $payment->razorpay_order_id);
-        $guest->update(['invitation_expires_at' => now()->subMinute()]);
+        $representative->update(['invitation_expires_at' => now()->subMinute()]);
         $this->get(route('group-webinars.payment', ['token' => $token, 'payment' => $payment->public_reference]))
             ->assertOk()
             ->assertSee('LESS20')
             ->assertSee('₹20.00 fixed discount')
-            ->assertSee('₹30.00 INR')
-            ->assertSee('amount: 3000', false);
+            ->assertSee('₹80.00 INR')
+            ->assertSee('amount: 8000', false);
     }
 
-    public function test_guest_coupon_preview_returns_authoritative_amounts_without_reserving_coupon(): void
+    public function test_group_coupon_preview_returns_combined_amounts_without_reserving_coupon(): void
     {
         $organizer = User::factory()->create(['email' => 'organizer@example.com']);
         $coupon = Coupon::create([
@@ -667,35 +780,35 @@ class GroupWebinarBookingTest extends TestCase
         ]))->assertRedirect();
 
         $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
-        $guest = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
-        $token = basename(parse_url($guest->emailDeliveries->first()->action_url, PHP_URL_PATH));
+        $representative = $groupRequest->participants->firstWhere('role', 'organizer');
+        $token = basename(parse_url($representative->emailDeliveries->first()->action_url, PHP_URL_PATH));
 
         $this->postJson(route('group-webinars.coupon.quote', $token), ['code' => $coupon->code])
             ->assertOk()
             ->assertJson([
                 'valid' => true,
                 'code' => $coupon->code,
-                'original_amount' => 50,
+                'original_amount' => 100,
                 'discount_description' => '20% discount',
-                'discount_amount' => 10,
-                'final_amount' => 40,
+                'discount_amount' => 20,
+                'final_amount' => 80,
             ]);
 
         $this->assertDatabaseCount('coupon_redemptions', 0);
     }
 
-    public function test_verified_payment_updates_only_the_invited_participant(): void
+    public function test_verified_organizer_payment_confirms_all_group_participants(): void
     {
         $organizer = User::factory()->create(['email' => 'organizer@example.com']);
         $this->mock(RazorpayService::class, function (MockInterface $mock): void {
             $mock->shouldReceive('isConfigured')->andReturn(true);
             $mock->shouldReceive('createGroupWebinarParticipantOrder')
-                ->andReturn(['id' => 'order_guest_2', 'amount' => 5000, 'currency' => 'INR', 'status' => 'created']);
+                ->andReturn(['id' => 'order_guest_2', 'amount' => 10000, 'currency' => 'INR', 'status' => 'created']);
             $mock->shouldReceive('verifyGroupWebinarParticipantSignature')->once();
             $mock->shouldReceive('fetchPayment')->once()->andReturn([
                 'id' => 'pay_guest_2',
                 'order_id' => 'order_guest_2',
-                'amount' => 5000,
+                'amount' => 10000,
                 'currency' => 'INR',
                 'status' => 'captured',
             ]);
@@ -707,21 +820,20 @@ class GroupWebinarBookingTest extends TestCase
         ]))->assertRedirect();
 
         $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
+        $representative = $groupRequest->participants->firstWhere('role', 'organizer');
         $guest = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
-        $token = basename(parse_url($guest->emailDeliveries->first()->action_url, PHP_URL_PATH));
+        $token = basename(parse_url($representative->emailDeliveries->first()->action_url, PHP_URL_PATH));
         $this->post(route('group-webinars.payment.start', $token), ['terms_accepted' => '1'])->assertRedirect();
-        $payment = $guest->payments()->firstOrFail();
+        $payment = $representative->payments()->firstOrFail();
 
         $this->post(route('group-webinars.payment.verify', ['token' => $token, 'payment' => $payment->public_reference]), [
             'razorpay_payment_id' => 'pay_guest_2',
             'razorpay_signature' => 'verified-signature',
         ])->assertRedirect(route('group-webinars.invitation', $token));
 
+        $this->assertSame('paid', $representative->fresh()->payment_status);
         $this->assertSame('paid', $guest->fresh()->payment_status);
         $this->assertSame('paid', $payment->fresh()->status);
-        $organizerParticipant = $groupRequest->participants->firstWhere('role', 'organizer');
-        $this->assertSame('pending', $organizerParticipant->fresh()->payment_status);
-        $this->assertNull($organizerParticipant->payments()->first());
         $this->assertSame('pay_guest_2', $payment->fresh()->razorpay_payment_id);
     }
 
@@ -731,12 +843,12 @@ class GroupWebinarBookingTest extends TestCase
         $this->mock(RazorpayService::class, function (MockInterface $mock): void {
             $mock->shouldReceive('isConfigured')->andReturn(true);
             $mock->shouldReceive('createGroupWebinarParticipantOrder')
-                ->andReturn(['id' => 'order_guest_authorized', 'amount' => 5000, 'currency' => 'INR', 'status' => 'created']);
+                ->andReturn(['id' => 'order_guest_authorized', 'amount' => 10000, 'currency' => 'INR', 'status' => 'created']);
             $mock->shouldReceive('verifyGroupWebinarParticipantSignature')->once();
             $mock->shouldReceive('fetchPayment')->once()->andReturn([
                 'id' => 'pay_guest_authorized',
                 'order_id' => 'order_guest_authorized',
-                'amount' => 5000,
+                'amount' => 10000,
                 'currency' => 'INR',
                 'status' => 'authorized',
             ]);
@@ -744,7 +856,7 @@ class GroupWebinarBookingTest extends TestCase
             $mock->shouldReceive('capturePayment')->once()->andReturn([
                 'id' => 'pay_guest_authorized',
                 'order_id' => 'order_guest_authorized',
-                'amount' => 5000,
+                'amount' => 10000,
                 'currency' => 'INR',
                 'status' => 'captured',
             ]);
@@ -754,10 +866,11 @@ class GroupWebinarBookingTest extends TestCase
             ['email' => 'guest@example.com'],
         ]))->assertRedirect();
         $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
+        $representative = $groupRequest->participants->firstWhere('role', 'organizer');
         $guest = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
-        $token = basename(parse_url($guest->emailDeliveries->first()->action_url, PHP_URL_PATH));
+        $token = basename(parse_url($representative->emailDeliveries->first()->action_url, PHP_URL_PATH));
         $this->post(route('group-webinars.payment.start', $token), ['terms_accepted' => '1'])->assertRedirect();
-        $payment = $guest->payments()->firstOrFail();
+        $payment = $representative->payments()->firstOrFail();
 
         $this->post(route('group-webinars.payment.verify', [
             'token' => $token,
@@ -767,6 +880,7 @@ class GroupWebinarBookingTest extends TestCase
             'razorpay_signature' => 'verified-signature',
         ])->assertRedirect(route('group-webinars.invitation', $token));
 
+        $this->assertSame('paid', $representative->fresh()->payment_status);
         $this->assertSame('paid', $guest->fresh()->payment_status);
         $this->assertSame('paid', $payment->fresh()->status);
     }
@@ -778,13 +892,13 @@ class GroupWebinarBookingTest extends TestCase
             $mock->shouldReceive('isConfigured')->andReturn(true);
             $mock->shouldReceive('createGroupWebinarParticipantOrder')
                 ->andReturn(
-                    ['id' => 'order_guest_failed', 'amount' => 5000, 'currency' => 'INR', 'status' => 'created'],
-                    ['id' => 'order_guest_retry', 'amount' => 5000, 'currency' => 'INR', 'status' => 'created']
+                    ['id' => 'order_guest_failed', 'amount' => 10000, 'currency' => 'INR', 'status' => 'created'],
+                    ['id' => 'order_guest_retry', 'amount' => 10000, 'currency' => 'INR', 'status' => 'created']
                 );
             $mock->shouldReceive('fetchPayment')->once()->with('pay_guest_failed')->andReturn([
                 'id' => 'pay_guest_failed',
                 'order_id' => 'order_guest_failed',
-                'amount' => 5000,
+                'amount' => 10000,
                 'currency' => 'INR',
                 'status' => 'failed',
             ]);
@@ -795,10 +909,11 @@ class GroupWebinarBookingTest extends TestCase
             ['email' => 'guest@example.com'],
         ]))->assertRedirect();
         $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
+        $representative = $groupRequest->participants->firstWhere('role', 'organizer');
         $guest = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
-        $token = basename(parse_url($guest->emailDeliveries->first()->action_url, PHP_URL_PATH));
+        $token = basename(parse_url($representative->emailDeliveries->first()->action_url, PHP_URL_PATH));
         $this->post(route('group-webinars.payment.start', $token), ['terms_accepted' => '1'])->assertRedirect();
-        $payment = $guest->payments()->firstOrFail();
+        $payment = $representative->payments()->firstOrFail();
 
         $this->post(route('group-webinars.payment.failure', [
             'token' => $token,
@@ -808,10 +923,66 @@ class GroupWebinarBookingTest extends TestCase
 
         $this->assertSame('failed', $payment->fresh()->status);
         $this->assertSame('pay_guest_failed', $payment->fresh()->razorpay_payment_id);
-        $this->assertSame('failed', $guest->fresh()->payment_status);
-        $this->assertSame('pending', $groupRequest->participants->firstWhere('role', 'organizer')->fresh()->payment_status);
+        $this->assertSame('failed', $representative->fresh()->payment_status);
+        $this->assertSame('pending', $guest->fresh()->payment_status);
+        $this->assertSame(0, $groupRequest->participants()
+            ->whereHas('emailDeliveries', fn ($query) => $query->where('notification_type', 'group_booking_confirmation'))
+            ->count());
         $this->post(route('group-webinars.payment.start', $token), ['terms_accepted' => '1'])->assertRedirect();
-        $this->assertSame(2, $guest->payments()->count());
+        $this->assertSame(2, $representative->payments()->count());
+    }
+
+    public function test_payment_captured_after_cancellation_does_not_confirm_or_restore_the_booking(): void
+    {
+        $organizer = User::factory()->create(['email' => 'organizer@example.com']);
+        $this->mock(RazorpayService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('isConfigured')->andReturn(true);
+            $mock->shouldReceive('createGroupWebinarParticipantOrder')
+                ->once()
+                ->andReturn(['id' => 'order_cancelled', 'amount' => 10000, 'currency' => 'INR', 'status' => 'created']);
+            $mock->shouldReceive('verifyGroupWebinarParticipantSignature')->once();
+            $mock->shouldReceive('fetchPayment')->once()->andReturn([
+                'id' => 'pay_cancelled',
+                'order_id' => 'order_cancelled',
+                'amount' => 10000,
+                'currency' => 'INR',
+                'status' => 'captured',
+            ]);
+            $mock->shouldReceive('assertPaymentMatchesGroupWebinarParticipant')->once();
+        });
+
+        $this->actingAs($organizer)->post(route('group-webinars.store'), $this->requestData([
+            ['email' => 'guest@example.com'],
+        ]))->assertRedirect();
+        $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
+        $representative = $groupRequest->participants->firstWhere('role', 'organizer');
+        $guest = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
+        $token = basename(parse_url($representative->emailDeliveries->first()->action_url, PHP_URL_PATH));
+        $this->post(route('group-webinars.payment.start', $token), ['terms_accepted' => '1'])->assertRedirect();
+        $payment = $representative->payments()->firstOrFail();
+
+        $admin = User::factory()->create();
+        $admin->assignRole(Role::findOrCreate('admin', 'web'));
+        $this->actingAs($admin, 'admin')->patch(route('admin.group-webinars.update', $groupRequest), [
+            'status' => 'cancelled',
+            'admin_response' => 'Request cancelled before payment verification.',
+        ])->assertRedirect();
+
+        $this->post(route('group-webinars.payment.verify', ['token' => $token, 'payment' => $payment->public_reference]), [
+            'razorpay_payment_id' => 'pay_cancelled',
+            'razorpay_signature' => 'verified-signature',
+        ])->assertRedirect(route('webinars.my'));
+
+        $this->assertSame('cancelled', $groupRequest->fresh()->status);
+        $this->assertSame(GroupWebinarParticipant::STATUS_CANCELLED, $representative->fresh()->status);
+        $this->assertSame(GroupWebinarParticipant::STATUS_CANCELLED, $guest->fresh()->status);
+        $this->assertSame(GroupWebinarParticipantPayment::STATUS_PAID, $payment->fresh()->status);
+        $this->assertSame(0, $groupRequest->participants()
+            ->whereHas('emailDeliveries', fn ($query) => $query->where('notification_type', 'group_booking_confirmation'))
+            ->count());
+        $this->assertSame(1, $representative->emailDeliveries()
+            ->where('notification_type', 'payment_after_cancellation')
+            ->count());
     }
 
     public function test_dismissed_group_checkout_stays_unpaid_and_reuses_the_same_order_on_retry(): void
@@ -821,17 +992,18 @@ class GroupWebinarBookingTest extends TestCase
             $mock->shouldReceive('isConfigured')->once()->andReturn(true);
             $mock->shouldReceive('createGroupWebinarParticipantOrder')
                 ->once()
-                ->andReturn(['id' => 'order_guest_cancelled', 'amount' => 5000, 'currency' => 'INR', 'status' => 'created']);
+                ->andReturn(['id' => 'order_guest_cancelled', 'amount' => 10000, 'currency' => 'INR', 'status' => 'created']);
         });
 
         $this->actingAs($organizer)->post(route('group-webinars.store'), $this->requestData([
             ['email' => 'guest@example.com'],
         ]))->assertRedirect();
         $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
+        $representative = $groupRequest->participants->firstWhere('role', 'organizer');
         $guest = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
-        $token = basename(parse_url($guest->emailDeliveries->first()->action_url, PHP_URL_PATH));
+        $token = basename(parse_url($representative->emailDeliveries->first()->action_url, PHP_URL_PATH));
         $this->post(route('group-webinars.payment.start', $token), ['terms_accepted' => '1'])->assertRedirect();
-        $payment = $guest->payments()->firstOrFail();
+        $payment = $representative->payments()->firstOrFail();
 
         $this->post(route('group-webinars.payment.abandon', [
             'token' => $token,
@@ -839,14 +1011,14 @@ class GroupWebinarBookingTest extends TestCase
         ]))->assertRedirect(route('group-webinars.invitation', $token));
 
         $this->assertSame(GroupWebinarParticipantPayment::STATUS_ABANDONED, $payment->fresh()->status);
-        $this->assertSame(GroupWebinarParticipant::PAYMENT_PENDING, $guest->fresh()->payment_status);
+        $this->assertSame(GroupWebinarParticipant::PAYMENT_PENDING, $representative->fresh()->payment_status);
         $this->post(route('group-webinars.payment.start', $token), ['terms_accepted' => '1'])->assertRedirect();
-        $this->assertSame(1, $guest->payments()->count());
+        $this->assertSame(1, $representative->payments()->count());
         $this->assertSame('order_guest_cancelled', $payment->fresh()->razorpay_order_id);
         $this->assertSame(GroupWebinarParticipantPayment::STATUS_PENDING, $payment->fresh()->status);
     }
 
-    public function test_full_coupon_confirms_only_that_guest_without_creating_a_razorpay_order(): void
+    public function test_full_coupon_confirms_the_group_without_creating_a_razorpay_order(): void
     {
         $organizer = User::factory()->create(['email' => 'organizer@example.com']);
         $coupon = Coupon::create([
@@ -866,20 +1038,26 @@ class GroupWebinarBookingTest extends TestCase
             ['email' => 'guest@example.com'],
         ]))->assertRedirect();
         $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
+        $representative = $groupRequest->participants->firstWhere('role', 'organizer');
         $guest = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
-        $token = basename(parse_url($guest->emailDeliveries->first()->action_url, PHP_URL_PATH));
+        $token = basename(parse_url($representative->emailDeliveries->first()->action_url, PHP_URL_PATH));
 
         $this->post(route('group-webinars.payment.start', $token), ['coupon_code' => $coupon->code, 'terms_accepted' => '1'])
             ->assertRedirect(route('group-webinars.invitation', $token));
 
-        $this->assertSame('paid', $guest->fresh()->payment_status);
-        $this->assertSame(0, $guest->payments()->whereNotNull('razorpay_order_id')->count());
+        $this->assertSame('paid', $representative->fresh()->payment_status);
+        $this->assertSame(0, $representative->payments()->whereNotNull('razorpay_order_id')->count());
         $this->assertDatabaseHas('coupon_redemptions', [
             'coupon_id' => $coupon->id,
-            'email' => 'guest@example.com',
+            'email' => 'organizer@example.com',
             'status' => 'redeemed',
         ]);
-        $this->assertSame('pending', $groupRequest->participants->firstWhere('role', 'organizer')->fresh()->payment_status);
+        $this->assertSame('paid', $guest->fresh()->payment_status);
+        $confirmation = $guest->emailDeliveries()
+            ->where('notification_type', 'group_booking_confirmation')
+            ->firstOrFail();
+        $this->assertStringContainsString('coupon covered the full group total', $confirmation->message);
+        $this->assertStringNotContainsString('payment has been verified', $confirmation->message);
     }
 
     public function test_expired_invitation_can_be_resend_without_revealing_whether_details_match(): void
@@ -889,9 +1067,10 @@ class GroupWebinarBookingTest extends TestCase
             ['email' => 'guest@example.com'],
         ]))->assertRedirect();
         $groupRequest = GroupWebinarRequest::with('participants.emailDeliveries')->firstOrFail();
+        $representative = $groupRequest->participants->firstWhere('role', 'organizer');
         $guest = $groupRequest->participants->firstWhere('email_normalized', 'guest@example.com');
-        $oldToken = basename(parse_url($guest->emailDeliveries->first()->action_url, PHP_URL_PATH));
-        $guest->update(['invitation_expires_at' => now()->subMinute()]);
+        $oldToken = basename(parse_url($representative->emailDeliveries->first()->action_url, PHP_URL_PATH));
+        $representative->update(['invitation_expires_at' => now()->subMinute()]);
 
         $this->app['auth']->guard()->logout();
         $this->flushSession();
@@ -903,14 +1082,14 @@ class GroupWebinarBookingTest extends TestCase
 
         $this->post(route('group-webinars.invitation.resend'), [
             'reference' => $groupRequest->reference,
-            'email' => 'guest@example.com',
+            'email' => 'organizer@example.com',
         ])->assertSessionHas('success', 'If the reference and email match an active participant, a new invitation has been sent.');
 
         $this->get(route('group-webinars.invitation', $oldToken))->assertNotFound();
-        $newDelivery = $guest->emailDeliveries()->latest()->firstOrFail();
+        $newDelivery = $representative->emailDeliveries()->latest()->firstOrFail();
         $newToken = basename(parse_url($newDelivery->action_url, PHP_URL_PATH));
         $this->assertNotSame($oldToken, $newToken);
-        $this->get(route('group-webinars.invitation', $newToken))->assertOk()->assertSee('guest@example.com');
+        $this->get(route('group-webinars.invitation', $newToken))->assertOk()->assertSee('organizer@example.com');
     }
 
     public function test_admin_schedule_updates_notify_participants_without_duplicate_emails(): void
@@ -920,6 +1099,10 @@ class GroupWebinarBookingTest extends TestCase
             ['email' => 'guest@example.com'],
         ]))->assertRedirect();
         $groupRequest = GroupWebinarRequest::firstOrFail();
+        $groupRequest->participants()->update([
+            'payment_status' => GroupWebinarParticipant::PAYMENT_PAID,
+            'status' => GroupWebinarParticipant::STATUS_PAID,
+        ]);
 
         $admin = User::factory()->create();
         $admin->assignRole(Role::findOrCreate('admin', 'web'));
@@ -936,11 +1119,64 @@ class GroupWebinarBookingTest extends TestCase
 
         $this->assertSame('confirmed', $groupRequest->fresh()->status);
         $this->assertSame(2, $groupRequest->participants()->whereHas('emailDeliveries', fn ($query) => $query->where('notification_type', 'schedule_update'))->count());
+        $scheduleDeliveries = $groupRequest->participants()
+            ->with(['emailDeliveries' => fn ($query) => $query->where('notification_type', 'schedule_update')])
+            ->get()
+            ->map(fn (GroupWebinarParticipant $participant) => $participant->emailDeliveries->sole());
+        $this->assertCount(2, $scheduleDeliveries);
+        $this->assertCount(2, $scheduleDeliveries->pluck('recipient')->unique());
+        $this->assertCount(2, $scheduleDeliveries->pluck('action_url')->unique());
+        foreach ($scheduleDeliveries as $delivery) {
+            $this->assertStringContainsString($groupRequest->fresh()->scheduled_at->format('d M Y, h:i A'), $delivery->message);
+            $this->assertStringContainsString('https://meet.example.com/group', $delivery->message);
+            $this->assertStringContainsString('/group-webinars/invitations/', $delivery->action_url);
+        }
         Queue::assertPushed(SendGroupWebinarEmail::class, 4);
 
         $this->patch(route('admin.group-webinars.update', $groupRequest), $payload)
             ->assertRedirect(route('admin.group-webinars.show', $groupRequest));
         Queue::assertPushed(SendGroupWebinarEmail::class, 4);
+
+        $payload['status'] = 'pending';
+        $this->patch(route('admin.group-webinars.update', $groupRequest), $payload)
+            ->assertRedirect(route('admin.group-webinars.show', $groupRequest));
+        $pendingScheduleDeliveries = $groupRequest->participants()
+            ->with(['emailDeliveries' => fn ($query) => $query->where('notification_type', 'schedule_update')->latest('id')])
+            ->get()
+            ->map(fn (GroupWebinarParticipant $participant) => $participant->emailDeliveries->firstOrFail());
+        foreach ($pendingScheduleDeliveries as $delivery) {
+            $this->assertStringNotContainsString('https://meet.example.com/group', $delivery->message);
+        }
+        Queue::assertPushed(SendGroupWebinarEmail::class, 6);
+    }
+
+    public function test_failed_schedule_email_queue_preserves_existing_invitation_links(): void
+    {
+        $organizer = User::factory()->create(['email' => 'organizer@example.com']);
+        $this->actingAs($organizer)->post(route('group-webinars.store'), $this->requestData([
+            ['email' => 'guest@example.com'],
+        ]))->assertRedirect();
+        $groupRequest = GroupWebinarRequest::firstOrFail();
+        $participant = $groupRequest->participants()->where('role', 'participant')->firstOrFail();
+        $originalHash = $participant->invitation_token_hash;
+        $originalExpiry = $participant->invitation_expires_at;
+
+        $this->mock(GroupWebinarEmailService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('sendRequestUpdate')
+                ->twice()
+                ->andThrow(new \RuntimeException('Queue unavailable'));
+        });
+
+        $admin = User::factory()->create();
+        $admin->assignRole(Role::findOrCreate('admin', 'web'));
+        $this->actingAs($admin, 'admin')->patch(route('admin.group-webinars.update', $groupRequest), [
+            'status' => 'confirmed',
+            'scheduled_at' => now()->addDays(3)->format('Y-m-d\TH:i'),
+            'meeting_link' => 'https://meet.example.com/group',
+        ])->assertRedirect(route('admin.group-webinars.show', $groupRequest));
+
+        $this->assertSame($originalHash, $participant->fresh()->invitation_token_hash);
+        $this->assertEquals($originalExpiry, $participant->fresh()->invitation_expires_at);
     }
 
     public function test_admin_dashboard_summaries_revenue_filters_and_details_use_actual_payments(): void
@@ -1017,6 +1253,7 @@ class GroupWebinarBookingTest extends TestCase
         );
 
         return [
+            'submission_key' => (string) Str::uuid(),
             'topic' => 'Knee rehabilitation',
             'description' => 'Discuss shared rehabilitation questions and clinical approach.',
             'preferred_schedule' => 'Weekday evenings, 6-8 PM IST',
@@ -1040,6 +1277,14 @@ class GroupWebinarBookingTest extends TestCase
             'label' => ucfirst(str_replace('_', ' ', $key)),
             'type' => 'text',
         ]);
+    }
+
+    private function futureSlots(): array
+    {
+        return collect([1, 2, 3])->map(fn (int $days): array => [
+            'date' => now()->addDays($days)->format('Y-m-d'),
+            'time' => '18:00',
+        ])->all();
     }
 
     private function createAdminRequest(string $reference, string $status, array $participants, ?Carbon $scheduledAt = null): GroupWebinarRequest

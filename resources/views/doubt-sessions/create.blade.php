@@ -25,7 +25,12 @@
 
                     <p>
                         @if($isGroupBooking)
-                            Submit your topic, preferred schedule, and participant emails. You are the organizer and will pay the group total once.
+                            Bring a study group together. As the student representative, you will submit the group's pre-collected doubts and attendee details.
+                            @if($isFree)
+                                This Group Webinar is free; no payment is required.
+                            @else
+                                You will pay the combined total amount upfront.
+                            @endif
                         @else
                             Submit your PhysioSource doubt and booking details.
                             The admin will confirm your session date and time
@@ -37,6 +42,7 @@
                             <i class="bi bi-person me-1"></i>Book One-on-One instead
                         </a>
                     @elseif(get_setting('webinar_group_enabled', '0') == '1' && get_setting('webinar_group_allow_requests', '1') == '1')
+                        <p class="small text-secondary mb-1">Want to split the cost? Gather your batchmates to share a session.</p>
                         <a href="{{ route('group-webinars.create') }}" class="btn btn-outline-primary rounded-pill mt-2">
                             <i class="bi bi-people me-1"></i>Book for a Group instead
                         </a>
@@ -163,20 +169,23 @@
                             id="doubtSessionBookingForm"
                         >
                             @csrf
+                            @if($isGroupBooking)
+                                <input type="hidden" name="submission_key" value="{{ old('submission_key', $submissionKey) }}">
+                            @endif
 
                             @if($isGroupBooking)
                                 <div class="booking-form-grid">
                                     <div class="booking-field">
-                                        <label for="studentName">Student Organizer Name</label>
+                                        <label for="studentName">Student Representative Name</label>
                                         <input type="text" id="studentName" value="{{ auth()->user()->name }}" readonly required>
-                                        <small>Organizer is included as a participant.</small>
+                                        <small>Student representative is included as a participant.</small>
                                     </div>
                                     <div class="booking-field">
-                                        <label for="studentEmail">Student Organizer Email Address</label>
+                                        <label for="studentEmail">Student Representative Email Address</label>
                                         <input type="email" id="studentEmail" value="{{ mb_strtolower(auth()->user()->email) }}" readonly required>
                                     </div>
                                     <div class="booking-field booking-field-full">
-                                        <label for="organizerWhatsapp">Student Organizer Phone Number <span>*</span></label>
+                                        <label for="organizerWhatsapp">Student Representative Phone Number <span>*</span></label>
                                         <input type="tel" name="organizer_whatsapp" id="organizerWhatsapp" value="{{ old('organizer_whatsapp') }}" class="@error('organizer_whatsapp') is-invalid @enderror" placeholder="+91 98765 43210" maxlength="16" autocomplete="tel" required>
                                         @error('organizer_whatsapp')<div class="booking-error">{{ $message }}</div>@enderror
                                     </div>
@@ -214,7 +223,7 @@
                                     <div class="booking-field booking-field-full">
                                         <label for="doubt">Describe the Group's Learning Goal</label>
                                         <textarea name="description" id="doubt" rows="5" class="@error('description') is-invalid @enderror">{{ old('description') }}</textarea>
-                                        <div class="booking-field-footer"><small>Share what the instructor should cover.</small><small><span id="doubtCharacterCount">{{ mb_strlen(old('description', '')) }}</span> characters</small></div>
+                                        <div class="booking-field-footer"><small>List the specific doubts you have collected from your batchmates beforehand.</small><small><span id="doubtCharacterCount">{{ mb_strlen(old('description', '')) }}</span> characters</small></div>
                                         @error('description')<div class="booking-error">{{ $message }}</div>@enderror
                                     </div>
                                 </div>
@@ -223,7 +232,7 @@
                                     <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
                                         <div>
                                             <h3 class="mb-1">Participants</h3>
-                                            <small class="text-secondary">Add each student's email. You are included automatically and will pay once for the group.</small>
+                                            <small class="text-secondary">Add each student's email. You are included automatically.</small>
                                         </div>
                                         <button class="btn btn-outline-primary rounded-pill flex-shrink-0" type="button" id="addGroupParticipant"><i class="bi bi-person-plus me-1"></i>Add email</button>
                                     </div>
@@ -240,8 +249,8 @@
                                         @foreach($messages as $message)<div class="booking-error">{{ $message }}</div>@endforeach
                                     @endforeach
                                     <div class="d-flex justify-content-between align-items-center border-top mt-3 pt-3">
-                                        <span><strong><span id="groupParticipantCount">{{ count(old('participants', [])) + 1 }}</span></strong> participants including organizer</span>
-                                        <strong class="text-primary fs-5" id="groupTotal" data-base-total="{{ $price }}">₹{{ number_format((float) $price, 2) }}</strong>
+                                        <span><strong><span id="groupParticipantCount">{{ count(old('participants', [])) + 1 }}</span></strong> participants including student representative</span>
+                                        <strong class="text-primary fs-5" id="groupTotal" data-base-total="{{ $price }}">{{ $isFree ? 'Free' : '₹'.number_format((float) $price, 2) }}</strong>
                                     </div>
                                     <small class="text-secondary d-block mt-1">
                                         @if($isFree)
@@ -262,11 +271,11 @@
                                 </div>
                                 <div class="booking-submit-area mt-4">
                                     <div class="booking-submit-summary">
-                                        <span class="summary-price" id="groupSubmitTotal">₹{{ number_format((float) $price, 2) }}</span>
+                                        <span class="summary-price" id="groupSubmitTotal">{{ $isFree ? 'Free' : '₹'.number_format((float) $price, 2) }}</span>
                                         <span class="summary-duration">{{ $durationMinutes }} Minutes · Admin schedule confirmation</span>
                                     </div>
                                     <button type="submit" class="booking-submit-button" id="bookingSubmitButton">
-                                        <span id="bookingSubmitText">Continue to Group Payment</span>
+                                        <span id="bookingSubmitText">{{ $isFree ? 'Submit Free Booking' : 'Continue to Group Payment' }}</span>
                                         <i class="bi bi-arrow-right" id="bookingSubmitIcon"></i>
                                     </button>
                                 </div>
@@ -578,7 +587,11 @@
                                 <li>{{ $isGroupBooking ? 'Submit the group topic, preferred schedule, and participant emails.' : 'Submit your doubt and contact details.' }}</li>
 
                                 @if($isGroupBooking)
-                                    <li>Complete one payment for the full group total.</li>
+                                    @if($isFree)
+                                        <li>No payment is required for this free Group Webinar.</li>
+                                    @else
+                                        <li>Complete one payment for the full group total.</li>
+                                    @endif
                                 @elseif(! $isFree)
                                     <li>
                                         Complete the online payment through Razorpay.
@@ -1316,8 +1329,8 @@
                     const count = groupParticipants.querySelectorAll('.group-participant-row').length + 1;
                     const total = groupIsFree ? 0 : groupBaseRate + Math.max(0, count - 10) * groupAdditionalRate;
                     groupParticipantCount.textContent = String(count);
-                    groupTotal.textContent = money(total);
-                    document.getElementById('groupSubmitTotal').textContent = money(total);
+                    groupTotal.textContent = groupIsFree ? 'Free' : money(total);
+                    document.getElementById('groupSubmitTotal').textContent = groupIsFree ? 'Free' : money(total);
                     addGroupParticipant.disabled = count >= maxGroupParticipants;
                 };
                 const nextParticipantIndex = () => Array.from(

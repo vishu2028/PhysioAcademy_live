@@ -1,17 +1,16 @@
 <section class="coupon-entry-card preferred-slots-card booking-field-full" aria-labelledby="preferredSlotsTitle">
-    @php($slotsRequired = false)
+    @php($slotsRequired = true)
     <div class="mb-3">
-        <h3 id="preferredSlotsTitle" class="mb-1">Preferred Date &amp; Time Slots</h3>
+        <h3 id="preferredSlotsTitle" class="mb-1">Select 3 Preferred Time Slots</h3>
         <small class="text-secondary">
-            {{ $slotsRequired ? 'Choose three different future options.' : 'You may provide preferred future options.' }}
-            The admin will use these preferences to coordinate and confirm the actual session time.
+            Providing 3 options helps us organize your session faster.
         </small>
     </div>
     <div class="preferred-slots-grid">
         @for($slotIndex = 0; $slotIndex < 3; $slotIndex++)
             @php($oldSlot = old("preferred_slots.{$slotIndex}", []))
             <div class="preferred-slot-row">
-                <strong>Slot {{ $slotIndex + 1 }}</strong>
+                <strong>Preference {{ $slotIndex + 1 }}</strong>
                 <div class="preferred-slot-inputs">
                     <label>
                         <span>Date</span>

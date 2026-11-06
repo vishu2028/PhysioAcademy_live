@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Jobs\SendGroupWebinarEmail;
 use App\Models\GroupWebinarEmailDelivery;
 use App\Models\GroupWebinarParticipant;
-use App\Services\PreferredSlotService;
+use App\Models\GroupWebinarRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -83,7 +83,7 @@ class GroupWebinarEmailService
         $message = implode("\n\n", [
             'You have been invited to a group webinar.',
             'Topic: '.$request->topic,
-            'Organizer: '.$request->organizer_name.' ('.$request->organizer_email.')',
+            'Student Representative: '.$request->organizer_name,
             'Reference: '.$request->reference,
             'Participant: '.$participant->email,
             'Payment status: '.ucwords(str_replace('_', ' ', $participant->payment_status)).'.',
@@ -98,6 +98,43 @@ class GroupWebinarEmailService
             'Your group webinar invitation',
             'Group webinar invitation',
             $message,
+            route('group-webinars.invitation', ['token' => $token])
+        );
+    }
+
+    public function sendBookingRequestConfirmation(
+        GroupWebinarParticipant $participant,
+        string $token,
+        bool $isOrganizer,
+        bool $paymentRequired
+    ): void {
+        $request = $participant->request;
+        $message = [
+            'We have received your Group Webinar booking request.',
+        ];
+
+        if (filled($request->topic)) {
+            $message[] = 'Topic: '.$request->topic;
+        }
+
+        $message[] = 'Student Representative: '.$request->organizer_name;
+        $message[] = 'Request reference: '.$request->reference;
+        $message[] = 'The Instructor/Admin will coordinate the final date and time through WhatsApp. The schedule is not confirmed until it has been officially approved.';
+
+        if ($request->is_free) {
+            $message[] = 'This session is free; no payment is required.';
+        } elseif ($isOrganizer && $paymentRequired) {
+            $message[] = 'As the Student Representative, you are responsible for making one combined group payment of ₹'.number_format((float) $request->total_amount, 2).'. Use the secure link below to continue.';
+        } else {
+            $message[] = 'The Student Representative is responsible for making the combined group payment. No separate participant payment is required.';
+        }
+
+        $this->send(
+            $participant,
+            $isOrganizer && $paymentRequired ? 'group_payment_link' : 'invitation',
+            'Your Group Webinar Booking Request – PhysioSource',
+            'Group Webinar booking request received',
+            implode("\n\n", $message),
             route('group-webinars.invitation', ['token' => $token])
         );
     }
@@ -123,18 +160,32 @@ class GroupWebinarEmailService
     public function sendGroupBookingConfirmation(GroupWebinarParticipant $participant, string $token): void
     {
         $request = $participant->request;
+        $organizer = $request->participants()->where('role', 'organizer')->first();
+        $payment = $organizer?->payments()
+            ->where('status', 'paid')
+            ->latest('id')
+            ->first();
         $details = [
             'You are included in a Group Webinar booking.',
             'Topic: '.$request->topic,
-            'Organizer: '.$request->organizer_name.' ('.$request->organizer_email.')',
+            'Student Representative: '.$request->organizer_name,
             'Reference: '.$request->reference,
             'Participants: '.$request->participant_count,
             'Preferred date and time slots: '.PreferredSlotService::summary($request->preferred_slots),
-            'The organizer has paid the group total of ₹'.number_format((float) $request->total_amount, 2).'. No separate participant payment is required.',
         ];
+
+        if ($request->is_free) {
+            $details[] = 'This Group Webinar is free; no payment is required.';
+        } elseif ($payment && (float) $payment->amount > 0) {
+            $details[] = "The Student Representative's combined payment of ₹".number_format((float) $payment->amount, 2).' has been verified. No separate participant payment is required.';
+        } elseif ($payment?->coupon_id !== null) {
+            $details[] = 'A coupon covered the full group total; no payment was required.';
+        }
 
         if ($request->scheduled_at) {
             $details[] = 'Scheduled: '.$request->scheduled_at->format('d M Y, h:i A');
+        } else {
+            $details[] = 'The Instructor/Admin will coordinate the final date and time through WhatsApp. The schedule is not confirmed until it has been officially approved.';
         }
         if ($request->admin_response) {
             $details[] = 'Message from the admin: '.$request->admin_response;
@@ -160,19 +211,23 @@ class GroupWebinarEmailService
             'Complete your Group Webinar booking',
             'Group Webinar payment required',
             implode("\n\n", [
-                'You are the Organizer for a Group Webinar booking.',
+                'You are the Student Representative for a Group Webinar booking.',
                 'Topic: '.$request->topic,
                 'Reference: '.$request->reference,
                 'Preferred date and time slots: '.PreferredSlotService::summary($request->preferred_slots),
                 'Participants: '.$request->participant_count,
-                'Group total: ₹'.number_format((float) $request->total_amount, 2).'. The Organizer completes one payment for everyone included.',
+                'Group total: ₹'.number_format((float) $request->total_amount, 2).'. The Student Representative completes one payment for everyone included.',
             ]),
             route('group-webinars.invitation', ['token' => $token])
         );
     }
 
-    public function sendRequestUpdate(GroupWebinarParticipant $participant, string $message, string $eventKey): void
-    {
+    public function sendRequestUpdate(
+        GroupWebinarParticipant $participant,
+        string $message,
+        string $eventKey,
+        ?string $actionUrl = null
+    ): void {
         $request = $participant->request;
         $this->notifyInApp($participant, $eventKey, 'Group webinar update', $message);
         $details = [
@@ -186,6 +241,8 @@ class GroupWebinarEmailService
         }
         if (
             $eventKey !== 'cancellation'
+            && $request->status === GroupWebinarRequest::STATUS_CONFIRMED
+            && $request->scheduled_at
             && $request->meeting_link
             && in_array($participant->payment_status, [
                 GroupWebinarParticipant::PAYMENT_PAID,
@@ -203,7 +260,8 @@ class GroupWebinarEmailService
             $eventKey,
             'Group webinar update',
             'Group webinar update',
-            implode("\n\n", $details)
+            implode("\n\n", $details),
+            $actionUrl
         );
     }
 

@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AcademicYear;
+use App\Models\GroupWebinarAdjustmentRequest;
 use App\Models\GroupWebinarParticipant;
 use App\Models\GroupWebinarParticipantPayment;
-use App\Models\GroupWebinarAdjustmentRequest;
 use App\Models\GroupWebinarRequest;
-use App\Models\AcademicYear;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\CouponService;
@@ -14,6 +14,7 @@ use App\Services\GroupWebinarEmailService;
 use App\Services\GroupWebinarPricing;
 use App\Services\PreferredSlotService;
 use App\Services\RazorpayService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,8 +29,7 @@ class GroupWebinarBookingController extends Controller
         private readonly RazorpayService $razorpay,
         private readonly CouponService $coupons,
         private readonly GroupWebinarEmailService $emails
-    ) {
-    }
+    ) {}
 
     public function create()
     {
@@ -40,6 +40,7 @@ class GroupWebinarBookingController extends Controller
 
         return view('doubt-sessions.create', [
             'bookingType' => 'group',
+            'submissionKey' => (string) Str::uuid(),
             'years' => $years,
             'subjects' => $subjects,
             'isFree' => GroupWebinarPricing::isFree(),
@@ -73,22 +74,23 @@ class GroupWebinarBookingController extends Controller
         $user = $request->user();
         $organizerErrors = [];
         if (! filled($user?->name)) {
-            $organizerErrors['organizer_name'] = 'Your organizer name is required.';
+            $organizerErrors['organizer_name'] = 'Your Student Representative name is required.';
         }
         if (! filter_var($user?->email, FILTER_VALIDATE_EMAIL)) {
-            $organizerErrors['organizer_email'] = 'Your organizer email address must be valid.';
+            $organizerErrors['organizer_email'] = 'Your Student Representative email address must be valid.';
         }
         if ($organizerErrors !== []) {
             throw ValidationException::withMessages($organizerErrors);
         }
 
         $validated = $request->validate([
+            'submission_key' => ['required', 'uuid'],
             'topic' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'preferred_schedule' => ['nullable', 'string', 'max:255'],
-            'preferred_slots' => ['nullable', 'array'],
-            'preferred_slots.*.date' => ['nullable', 'date_format:Y-m-d'],
-            'preferred_slots.*.time' => ['nullable', 'date_format:H:i'],
+            'preferred_slots' => ['required', 'array', 'size:3'],
+            'preferred_slots.*.date' => ['required', 'date_format:Y-m-d'],
+            'preferred_slots.*.time' => ['required', 'date_format:H:i'],
             'academic_year_id' => ['nullable', 'integer', 'exists:academic_years,id'],
             'subject_id' => ['nullable', 'integer', 'exists:subjects,id'],
             'organizer_whatsapp' => ['required', 'string', 'max:16', 'regex:/^\+?[1-9][0-9]{7,14}$/'],
@@ -96,13 +98,20 @@ class GroupWebinarBookingController extends Controller
             'participants.*.email' => ['nullable', 'email:rfc', 'max:255', 'distinct:ignore_case'],
             'terms_accepted' => ['accepted'],
         ], [
-            'participants.min' => 'This request requires at least '.$minParticipants.' participants, including you as the organizer.',
-            'participants.max' => 'The maximum group size is '.$maxParticipants.' participants, including you as the organizer.',
+            'participants.min' => 'This request requires at least '.$minParticipants.' participants, including you as the Student Representative.',
+            'participants.max' => 'The maximum group size is '.$maxParticipants.' participants, including you as the Student Representative.',
             'terms_accepted.accepted' => 'You must accept the Webinar Terms & Conditions and Privacy Policy before continuing.',
         ]);
-        $validated['preferred_slots'] = isset($validated['preferred_slots'])
-            ? PreferredSlotService::validateOptional($validated['preferred_slots'])
-            : null;
+        $validated['preferred_slots'] = PreferredSlotService::validate($validated['preferred_slots']);
+
+        $existingRequest = GroupWebinarRequest::query()
+            ->where('submission_key', $validated['submission_key'])
+            ->first();
+        if ($existingRequest) {
+            abort_unless($existingRequest->organizer_id === $user->id, 409);
+
+            return $this->redirectToExistingSubmission($existingRequest);
+        }
 
         $emails = array_map(
             static fn (array $participant): string => mb_strtolower(trim($participant['email'])),
@@ -110,7 +119,7 @@ class GroupWebinarBookingController extends Controller
         );
         if (in_array(mb_strtolower($user->email), $emails, true)) {
             throw ValidationException::withMessages([
-                'participants' => 'The organizer is already included. Do not add the organizer email again.',
+                'participants' => 'The Student Representative is already included. Do not add the Student Representative email again.',
             ]);
         }
 
@@ -121,7 +130,7 @@ class GroupWebinarBookingController extends Controller
             ]);
         }
 
-        $isFree = false;
+        $isFree = GroupWebinarPricing::isFree();
         $totalAmount = GroupWebinarPricing::totalFor($participantCount);
         $participantAmounts = array_merge([$totalAmount], array_fill(0, $participantCount - 1, 0));
         $price = $totalAmount;
@@ -147,110 +156,131 @@ class GroupWebinarBookingController extends Controller
         $groupRequest = null;
         $organizerInvitation = null;
         $participantInvitations = [];
-        DB::transaction(function () use ($validated, $description, $user, $participantCount, $minParticipants, $maxParticipants, $isFree, $price, $totalAmount, $participantAmounts, $policyVersion, &$groupRequest, &$organizerInvitation, &$participantInvitations): void {
-            $this->ensureRequestsEnabled();
-            $currentMaximum = max(1, (int) get_setting('webinar_group_max_participants', 50));
-            if ($participantCount > $currentMaximum) {
-                throw ValidationException::withMessages([
-                    'participants' => 'The maximum group size has changed. Please update the participant list and try again.',
-                ]);
-            }
-
-            $groupRequest = GroupWebinarRequest::create([
-                'organizer_id' => $user->id,
-                'reference' => 'GW-'.now()->format('Ymd').'-'.strtoupper(Str::random(8)),
-                'organizer_name' => $user->name,
-                'organizer_email' => $user->email,
-                'organizer_whatsapp' => $validated['organizer_whatsapp'],
-                // Keep writes compatible until the nullable-fields migration is deployed.
-                'topic' => filled($validated['topic'] ?? null) ? trim($validated['topic']) : '',
-                'description' => $description ?? '',
-                'preferred_slots' => $validated['preferred_slots'],
-                'participant_count' => $participantCount,
-                'minimum_participants' => $minParticipants,
-                'maximum_participants' => $maxParticipants,
-                'duration_minutes' => max(1, (int) get_setting('webinar_group_duration_minutes', 60)),
-                'price_per_person' => $price,
-                'total_amount' => $totalAmount,
-                'currency' => 'INR',
-                'is_free' => $isFree,
-                'status' => GroupWebinarRequest::STATUS_PENDING,
-                'policy_version' => $policyVersion,
-                'terms_accepted_at' => now(),
-            ]);
-
-            $entries = array_merge(
-                [[
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => 'organizer',
-                    'user_id' => $user->id,
-                ]],
-                array_map(static function (array $participant): array {
-                    $email = trim($participant['email']);
-                    $account = User::query()->whereRaw('LOWER(email) = ?', [mb_strtolower($email)])->first();
-
-                    return [
-                        'name' => null,
-                        'email' => $email,
-                        'role' => 'participant',
-                        'user_id' => $account?->id,
-                    ];
-                }, $validated['participants'] ?? [])
-            );
-
-            foreach ($entries as $index => $entry) {
-                $token = Str::random(64);
-                $participant = $groupRequest->participants()->create([
-                    ...$entry,
-                    'email_normalized' => mb_strtolower(trim($entry['email'])),
-                    'status' => GroupWebinarParticipant::STATUS_INVITATION_SENT,
-                    'payment_status' => $isFree
-                        ? GroupWebinarParticipant::PAYMENT_NOT_REQUIRED
-                        : GroupWebinarParticipant::PAYMENT_PENDING,
-                    'amount' => $participantAmounts[$index],
-                    'amount_due' => $participantAmounts[$index],
-                    'policy_version' => $policyVersion,
-                    'terms_accepted_at' => $entry['role'] === 'organizer' ? now() : null,
-                    'invitation_token_hash' => hash('sha256', $token),
-                    'invitation_expires_at' => now()->addHours(max(1, (int) get_setting('webinar_group_invitation_expiry_hours', 72))),
-                ]);
-                if ($entry['role'] === 'organizer') {
-                    $organizerInvitation = [$participant, $token];
-                } else {
-                    $participantInvitations[] = [$participant, $token];
+        try {
+            DB::transaction(function () use ($validated, $description, $user, $participantCount, $minParticipants, $maxParticipants, $isFree, $price, $totalAmount, $participantAmounts, $policyVersion, &$groupRequest, &$organizerInvitation, &$participantInvitations): void {
+                $this->ensureRequestsEnabled();
+                $currentMaximum = max(1, (int) get_setting('webinar_group_max_participants', 50));
+                if ($participantCount > $currentMaximum) {
+                    throw ValidationException::withMessages([
+                        'participants' => 'The maximum group size has changed. Please update the participant list and try again.',
+                    ]);
                 }
+
+                $groupRequest = GroupWebinarRequest::create([
+                    'organizer_id' => $user->id,
+                    'submission_key' => $validated['submission_key'],
+                    'reference' => 'GW-'.now()->format('Ymd').'-'.strtoupper(Str::random(8)),
+                    'organizer_name' => $user->name,
+                    'organizer_email' => $user->email,
+                    'organizer_whatsapp' => $validated['organizer_whatsapp'],
+                    // Keep writes compatible until the nullable-fields migration is deployed.
+                    'topic' => filled($validated['topic'] ?? null) ? trim($validated['topic']) : '',
+                    'description' => $description ?? '',
+                    'preferred_slots' => $validated['preferred_slots'],
+                    'participant_count' => $participantCount,
+                    'minimum_participants' => $minParticipants,
+                    'maximum_participants' => $maxParticipants,
+                    'duration_minutes' => max(1, (int) get_setting('webinar_group_duration_minutes', 60)),
+                    'price_per_person' => $price,
+                    'total_amount' => $totalAmount,
+                    'currency' => 'INR',
+                    'is_free' => $isFree,
+                    'status' => GroupWebinarRequest::STATUS_PENDING,
+                    'policy_version' => $policyVersion,
+                    'terms_accepted_at' => now(),
+                ]);
+
+                $entries = array_merge(
+                    [[
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'role' => 'organizer',
+                        'user_id' => $user->id,
+                    ]],
+                    array_map(static function (array $participant): array {
+                        $email = trim($participant['email']);
+                        $account = User::query()->whereRaw('LOWER(email) = ?', [mb_strtolower($email)])->first();
+
+                        return [
+                            'name' => null,
+                            'email' => $email,
+                            'role' => 'participant',
+                            'user_id' => $account?->id,
+                        ];
+                    }, $validated['participants'] ?? [])
+                );
+
+                foreach ($entries as $index => $entry) {
+                    $token = Str::random(64);
+                    $participant = $groupRequest->participants()->create([
+                        ...$entry,
+                        'email_normalized' => mb_strtolower(trim($entry['email'])),
+                        'status' => GroupWebinarParticipant::STATUS_INVITATION_SENT,
+                        'payment_status' => $isFree
+                            ? GroupWebinarParticipant::PAYMENT_NOT_REQUIRED
+                            : GroupWebinarParticipant::PAYMENT_PENDING,
+                        'amount' => $participantAmounts[$index],
+                        'amount_due' => $participantAmounts[$index],
+                        'policy_version' => $policyVersion,
+                        'terms_accepted_at' => $entry['role'] === 'organizer' ? now() : null,
+                        'invitation_token_hash' => hash('sha256', $token),
+                        'invitation_expires_at' => now()->addHours(max(1, (int) get_setting('webinar_group_invitation_expiry_hours', 72))),
+                    ]);
+                    if ($entry['role'] === 'organizer') {
+                        $organizerInvitation = [$participant, $token];
+                    } else {
+                        $participantInvitations[] = [$participant, $token];
+                    }
+                }
+            });
+        } catch (QueryException $exception) {
+            $existingRequest = GroupWebinarRequest::query()
+                ->where('submission_key', $validated['submission_key'])
+                ->first();
+            if ($existingRequest && $existingRequest->organizer_id === $user->id) {
+                return $this->redirectToExistingSubmission($existingRequest);
             }
-        });
+
+            throw $exception;
+        }
 
         $organizerParticipant = $organizerInvitation[0];
         $organizerToken = $organizerInvitation[1];
-        $this->emails->notifyInApp(
-            $organizerParticipant,
-            'group_payment_link',
-            'Complete your Group Webinar booking',
-            'Your group request '.$groupRequest->reference.' is ready. Complete one payment of ₹'.number_format((float) $groupRequest->total_amount, 2).' for everyone included.'
-        );
+        $emailQueueFailed = false;
+        if (! $isFree) {
+            $this->emails->notifyInApp(
+                $organizerParticipant,
+                'group_payment_link',
+                'Complete your Group Webinar booking',
+                'Your group request '.$groupRequest->reference.' is ready. Complete one payment of ₹'.number_format((float) $groupRequest->total_amount, 2).' for everyone included.'
+            );
+        }
         try {
-            $this->emails->sendGroupOrganizerPaymentLink(
+            $this->emails->sendBookingRequestConfirmation(
                 $organizerParticipant->fresh()->load('request'),
-                $organizerToken
+                $organizerToken,
+                true,
+                ! $isFree
             );
         } catch (Throwable $exception) {
-            Log::error('Unable to queue the Group Webinar organizer payment email.', [
+            $emailQueueFailed = true;
+            Log::error('Unable to queue the Group Webinar organizer booking email.', [
                 'group_webinar_reference' => $groupRequest->reference,
-                'participant_id' => $invitations[0]->id,
+                'participant_id' => $organizerParticipant->id,
                 'exception' => $exception::class,
             ]);
         }
         foreach ($participantInvitations as [$participant, $token]) {
             try {
-                $this->emails->sendInvitation(
+                $this->emails->sendBookingRequestConfirmation(
                     $participant->fresh()->load('request'),
-                    $token
+                    $token,
+                    false,
+                    ! $isFree
                 );
             } catch (Throwable $exception) {
-                Log::error('Unable to queue a Group Webinar participant invitation email.', [
+                $emailQueueFailed = true;
+                Log::error('Unable to queue a Group Webinar participant booking email.', [
                     'group_webinar_reference' => $groupRequest->reference,
                     'participant_id' => $participant->id,
                     'exception' => $exception::class,
@@ -258,9 +288,21 @@ class GroupWebinarBookingController extends Controller
             }
         }
 
+        if ($emailQueueFailed) {
+            return redirect()
+                ->route('group-webinars.invitation', $organizerToken)
+                ->with('webinar_error', 'Your Group Webinar request '.$groupRequest->reference.' was received, but one or more email notifications could not be queued. Please contact support with this reference.');
+        }
+
+        if ($isFree) {
+            return redirect()
+                ->route('group-webinars.invitation', $organizerToken)
+                ->with('success', 'Your free Group Webinar request '.$groupRequest->reference.' has been received. Confirmation emails have been sent to everyone included.');
+        }
+
         return redirect()
             ->route('group-webinars.invitation', $organizerToken)
-            ->with('success', 'Your group request '.$groupRequest->reference.' is ready. Complete the group payment to confirm the booking and email everyone included.');
+            ->with('success', 'Your group request '.$groupRequest->reference.' has been received. Complete the group payment to confirm the booking; request emails have been sent to everyone included.');
     }
 
     public function requestAdjustment(Request $request, GroupWebinarRequest $groupWebinar)
@@ -509,6 +551,7 @@ class GroupWebinarBookingController extends Controller
                 if ($pending) {
                     if ($pending->coupon_code === ($couponCode ?: null) && filled($pending->razorpay_order_id)) {
                         $pending->update(['status' => GroupWebinarParticipantPayment::STATUS_PENDING]);
+
                         return ['payment' => $pending, 'reused' => true];
                     }
 
@@ -553,6 +596,7 @@ class GroupWebinarBookingController extends Controller
                         'status' => GroupWebinarParticipant::STATUS_PAID,
                         'payment_status' => GroupWebinarParticipant::PAYMENT_PAID,
                     ]);
+
                     return ['payment' => $payment, 'zero_payment' => true];
                 }
 
@@ -596,21 +640,31 @@ class GroupWebinarBookingController extends Controller
             return redirect()->route('group-webinars.invitation', $token)->with('success', 'Your payment has already been confirmed.');
         }
         if (! empty($attempt['zero_payment'])) {
+            $confirmationsQueued = true;
             if ($organizerPayment) {
-                $this->sendGroupBookingConfirmations($participant->request, $participant, $token);
+                $confirmationsQueued = $this->sendGroupBookingConfirmations($participant->request, $participant, $token);
             } else {
                 try {
                     $this->emails->sendPaymentConfirmation($participant->fresh()->load('request'));
                 } catch (Throwable $exception) {
+                    $confirmationsQueued = false;
                     Log::error('Unable to queue a group webinar zero-payment confirmation email.', [
                         'participant_id' => $participant->id,
                         'exception' => $exception::class,
                     ]);
                 }
             }
-            return redirect()->route('group-webinars.invitation', $token)->with('success', $organizerPayment
-                ? 'Your coupon covered the full group total. The booking is confirmed and confirmation emails have been sent.'
-                : 'Your coupon covered the full individual amount. Your payment is confirmed.');
+
+            return redirect()->route('group-webinars.invitation', $token)->with(
+                $confirmationsQueued ? 'success' : 'webinar_error',
+                $organizerPayment
+                    ? ($confirmationsQueued
+                        ? 'Your coupon covered the full group total. The booking is confirmed and confirmation emails have been queued.'
+                        : 'Your coupon covered the full group total and the booking is confirmed, but one or more confirmation emails could not be queued. Please contact support.')
+                    : ($confirmationsQueued
+                        ? 'Your coupon covered the full individual amount. Your payment is confirmed.'
+                        : 'Your coupon covered the full individual amount, but the confirmation email could not be queued. Please contact support.')
+            );
         }
         if (! empty($attempt['order_failed'])) {
             return redirect()->route('group-webinars.invitation', $token)->with('webinar_error', 'Unable to start payment. Please try again.');
@@ -688,11 +742,14 @@ class GroupWebinarBookingController extends Controller
                 return redirect()->route('group-webinars.invitation', $token)->with('webinar_error', 'Payment is not captured yet. Please wait a moment and retry verification.');
             }
 
-            DB::transaction(function () use ($payment, $participant, $data): void {
+            $bookingCancelled = DB::transaction(function () use ($payment, $participant, $data): bool {
                 $lockedParticipant = GroupWebinarParticipant::query()->lockForUpdate()->findOrFail($participant->id);
+                $lockedRequest = GroupWebinarRequest::query()
+                    ->lockForUpdate()
+                    ->findOrFail($lockedParticipant->group_webinar_request_id);
                 $lockedPayment = GroupWebinarParticipantPayment::query()->lockForUpdate()->findOrFail($payment->id);
                 if ($lockedPayment->status === GroupWebinarParticipantPayment::STATUS_PAID) {
-                    return;
+                    return $lockedRequest->status === GroupWebinarRequest::STATUS_CANCELLED;
                 }
                 if ($lockedParticipant->payment_status === GroupWebinarParticipant::PAYMENT_PAID) {
                     throw ValidationException::withMessages(['payment' => 'This participant payment is already complete.']);
@@ -706,20 +763,44 @@ class GroupWebinarBookingController extends Controller
                     'payment_error' => null,
                 ]);
                 $lockedParticipant->update([
-                    'status' => $lockedParticipant->request->status === GroupWebinarRequest::STATUS_CANCELLED
+                    'status' => $lockedRequest->status === GroupWebinarRequest::STATUS_CANCELLED
                         ? GroupWebinarParticipant::STATUS_CANCELLED
                         : GroupWebinarParticipant::STATUS_PAID,
                     'payment_status' => GroupWebinarParticipant::PAYMENT_PAID,
                 ]);
                 $this->coupons->redeem($lockedPayment);
+
+                return $lockedRequest->status === GroupWebinarRequest::STATUS_CANCELLED;
             });
 
+            if ($organizerPayment && $bookingCancelled) {
+                try {
+                    $this->emails->sendRequestUpdate(
+                        $participant->fresh()->load('request'),
+                        'Razorpay verified a payment of ₹'.number_format((float) $payment->amount, 2).' after this Group Webinar request was cancelled. The booking remains cancelled; please contact the administrator about the payment.',
+                        'payment_after_cancellation'
+                    );
+                } catch (Throwable $exception) {
+                    Log::error('Unable to queue a Group Webinar cancelled-payment notice.', [
+                        'group_webinar_reference' => $participant->request->reference,
+                        'participant_id' => $participant->id,
+                        'payment_id' => $payment->id,
+                        'exception' => $exception::class,
+                    ]);
+                }
+
+                return redirect()->route('webinars.my')
+                    ->with('webinar_error', 'Payment was verified, but the Group Webinar request remains cancelled. Please contact the administrator about the payment.');
+            }
+
             if ($organizerPayment) {
-                $this->sendGroupBookingConfirmations($participant->request, $participant, $token);
+                $confirmationsQueued = $this->sendGroupBookingConfirmations($participant->request, $participant, $token);
             } else {
+                $confirmationsQueued = true;
                 try {
                     $this->emails->sendPaymentConfirmation($participant->fresh()->load('request'));
                 } catch (Throwable $exception) {
+                    $confirmationsQueued = false;
                     Log::error('Unable to queue a group webinar payment confirmation email.', [
                         'participant_id' => $participant->id,
                         'exception' => $exception::class,
@@ -727,9 +808,16 @@ class GroupWebinarBookingController extends Controller
                 }
             }
 
-            return redirect()->route('group-webinars.invitation', $token)->with('success', $organizerPayment
-                ? 'Payment successful. The group booking is confirmed and confirmation emails have been sent.'
-                : 'Payment successful. Your individual payment is confirmed.');
+            return redirect()->route('group-webinars.invitation', $token)->with(
+                $confirmationsQueued ? 'success' : 'webinar_error',
+                $organizerPayment
+                    ? ($confirmationsQueued
+                        ? 'Payment successful. The group booking is confirmed and confirmation emails have been queued.'
+                        : 'Payment successful and the group booking is confirmed, but one or more confirmation emails could not be queued. Please contact support.')
+                    : ($confirmationsQueued
+                        ? 'Payment successful. Your individual payment is confirmed.'
+                        : 'Payment successful, but the confirmation email could not be queued. Please contact support.')
+            );
         } catch (Throwable $exception) {
             Log::warning('Group webinar payment verification failed.', [
                 'participant_id' => $participant->id,
@@ -901,7 +989,18 @@ class GroupWebinarBookingController extends Controller
         GroupWebinarRequest $groupRequest,
         GroupWebinarParticipant $organizer,
         string $organizerToken
-    ): void {
+    ): bool {
+        $payment = $organizer->payments()
+            ->where('status', GroupWebinarParticipantPayment::STATUS_PAID)
+            ->latest('id')
+            ->first();
+        $confirmationMessage = match (true) {
+            $groupRequest->is_free => 'This Group Webinar is free; no payment is required.',
+            $payment && (float) $payment->amount > 0 => "The Student Representative's combined payment of ₹".number_format((float) $payment->amount, 2).' has been verified.',
+            $payment?->coupon_id !== null => 'A coupon covered the full group total; no payment was required.',
+            default => 'The group payment status is being confirmed.',
+        };
+
         DB::transaction(function () use ($groupRequest): void {
             $groupRequest->participants()->update([
                 'payment_status' => GroupWebinarParticipant::PAYMENT_PAID,
@@ -910,6 +1009,7 @@ class GroupWebinarBookingController extends Controller
         });
 
         $groupRequest->load('participants.user');
+        $emailsQueued = true;
         foreach ($groupRequest->participants as $participant) {
             if ($participant->is($organizer)) {
                 $token = $organizerToken;
@@ -921,7 +1021,7 @@ class GroupWebinarBookingController extends Controller
                 ]);
             }
 
-            $message = 'You are included in Group Webinar booking '.$groupRequest->reference.' for "'.$groupRequest->topic.'". The organizer paid the group total of ₹'.number_format((float) $groupRequest->total_amount, 2).'.';
+            $message = 'You are included in Group Webinar booking '.$groupRequest->reference.'. '.$confirmationMessage;
             $this->emails->notifyInApp(
                 $participant,
                 'group_booking_confirmation',
@@ -932,6 +1032,7 @@ class GroupWebinarBookingController extends Controller
             try {
                 $this->emails->sendGroupBookingConfirmation($participant->load('request'), $token);
             } catch (Throwable $exception) {
+                $emailsQueued = false;
                 Log::error('Unable to queue a Group Webinar booking confirmation email.', [
                     'group_webinar_reference' => $groupRequest->reference,
                     'participant_id' => $participant->id,
@@ -939,6 +1040,8 @@ class GroupWebinarBookingController extends Controller
                 ]);
             }
         }
+
+        return $emailsQueued;
     }
 
     private function ensureRequestsEnabled(): void
@@ -950,4 +1053,25 @@ class GroupWebinarBookingController extends Controller
         );
     }
 
+    private function redirectToExistingSubmission(GroupWebinarRequest $groupRequest)
+    {
+        $organizer = $groupRequest->participants()
+            ->where('role', 'organizer')
+            ->first();
+        $delivery = $organizer?->emailDeliveries()
+            ->whereIn('notification_type', ['group_payment_link', 'invitation'])
+            ->latest('id')
+            ->first();
+        $token = $delivery?->action_url
+            ? basename((string) parse_url($delivery->action_url, PHP_URL_PATH))
+            : null;
+
+        if ($token && strlen($token) === 64 && ctype_alnum($token)) {
+            return redirect()->route('group-webinars.invitation', $token)
+                ->with('success', 'Your Group Webinar request '.$groupRequest->reference.' has already been received.');
+        }
+
+        return redirect()->route('webinars.my')
+            ->with('success', 'Your Group Webinar request '.$groupRequest->reference.' has already been received.');
+    }
 }

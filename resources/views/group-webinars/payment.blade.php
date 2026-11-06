@@ -6,7 +6,7 @@
 <div class="container py-5" style="max-width: 680px">
     <div class="card border-0 shadow-sm rounded-4">
         <div class="card-body p-4 p-md-5">
-            <span class="badge rounded-pill bg-primary-subtle text-primary">Secure individual payment</span>
+            <span class="badge rounded-pill bg-primary-subtle text-primary">Secure group payment</span>
             <h1 class="h3 fw-bold mt-3">{{ $participant->request->topic }}</h1>
             <p class="text-secondary mb-4">Webinar {{ $participant->request->reference }}</p>
             <div class="d-flex justify-content-between border-bottom py-3"><span>Participant</span><strong>{{ $participant->email }}</strong></div>
@@ -25,7 +25,7 @@
                 <div class="d-flex justify-content-between border-bottom py-3"><span>Discount amount</span><strong>− ₹{{ number_format((float) $payment->discount_amount, 2) }}</strong></div>
             @endif
             <div class="d-flex justify-content-between py-3 fs-5"><span>Payable by you</span><strong>₹{{ number_format((float) $payment->amount, 2) }} {{ $payment->currency }}</strong></div>
-            <p class="small text-secondary">This Razorpay order is linked only to your participant invitation. The organizer and other participants have separate payment links and orders.</p>
+            <p class="small text-secondary">The student representative pays one combined Razorpay order for the entire group. Participants do not make separate payments.</p>
             @if(session('webinar_error'))<div class="alert alert-danger">{{ session('webinar_error') }}</div>@endif
             <div class="alert alert-danger d-none" id="checkoutMessage" role="alert"></div>
             <button type="button" class="btn btn-primary btn-lg rounded-pill w-100 mt-2" id="payButton">Pay ₹{{ number_format((float) $payment->amount, 2) }} securely with Razorpay</button>

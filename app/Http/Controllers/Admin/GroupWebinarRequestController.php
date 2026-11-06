@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\GroupWebinarAdjustmentRequest;
 use App\Models\GroupWebinarParticipant;
 use App\Models\GroupWebinarParticipantPayment;
-use App\Models\GroupWebinarAdjustmentRequest;
 use App\Models\GroupWebinarRequest;
 use App\Services\GroupWebinarEmailService;
 use App\Services\RazorpayService;
@@ -22,9 +22,7 @@ class GroupWebinarRequestController extends Controller
     public function __construct(
         private readonly GroupWebinarEmailService $emails,
         private readonly RazorpayService $razorpay
-    )
-    {
-    }
+    ) {}
 
     public function index(Request $request)
     {
@@ -286,10 +284,37 @@ class GroupWebinarRequestController extends Controller
                     ? 'The group webinar has been confirmed or its schedule updated.'
                     : 'There is an update to your group webinar request.');
 
-            $groupWebinar->participants()->with('request')->get()->each(function (GroupWebinarParticipant $participant) use ($message, $eventKey): void {
+            $groupWebinar->participants()->with('request')->get()->each(function (GroupWebinarParticipant $participant) use ($message, $eventKey, $groupWebinar): void {
+                $rotatedTokenHash = null;
+                $previousTokenHash = $participant->invitation_token_hash;
+                $previousInvitationExpiry = $participant->invitation_expires_at;
                 try {
-                    $this->emails->sendRequestUpdate($participant, $message, $eventKey);
+                    $actionUrl = null;
+                    if (
+                        $eventKey === 'schedule_update'
+                        && $groupWebinar->status === GroupWebinarRequest::STATUS_CONFIRMED
+                        && $groupWebinar->scheduled_at
+                    ) {
+                        $token = Str::random(64);
+                        $rotatedTokenHash = hash('sha256', $token);
+                        $participant->update([
+                            'invitation_token_hash' => $rotatedTokenHash,
+                            'invitation_expires_at' => now()->addHours(max(1, (int) get_setting('webinar_group_invitation_expiry_hours', 72))),
+                        ]);
+                        $actionUrl = route('group-webinars.invitation', ['token' => $token]);
+                    }
+
+                    $this->emails->sendRequestUpdate($participant, $message, $eventKey, $actionUrl);
                 } catch (Throwable $exception) {
+                    if ($rotatedTokenHash !== null) {
+                        $participant->newQuery()
+                            ->whereKey($participant->id)
+                            ->where('invitation_token_hash', $rotatedTokenHash)
+                            ->update([
+                                'invitation_token_hash' => $previousTokenHash,
+                                'invitation_expires_at' => $previousInvitationExpiry,
+                            ]);
+                    }
                     Log::error('Unable to queue a group webinar update email.', [
                         'participant_id' => $participant->id,
                         'exception' => $exception::class,

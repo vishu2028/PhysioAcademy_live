@@ -16,9 +16,9 @@
         <div class="mb-4">
             <a href="{{ route('webinars.index') }}" class="text-decoration-none small text-secondary">← Back to webinars</a>
             <div class="mt-3">
-                <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">Group learning · individual payment</span>
+                <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">Group learning · one upfront payment</span>
                 <h1 class="fw-bold mt-3 mb-2">Request a Group Webinar</h1>
-                <p class="text-secondary mb-0">Bring a group together around a shared topic. Every participant, including you, receives an individual invitation and pays separately.</p>
+                <p class="text-secondary mb-0">Bring a study group together and split the cost. As the student representative, you will submit the group's pre-collected doubts, provide attendee details, and pay the combined total amount upfront.</p>
             </div>
         </div>
 
@@ -34,20 +34,20 @@
             @csrf
             <div class="row g-4">
                 <div class="col-12">
-                    <h2 class="h5 fw-bold mb-3">Organizer</h2>
+                    <h2 class="h5 fw-bold mb-3">Student Representative</h2>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="organizerName">Name</label>
+                            <label class="form-label fw-semibold" for="organizerName">Representative Name</label>
                             <input class="form-control" id="organizerName" value="{{ auth()->user()->name }}" readonly>
                             <div class="form-text">Automatically taken from your account.</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="organizerEmail">Email</label>
+                            <label class="form-label fw-semibold" for="organizerEmail">Representative Email</label>
                             <input class="form-control" id="organizerEmail" type="email" value="{{ mb_strtolower(auth()->user()->email) }}" readonly>
                             <div class="form-text">You are included as participant 1.</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="organizerWhatsapp">WhatsApp number <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold" for="organizerWhatsapp">Representative Phone <span class="text-danger">*</span></label>
                             <input class="form-control" id="organizerWhatsapp" name="organizer_whatsapp" type="tel" value="{{ old('organizer_whatsapp') }}" maxlength="16" placeholder="+919876543210" autocomplete="tel" required>
                             <div class="form-text">Include your country code so the admin can coordinate the webinar schedule with you.</div>
                             @error('organizer_whatsapp')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
@@ -64,7 +64,7 @@
                     <div>
                         <label class="form-label fw-semibold" for="description">Description</label>
                         <textarea class="form-control" id="description" name="description" rows="5">{{ old('description') }}</textarea>
-                        <div class="form-text">Describe what the group wants the instructor to cover.</div>
+                        <div class="form-text">List the specific doubts you have collected from your batchmates beforehand.</div>
                     </div>
                 </div>
 
@@ -72,7 +72,7 @@
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3">
                         <div>
                             <h2 class="h5 fw-bold mb-1">Additional participants</h2>
-                            <p class="small text-secondary mb-0">Add each participant's email. The organizer is counted automatically.</p>
+                            <p class="small text-secondary mb-0">Add each participant's email. The student representative is counted automatically.</p>
                         </div>
                         <button class="btn btn-outline-primary rounded-pill" type="button" id="addParticipant"><i class="bi bi-person-plus me-1"></i>Add participant</button>
                     </div>
@@ -99,11 +99,11 @@
                     <div class="group-webinar-summary p-4">
                         <div class="row g-3 align-items-center">
                             <div class="col-md-4">
-                                <div class="small text-secondary">Price per participant</div>
-                                <div class="h4 fw-bold mb-0 group-webinar-accent">₹100 for up to 10 students</div>
+                                <div class="small text-secondary">Combined group amount</div>
+                                <div class="h4 fw-bold mb-0 group-webinar-accent">One upfront payment</div>
                             </div>
                             <div class="col-md-4">
-                                <div class="small text-secondary">Participants (organizer included)</div>
+                                <div class="small text-secondary">Participants (student representative included)</div>
                                 <div class="h4 fw-bold mb-0"><span id="participantCount">1</span> <span class="small fw-normal text-secondary">/ {{ $maximumParticipants }}</span></div>
                             </div>
                             <div class="col-md-4">
@@ -114,11 +114,11 @@
                         <hr>
                         <div class="fw-semibold mb-2">Participant review</div>
                         <ol id="participantReview" class="small text-secondary mb-2">
-                            <li>{{ auth()->user()->name }} — {{ mb_strtolower(auth()->user()->email) }} (Organizer)</li>
+                            <li>{{ auth()->user()->name }} — {{ mb_strtolower(auth()->user()->email) }} (Student Representative)</li>
                         </ol>
                         <div class="small text-secondary">
-                            The organizer and invited participants pay their allocated share by individual invitation. The total is ₹100 for 1–10 students, plus ₹10 for each student above 10. The organizer covers any rounding remainder.
-                            Maximum group size: {{ $maximumParticipants }} including the organizer. Each invitation expires after the configured period.
+                            Each person gets their own invitation link. The student representative is responsible for the single upfront payment for the entire group.
+                            Maximum group size: {{ $maximumParticipants }} including the student representative. Each invitation expires after the configured period.
                         </div>
                     </div>
                 </div>
@@ -171,7 +171,7 @@
         total.textContent = formatMoney(totalAmount);
         review.replaceChildren();
         const organizerItem = document.createElement('li');
-        organizerItem.textContent = `${organizerName} — ${organizerEmail} (Organizer)`;
+        organizerItem.textContent = `${organizerName} — ${organizerEmail} (Student Representative)`;
         review.append(organizerItem);
         rows.forEach(row => {
             const email = row.querySelector('.participant-email').value.trim();
@@ -207,7 +207,7 @@
         const totalParticipants = list.querySelectorAll('.participant-row').length + 1;
         if (totalParticipants < minParticipants || totalParticipants > maxParticipants) {
             event.preventDefault();
-            window.alert(`Choose between ${minParticipants} and ${maxParticipants} participants, including the organizer.`);
+            window.alert(`Choose between ${minParticipants} and ${maxParticipants} participants, including the student representative.`);
             return;
         }
 
