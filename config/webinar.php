@@ -1,34 +1,44 @@
 <?php
 
 return [
-    'group_policy_version' => '1.1',
+    'group_policy_version' => '1.2',
     'group_policy' => [
-        'Pricing & Minimums' => [
-            ['label' => 'Base Rate:', 'text' => 'The minimum cost for any session is ₹100, which covers up to 10 Students. You can attend solo or bring up to 9 friends for this flat rate.'],
-            ['label' => 'Additional Students:', 'text' => 'For groups larger than 10, the cost is an additional ₹10 per Student.'],
+        'Role of the Student Representative' => [
+            ['label' => null, 'text' => 'You are booking a shared session on behalf of your batchmates. You must collect their specific doubts beforehand and enter them into this form so the educator can prepare the flowcharts and materials.'],
         ],
-        'Cancellations & Refunds' => [
-            ['label' => 'The Revenue Floor:', 'text' => "The ₹100 base fee is non-refundable, as it secures the Instructor's time slot."],
-            ['label' => 'Dropout Refunds:', 'text' => 'For groups larger than 10, the Organizer can request a ₹10 refund for individual dropouts.'],
-            ['label' => 'Strict 9:00 PM Deadline:', 'text' => 'Dropout notifications and refund requests must be submitted by the Organizer before 9:00 PM the day before the scheduled session. No refunds will be processed for requests made after this cutoff.'],
-            ['label' => 'Schedule Mismatches:', 'text' => 'If the Instructor and Organizer absolutely cannot agree on a schedule during the WhatsApp negotiation, the booking will be converted into a session credit that can be applied to a future date or topic.'],
+        'Pricing Structure' => [
+            ['label' => null, 'text' => 'The session fee is based on the current hourly rate displayed on the booking page. This base rate covers a group of up to 10 students. If your group exceeds 10 members, an applicable additional fee per extra student will be automatically calculated at checkout. (Note: If the session is currently marked as "Free", no charges will apply).'],
         ],
-        'Tardiness Policy' => [
-            ['label' => 'Host Delay:', 'text' => 'If the Instructor joins late, the session will be extended to ensure you receive the full promised time. If extending is not possible, a reschedule or refund will be offered.'],
-            ['label' => 'Student Delay:', 'text' => 'If Students or the Organizer join late, the session will still end strictly at the originally scheduled time. Time lost due to student tardiness will not be compensated.'],
+        'Payment Collection' => [
+            ['label' => null, 'text' => 'For paid sessions, the platform checkout does not split the bill. You are responsible for collecting individual shares from your batchmates privately and paying the combined total upfront to secure the booking.'],
         ],
-        'Technical Failures' => [
-            ['label' => 'Host Disconnect:', 'text' => 'If the Instructor loses internet connection for more than 10 minutes, the session will be halted and a free makeup session will be scheduled. Minor disruptions (under 5 minutes) will be compensated by extending the session\'s end time.'],
-            ['label' => 'Student Disconnect (Webinar):', 'text' => 'If an individual Student\'s connection drops during a group class, the session will continue for the rest of the group. No partial refunds are issued for individual technical issues.'],
-            ['label' => 'Student Disconnect (One-on-One):', 'text' => 'The Instructor will keep the meeting open for 15 minutes. If the Student cannot reconnect, the session is counted as completed.'],
+        'Scheduling & Confirmation' => [
+            ['label' => null, 'text' => 'Submitting your 3 preferred time slots helps us organize the schedule. The final session date and time are not locked until officially confirmed by the admin via WhatsApp.'],
         ],
-        'Study Materials & Notes' => [
-            ['label' => 'Built-In Materials:', 'text' => 'We teach directly from the Physiosource website using a Canva interactive whiteboard. No separate PDFs or PPT presentations will be circulated.'],
-            ['label' => 'Always Accessible:', 'text' => 'All structured notes, flowcharts, and learning materials covered in the session remain permanently accessible on the Physiosource website for your review.'],
+        'Invitations & Access' => [
+            ['label' => null, 'text' => 'You must provide accurate email addresses for all attendees. Once confirmed, each participant will receive their own direct invitation link to join the session.'],
         ],
-        'Privacy Guarantee' => [
-            ['label' => null, 'text' => 'Sessions are a safe space to learn. Physiosource occasionally screen-records sessions to create educational marketing content (such as YouTube Shorts).'],
-            ['label' => 'Total Anonymity:', 'text' => 'We exclusively record the Instructor\'s screen and voice. Student names, faces, and voices are strictly anonymized and will never be shared publicly. You can ask questions freely without worrying about your privacy.'],
+        'Refund Policy (For Paid Sessions)' => [
+            ['label' => null, 'text' => 'Refunds for individual dropouts are strictly limited to groups larger than 10. To process a dropout refund, the Student Representative must submit the cancellation request by 9:00 PM the day before the scheduled session. There are no partial refunds for groups of 10 or fewer.'],
+        ],
+    ],
+    'group_guidelines' => [
+        'Definitions' => [
+            ['label' => 'Instructor:', 'text' => 'The Physiosource expert leading and teaching the session.'],
+            ['label' => 'Student:', 'text' => 'Any participant attending the class.'],
+            ['label' => 'Student Organizer:', 'text' => 'The designated group leader responsible for booking the class, paying the upfront fee, collecting doubts from the group, and handling all WhatsApp communication with the Instructor.'],
+        ],
+        'How It Works (Booking & Scheduling)' => [
+            ['label' => 'Step 1: Assign a Student Organizer', 'text' => 'Gather your peers and choose one student to act as the Student Organizer.'],
+            ['label' => 'Step 2: Book & Pay', 'text' => 'The Organizer selects the topic, enters the total headcount, and provides the exact email addresses of all attending Students on the Physiosource website. Payment for the entire group is collected upfront from the Organizer during this step.'],
+            ['label' => 'Step 3: Schedule via WhatsApp', 'text' => 'Once booked, our Instructor will reach out to the Organizer on WhatsApp to confirm a mutual date and time.'],
+            ['label' => 'Step 4: Collect & Share Doubts', 'text' => 'The Student Organizer should ask their group for any specific questions beforehand, compile them, and send them to the Instructor via WhatsApp by 9:00 PM the day before the session. This allows the Instructor to prepare targeted explanations. Impromptu questions are still welcome during the live class; if they require extra preparation, they will be deferred to a future session.'],
+            ['label' => 'Step 5: Join the Class', 'text' => 'Attendees will receive a secure meeting link. Links are non-transferable, and only the registered email addresses provided by the Organizer will be admitted to the room.'],
+        ],
+        'Important' => [
+            ['label' => null, 'text' => 'Do not make the description or doubt-entry field mandatory just because the guidelines ask the Organizer to collect doubts.'],
+            ['label' => null, 'text' => 'Students may share their doubts later through WhatsApp.'],
+            ['label' => null, 'text' => 'Keep the guidelines informational and do not introduce additional form validation.'],
         ],
     ],
 ];

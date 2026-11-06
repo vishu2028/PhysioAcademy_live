@@ -1,5 +1,5 @@
 <section class="coupon-entry-card preferred-slots-card booking-field-full" aria-labelledby="preferredSlotsTitle">
-    @php($slotsRequired = $isGroupBooking ?? true)
+    @php($slotsRequired = false)
     <div class="mb-3">
         <h3 id="preferredSlotsTitle" class="mb-1">Preferred Date &amp; Time Slots</h3>
         <small class="text-secondary">
@@ -15,11 +15,11 @@
                 <div class="preferred-slot-inputs">
                     <label>
                         <span>Date</span>
-                        <input type="date" name="preferred_slots[{{ $slotIndex }}][date]" value="{{ $oldSlot['date'] ?? '' }}" min="{{ now(config('app.timezone'))->format('Y-m-d') }}" @required($slotsRequired)>
+                        <input type="date" name="preferred_slots[{{ $slotIndex }}][date]" value="{{ $oldSlot['date'] ?? '' }}" min="{{ now(config('app.timezone'))->format('Y-m-d') }}">
                     </label>
                     <label>
                         <span>Time</span>
-                        <input type="time" name="preferred_slots[{{ $slotIndex }}][time]" value="{{ $oldSlot['time'] ?? '' }}" @required($slotsRequired)>
+                        <input type="time" name="preferred_slots[{{ $slotIndex }}][time]" value="{{ $oldSlot['time'] ?? '' }}">
                     </label>
                 </div>
                 @error("preferred_slots.{$slotIndex}")<div class="booking-error">{{ $message }}</div>@enderror

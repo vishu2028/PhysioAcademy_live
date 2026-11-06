@@ -124,6 +124,9 @@ class SettingController extends Controller
 
             'settings.webinar_group_enabled' => ['required', 'in:0,1'],
             'settings.webinar_group_allow_requests' => ['required', 'in:0,1'],
+            'settings.webinar_group_is_free' => ['required', 'in:0,1'],
+            'settings.webinar_group_price_per_person' => ['required', 'numeric', 'min:0', 'max:100000'],
+            'settings.webinar_group_additional_price_per_person' => ['required', 'numeric', 'min:0', 'max:100000'],
             'settings.webinar_group_max_participants' => [
                 Rule::requiredIf(fn () => (string) $request->input('settings.webinar_group_enabled', '0') === '1'),
                 'nullable',
@@ -185,6 +188,7 @@ class SettingController extends Controller
                 'doubt_session_is_free',
                 'webinar_group_enabled',
                 'webinar_group_allow_requests',
+                'webinar_group_is_free',
             ];
 
             foreach ($checkboxes as $checkbox) {
@@ -213,6 +217,9 @@ class SettingController extends Controller
             $webinarGroupSettingTypes = [
                 'webinar_group_enabled' => 'boolean',
                 'webinar_group_allow_requests' => 'boolean',
+                'webinar_group_is_free' => 'boolean',
+                'webinar_group_price_per_person' => 'number',
+                'webinar_group_additional_price_per_person' => 'number',
                 'webinar_group_max_participants' => 'number',
                 'webinar_group_duration_minutes' => 'number',
                 'webinar_group_invitation_expiry_hours' => 'number',

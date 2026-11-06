@@ -434,6 +434,7 @@
                             @foreach([
                                 'webinar_group_enabled' => ['Enable Group Webinar bookings', 'Students can submit a new group request.'],
                                 'webinar_group_allow_requests' => ['Allow new requests', 'Turn this off to pause new requests while retaining existing bookings.'],
+                                'webinar_group_is_free' => ['Mark Group Webinar sessions as free', 'Free sessions skip payment while retaining the booking and invitation workflow.'],
                             ] as $key => [$label, $help])
                                 <div class="col-12">
                                     <div class="p-3 rounded-4 border bg-light">
@@ -449,11 +450,19 @@
                                 </div>
                             @endforeach
 
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="p-3 rounded-4 border bg-light h-100">
                                     <div class="fw-bold">Group pricing</div>
-                                    <div class="small text-muted">₹100 for 1–10 students, plus ₹10 for each student above 10. Booking can be individual.</div>
+                                    <div class="small text-muted">Set the current base hourly rate and the additional rate for students above 10.</div>
                                 </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted" for="webinarGroupPrice">Base hourly rate</label>
+                                <input class="form-control rounded-3" type="number" min="0" step="0.01" id="webinarGroupPrice" name="settings[webinar_group_price_per_person]" value="{{ old('settings.webinar_group_price_per_person', get_setting('webinar_group_price_per_person', '100')) }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted" for="webinarGroupAdditionalPrice">Additional student rate</label>
+                                <input class="form-control rounded-3" type="number" min="0" step="0.01" id="webinarGroupAdditionalPrice" name="settings[webinar_group_additional_price_per_person]" value="{{ old('settings.webinar_group_additional_price_per_person', get_setting('webinar_group_additional_price_per_person', '10')) }}">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label small fw-bold text-muted" for="webinarGroupMaximum">Maximum participants</label>

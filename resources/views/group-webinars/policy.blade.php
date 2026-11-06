@@ -1,6 +1,6 @@
-<button type="button" class="btn btn-link p-0 text-start" data-bs-toggle="modal" data-bs-target="#webinarPolicyModal">
-    Physiosource Webinar Terms &amp; Conditions and Privacy Policy
-</button>
+<a href="#webinarPolicyModal" class="btn btn-link p-0 text-start" data-bs-toggle="modal" data-bs-target="#webinarPolicyModal">
+    Group Webinar Terms and Refund Policy
+</a>
 
 <div class="modal fade" id="webinarPolicyModal" tabindex="-1" aria-labelledby="webinarPolicyModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">

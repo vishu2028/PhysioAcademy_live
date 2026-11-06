@@ -58,12 +58,12 @@
                 <div class="col-12">
                     <h2 class="h5 fw-bold mb-3">Shared topic</h2>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold" for="topic">Topic or doubt <span class="text-danger">*</span></label>
-                        <input class="form-control" id="topic" name="topic" value="{{ old('topic') }}" maxlength="255" required>
+                        <label class="form-label fw-semibold" for="topic">Topic or doubt</label>
+                        <input class="form-control" id="topic" name="topic" value="{{ old('topic') }}" maxlength="255">
                     </div>
                     <div>
-                        <label class="form-label fw-semibold" for="description">Description <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="description" name="description" rows="5" minlength="10" maxlength="5000" required>{{ old('description') }}</textarea>
+                        <label class="form-label fw-semibold" for="description">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="5">{{ old('description') }}</textarea>
                         <div class="form-text">Describe what the group wants the instructor to cover.</div>
                     </div>
                 </div>
@@ -80,12 +80,12 @@
                         @foreach(old('participants', []) as $index => $entry)
                             <div class="participant-row row g-2 align-items-end rounded-4 border p-3 mx-0">
                                 <div class="col-md-5">
-                                    <label class="form-label small fw-semibold">Name (optional)</label>
+                                    <label class="form-label small fw-semibold">Name</label>
                                     <input class="form-control participant-name" name="participants[{{ $index }}][name]" value="{{ $entry['name'] ?? '' }}" maxlength="255" autocomplete="name">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-semibold">Email address <span class="text-danger">*</span></label>
-                                    <input class="form-control participant-email" type="email" name="participants[{{ $index }}][email]" value="{{ $entry['email'] ?? '' }}" maxlength="255" required autocomplete="email">
+                                    <label class="form-label small fw-semibold">Email address</label>
+                                    <input class="form-control participant-email" type="email" name="participants[{{ $index }}][email]" value="{{ $entry['email'] ?? '' }}" maxlength="255" autocomplete="email">
                                 </div>
                                 <div class="col-md-1 text-end">
                                     <button type="button" class="btn btn-outline-danger remove-participant" aria-label="Remove participant"><i class="bi bi-trash"></i></button>
@@ -123,18 +123,20 @@
                     </div>
                 </div>
 
-                <div class="col-12">
-                    @include('group-webinars.policy')
-                    <div class="form-check mt-2">
-                        <input class="form-check-input" type="checkbox" name="terms_accepted" value="1" id="termsAccepted" @checked(old('terms_accepted')) required>
-                        <label class="form-check-label" for="termsAccepted">I have read and agree to the Webinar Terms &amp; Conditions and Privacy Policy.</label>
-                    </div>
-                    @error('terms_accepted')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
-                </div>
-
                 <div class="col-12 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
                     <a class="small text-decoration-none" href="{{ route('doubt-sessions.create') }}">Looking for a One-on-One Doubt Session?</a>
-                    <button class="btn btn-primary btn-lg rounded-pill px-4" type="submit">Review &amp; submit request <i class="bi bi-arrow-right ms-1"></i></button>
+                    <div class="text-sm-end">
+                        <div class="mb-2">
+                            @include('group-webinars.policy')
+                            <div class="form-check mt-2 text-start">
+                                <input class="form-check-input" type="checkbox" name="terms_accepted" value="1" id="termsAccepted" @checked(old('terms_accepted')) required>
+                                <label class="form-check-label" for="termsAccepted">I agree to the Group Webinar Terms and Refund Policy.</label>
+                            </div>
+                            <div class="text-danger small mt-1 text-start" id="termsAcceptedError" role="alert" hidden>Please agree to the Group Webinar Terms and Refund Policy before continuing.</div>
+                            @error('terms_accepted')<div class="text-danger small mt-1 text-start">{{ $message }}</div>@enderror
+                        </div>
+                        <button class="btn btn-primary btn-lg rounded-pill px-4" type="submit">Review &amp; submit request <i class="bi bi-arrow-right ms-1"></i></button>
+                    </div>
                 </div>
             </div>
         </form>
@@ -186,8 +188,8 @@
         if (list.querySelectorAll('.participant-row').length + 1 >= maxParticipants) return;
         const wrapper = document.createElement('div');
         wrapper.innerHTML = `<div class="participant-row row g-2 align-items-end rounded-4 border p-3 mx-0">
-            <div class="col-md-5"><label class="form-label small fw-semibold">Name (optional)</label><input class="form-control participant-name" maxlength="255" autocomplete="name"></div>
-            <div class="col-md-6"><label class="form-label small fw-semibold">Email address <span class="text-danger">*</span></label><input class="form-control participant-email" type="email" maxlength="255" required autocomplete="email"></div>
+            <div class="col-md-5"><label class="form-label small fw-semibold">Name</label><input class="form-control participant-name" maxlength="255" autocomplete="name"></div>
+            <div class="col-md-6"><label class="form-label small fw-semibold">Email address</label><input class="form-control participant-email" type="email" maxlength="255" autocomplete="email"></div>
             <div class="col-md-1 text-end"><button type="button" class="btn btn-outline-danger remove-participant" aria-label="Remove participant"><i class="bi bi-trash"></i></button></div>
         </div>`;
         list.append(wrapper.firstElementChild);
@@ -206,6 +208,17 @@
         if (totalParticipants < minParticipants || totalParticipants > maxParticipants) {
             event.preventDefault();
             window.alert(`Choose between ${minParticipants} and ${maxParticipants} participants, including the organizer.`);
+            return;
+        }
+
+        const termsAccepted = document.getElementById('termsAccepted');
+        const termsAcceptedError = document.getElementById('termsAcceptedError');
+        if (!termsAccepted.checked) {
+            event.preventDefault();
+            termsAcceptedError.hidden = false;
+            termsAccepted.focus();
+        } else {
+            termsAcceptedError.hidden = true;
         }
     });
     renumber();

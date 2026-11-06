@@ -39,7 +39,7 @@ class GroupWebinarBookingTest extends TestCase
             'webinar_group_enabled' => '1',
             'webinar_group_allow_requests' => '1',
             'webinar_group_is_free' => '0',
-            'webinar_group_price_per_person' => '500',
+            'webinar_group_price_per_person' => '100',
             'webinar_group_min_participants' => '2',
             'webinar_group_max_participants' => '5',
             'webinar_group_duration_minutes' => '60',
@@ -136,6 +136,51 @@ class GroupWebinarBookingTest extends TestCase
             ->assertSee('The group total is ₹100.00')
             ->assertSee($groupRequest->reference)
             ->assertDontSee('group_webinar_participants/'.$participant->id);
+    }
+
+    public function test_group_booking_form_requires_and_links_the_terms_checkbox(): void
+    {
+        $organizer = User::factory()->create(['email' => 'organizer@example.com']);
+
+        $this->actingAs($organizer)
+            ->get(route('group-webinars.create'))
+            ->assertOk()
+            ->assertSee('name="terms_accepted"', false)
+            ->assertSee('Group Webinar Terms and Refund Policy', false)
+            ->assertSee('href="#webinarPolicyModal"', false)
+            ->assertSee('id="webinarPolicyModal"', false)
+            ->assertDontSee('(optional)');
+    }
+
+    public function test_group_booking_accepts_empty_and_partial_preferred_slots(): void
+    {
+        $organizer = User::factory()->create(['email' => 'organizer@example.com']);
+        $slotVariants = [
+            [],
+            [['date' => now()->addDay()->format('Y-m-d'), 'time' => '18:00']],
+            [[], ['date' => now()->addDays(2)->format('Y-m-d'), 'time' => '19:00']],
+            [[], [], ['date' => now()->addDays(3)->format('Y-m-d'), 'time' => '20:00']],
+            [
+                ['date' => now()->addDay()->format('Y-m-d'), 'time' => '18:00'],
+                ['date' => now()->addDays(2)->format('Y-m-d'), 'time' => '19:00'],
+                ['date' => now()->addDays(3)->format('Y-m-d'), 'time' => '20:00'],
+            ],
+        ];
+
+        foreach ($slotVariants as $slots) {
+            $data = [
+                'organizer_whatsapp' => '+919876543210',
+                'terms_accepted' => '1',
+            ];
+            if ($slots !== []) {
+                $data['preferred_slots'] = $slots;
+            }
+
+            $this->actingAs($organizer)
+                ->post(route('group-webinars.store'), $data)
+                ->assertRedirect()
+                ->assertSessionHasNoErrors();
+        }
     }
 
     public function test_duplicate_emails_and_capacity_are_validated_including_the_organizer(): void
@@ -243,6 +288,52 @@ class GroupWebinarBookingTest extends TestCase
         $this->assertNotNull($groupRequest->participants->sole()->terms_accepted_at);
     }
 
+    public function test_only_organizer_phone_and_policy_are_required_for_a_booking(): void
+    {
+        $organizer = User::factory()->create(['email' => 'organizer@example.com']);
+        $data = [
+            'organizer_whatsapp' => '+919876543210',
+            'terms_accepted' => '1',
+        ];
+
+        $this->actingAs($organizer)->post(route('group-webinars.store'), $data)
+            ->assertRedirect();
+
+        $groupRequest = GroupWebinarRequest::firstOrFail();
+        $this->assertSame('', $groupRequest->topic);
+        $this->assertSame('', $groupRequest->description);
+        $this->assertNull($groupRequest->preferred_slots);
+        $this->assertSame(1, $groupRequest->participant_count);
+    }
+
+    public function test_long_group_description_is_accepted_without_truncation(): void
+    {
+        $organizer = User::factory()->create(['email' => 'organizer@example.com']);
+        $description = str_repeat('Long clinical discussion. ', 400);
+
+        $this->actingAs($organizer)->post(route('group-webinars.store'), [
+            'organizer_whatsapp' => '+919876543210',
+            'description' => $description,
+            'terms_accepted' => '1',
+        ])->assertRedirect();
+
+        $storedDescription = GroupWebinarRequest::firstOrFail()->description;
+        $this->assertNotNull($storedDescription);
+        $this->assertSame(rtrim($description), substr($storedDescription, -strlen(rtrim($description))));
+    }
+
+    public function test_invalid_organizer_email_is_rejected(): void
+    {
+        $organizer = User::factory()->create(['email' => 'not-an-email']);
+
+        $this->actingAs($organizer)->post(route('group-webinars.store'), [
+            'organizer_whatsapp' => '+919876543210',
+            'terms_accepted' => '1',
+        ])->assertSessionHasErrors('organizer_email');
+
+        $this->assertDatabaseCount('group_webinar_requests', 0);
+    }
+
     public function test_booking_cannot_be_submitted_without_server_side_policy_acceptance(): void
     {
         $organizer = User::factory()->create(['email' => 'organizer@example.com']);
@@ -276,13 +367,9 @@ class GroupWebinarBookingTest extends TestCase
         $this->app['auth']->guard()->logout();
         $this->get(route('group-webinars.invitation', $token))
             ->assertOk()
-            ->assertSee('The minimum cost for any session is ₹100, which covers up to 10 Students.')
-            ->assertSee('Strict 9:00 PM Deadline:')
-            ->assertSee('Host Disconnect:')
-            ->assertSee('Additional technical failure terms are pending confirmation.')
-            ->assertSee('Study Materials & Privacy')
-            ->assertSee('Pending confirmation. Policy text has not been supplied.')
-            ->assertDontSee('Structured notes remain accessible.')
+            ->assertSee('The session fee is based on the current hourly rate displayed on the booking page.')
+            ->assertSee('Refunds for individual dropouts are strictly limited to groups larger than 10.')
+            ->assertSee('The final session date and time are not locked until officially confirmed by the admin via WhatsApp.')
             ->assertSee('I have read and agree to the Webinar Terms &amp; Conditions and Privacy Policy.', false);
 
         $this->post(route('group-webinars.payment.start', $token))

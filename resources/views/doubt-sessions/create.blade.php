@@ -45,6 +45,28 @@
             </div>
         </section>
 
+        @if($isGroupBooking)
+            <section class="doubt-booking-content pt-0">
+                <div class="doubt-booking-container">
+                    <details class="coupon-entry-card">
+                        <summary class="fw-bold">PhysioSource Group Doubt Class &amp; Webinar Guidelines</summary>
+                        <div class="mt-3">
+                            @foreach($guidelines as $heading => $items)
+                                <section class="mb-3">
+                                    <h2 class="h6 fw-bold">{{ $heading }}</h2>
+                                    @foreach($items as $item)
+                                        <p class="mb-2">
+                                            @if($item['label'])<strong>{{ $item['label'] }}</strong> @endif{{ $item['text'] }}
+                                        </p>
+                                    @endforeach
+                                </section>
+                            @endforeach
+                        </div>
+                    </details>
+                </div>
+            </section>
+        @endif
+
         <section class="doubt-booking-content">
             <div class="doubt-booking-container">
                 <div class="booking-layout">
@@ -145,22 +167,22 @@
                             @if($isGroupBooking)
                                 <div class="booking-form-grid">
                                     <div class="booking-field">
-                                        <label for="studentName">Organizer</label>
-                                        <input type="text" id="studentName" value="{{ auth()->user()->name }}" readonly>
+                                        <label for="studentName">Student Organizer Name</label>
+                                        <input type="text" id="studentName" value="{{ auth()->user()->name }}" readonly required>
                                         <small>Organizer is included as a participant.</small>
                                     </div>
                                     <div class="booking-field">
-                                        <label for="studentEmail">Organizer Email</label>
-                                        <input type="email" id="studentEmail" value="{{ mb_strtolower(auth()->user()->email) }}" readonly>
+                                        <label for="studentEmail">Student Organizer Email Address</label>
+                                        <input type="email" id="studentEmail" value="{{ mb_strtolower(auth()->user()->email) }}" readonly required>
                                     </div>
                                     <div class="booking-field booking-field-full">
-                                        <label for="organizerWhatsapp">Organizer WhatsApp Number <span>*</span></label>
+                                        <label for="organizerWhatsapp">Student Organizer Phone Number <span>*</span></label>
                                         <input type="tel" name="organizer_whatsapp" id="organizerWhatsapp" value="{{ old('organizer_whatsapp') }}" class="@error('organizer_whatsapp') is-invalid @enderror" placeholder="+91 98765 43210" maxlength="16" autocomplete="tel" required>
                                         @error('organizer_whatsapp')<div class="booking-error">{{ $message }}</div>@enderror
                                     </div>
                                     <div class="booking-field">
-                                        <label for="academicYear">Academic Year <span>*</span></label>
-                                        <select name="academic_year_id" id="academicYear" required>
+                                        <label for="academicYear">Academic Year</label>
+                                        <select name="academic_year_id" id="academicYear">
                                             <option value="">Select Academic Year</option>
                                             @foreach($years as $year)
                                                 <option value="{{ $year->id }}" @selected(old('academic_year_id') == $year->id)>{{ $year->name }}</option>
@@ -169,8 +191,8 @@
                                         @error('academic_year_id')<div class="booking-error">{{ $message }}</div>@enderror
                                     </div>
                                     <div class="booking-field">
-                                        <label for="subject">Subject <span>*</span></label>
-                                        <select name="subject_id" id="subject" required>
+                                        <label for="subject">Subject</label>
+                                        <select name="subject_id" id="subject">
                                             <option value="">Select Subject</option>
                                             @foreach($subjects as $subject)
                                                 <option value="{{ $subject->id }}" @selected(old('subject_id') == $subject->id)>{{ $subject->name }}</option>
@@ -179,20 +201,20 @@
                                         @error('subject_id')<div class="booking-error">{{ $message }}</div>@enderror
                                     </div>
                                     <div class="booking-field booking-field-full">
-                                        <label for="topic">Topic <span>*</span></label>
-                                        <input type="text" name="topic" id="topic" value="{{ old('topic') }}" class="@error('topic') is-invalid @enderror" maxlength="255" required>
+                                        <label for="topic">Topic</label>
+                                        <input type="text" name="topic" id="topic" value="{{ old('topic') }}" class="@error('topic') is-invalid @enderror" maxlength="255">
                                         @error('topic')<div class="booking-error">{{ $message }}</div>@enderror
                                     </div>
                                     @include('partials.preferred-slots')
                                     <div class="booking-field booking-field-full">
-                                        <label for="preferredSchedule">Preferred Schedule <span>*</span></label>
+                                        <label for="preferredSchedule">Preferred Schedule</label>
                                         <input type="text" name="preferred_schedule" id="preferredSchedule" value="{{ old('preferred_schedule') }}" class="@error('preferred_schedule') is-invalid @enderror" placeholder="Optional scheduling notes, e.g. weekday evenings">
                                         @error('preferred_schedule')<div class="booking-error">{{ $message }}</div>@enderror
                                     </div>
                                     <div class="booking-field booking-field-full">
-                                        <label for="doubt">Describe the Group's Learning Goal <span>*</span></label>
-                                        <textarea name="description" id="doubt" rows="5" class="@error('description') is-invalid @enderror" minlength="10" maxlength="5000" required>{{ old('description') }}</textarea>
-                                        <div class="booking-field-footer"><small>Share what the instructor should cover.</small><small><span id="doubtCharacterCount">{{ mb_strlen(old('description', '')) }}</span> / 5,000 characters</small></div>
+                                        <label for="doubt">Describe the Group's Learning Goal</label>
+                                        <textarea name="description" id="doubt" rows="5" class="@error('description') is-invalid @enderror">{{ old('description') }}</textarea>
+                                        <div class="booking-field-footer"><small>Share what the instructor should cover.</small><small><span id="doubtCharacterCount">{{ mb_strlen(old('description', '')) }}</span> characters</small></div>
                                         @error('description')<div class="booking-error">{{ $message }}</div>@enderror
                                     </div>
                                 </div>
@@ -208,7 +230,7 @@
                                     <div id="groupParticipants" class="d-grid gap-2">
                                         @foreach(old('participants', []) as $index => $participant)
                                             <div class="input-group group-participant-row">
-                                                <input class="form-control" type="email" name="participants[{{ $index }}][email]" value="{{ $participant['email'] ?? '' }}" placeholder="student@example.com" maxlength="255" autocomplete="email" required>
+                                                <input class="form-control" type="email" name="participants[{{ $index }}][email]" value="{{ $participant['email'] ?? '' }}" placeholder="student@example.com" maxlength="255" autocomplete="email">
                                                 <button class="btn btn-outline-danger remove-group-participant" type="button" aria-label="Remove participant"><i class="bi bi-trash"></i></button>
                                             </div>
                                         @endforeach
@@ -221,14 +243,20 @@
                                         <span><strong><span id="groupParticipantCount">{{ count(old('participants', [])) + 1 }}</span></strong> participants including organizer</span>
                                         <strong class="text-primary fs-5" id="groupTotal" data-base-total="{{ $price }}">₹{{ number_format((float) $price, 2) }}</strong>
                                     </div>
-                                    <small class="text-secondary d-block mt-1">₹100 total for 1–10 participants; ₹10 per participant above 10.</small>
+                                    <small class="text-secondary d-block mt-1">
+                                        @if($isFree)
+                                            This Group Webinar is currently free.
+                                        @else
+                                            ₹{{ number_format((float) $baseRate, 2) }} for up to 10 participants, plus the configured additional rate above 10.
+                                        @endif
+                                    </small>
                                 </section>
 
                                 <div class="mt-4">
                                     @include('group-webinars.policy')
                                     <div class="form-check mt-3">
                                         <input class="form-check-input" type="checkbox" name="terms_accepted" value="1" id="termsAccepted" @checked(old('terms_accepted')) required>
-                                        <label class="form-check-label" for="termsAccepted">I have read and agree to the Webinar Terms &amp; Conditions and Privacy Policy.</label>
+                                        <label class="form-check-label" for="termsAccepted">I agree to the Group Webinar Terms and Refund Policy.</label>
                                     </div>
                                     @error('terms_accepted')<div class="booking-error">{{ $message }}</div>@enderror
                                 </div>
@@ -1246,6 +1274,9 @@
                 const groupTotal = document.getElementById('groupTotal');
                 const maxGroupParticipants = {{ (int) ($maximumParticipants ?? 0) }};
                 const preferredSlotInputs = Array.from(document.querySelectorAll('.preferred-slots-card input[required]'));
+                const groupBaseRate = {{ (float) ($baseRate ?? 100) }};
+                const groupAdditionalRate = {{ (float) get_setting('webinar_group_additional_price_per_person', 10) }};
+                const groupIsFree = @json((bool) ($isFree ?? false));
                 const validatePreferredSlots = () => {
                     const combinations = preferredSlotInputs
                         .reduce((slots, input, index) => {
@@ -1283,7 +1314,7 @@
                 const renderGroupTotal = () => {
                     if (!groupParticipants || !groupTotal) return;
                     const count = groupParticipants.querySelectorAll('.group-participant-row').length + 1;
-                    const total = 100 + Math.max(0, count - 10) * 10;
+                    const total = groupIsFree ? 0 : groupBaseRate + Math.max(0, count - 10) * groupAdditionalRate;
                     groupParticipantCount.textContent = String(count);
                     groupTotal.textContent = money(total);
                     document.getElementById('groupSubmitTotal').textContent = money(total);
@@ -1300,7 +1331,7 @@
                     const index = nextParticipantIndex();
                     const row = document.createElement('div');
                     row.className = 'input-group group-participant-row';
-                    row.innerHTML = `<input class="form-control" type="email" name="participants[${index}][email]" placeholder="student@example.com" maxlength="255" autocomplete="email" required><button class="btn btn-outline-danger remove-group-participant" type="button" aria-label="Remove participant"><i class="bi bi-trash"></i></button>`;
+                    row.innerHTML = `<input class="form-control" type="email" name="participants[${index}][email]" placeholder="student@example.com" maxlength="255" autocomplete="email"><button class="btn btn-outline-danger remove-group-participant" type="button" aria-label="Remove participant"><i class="bi bi-trash"></i></button>`;
                     groupParticipants.append(row);
                     row.querySelector('input').focus();
                     renderGroupTotal();

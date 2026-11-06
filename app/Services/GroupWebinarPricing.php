@@ -4,9 +4,29 @@ namespace App\Services;
 
 class GroupWebinarPricing
 {
-    public static function totalFor(int $participantCount): int
+    public static function baseRate(): float
     {
-        return 100 + (max(1, $participantCount) > 10 ? (max(1, $participantCount) - 10) * 10 : 0);
+        return max(0, (float) get_setting('webinar_group_price_per_person', 100));
+    }
+
+    public static function isFree(): bool
+    {
+        return (string) get_setting('webinar_group_is_free', '0') === '1';
+    }
+
+    public static function totalFor(int $participantCount): int|float
+    {
+        if (self::isFree()) {
+            return 0;
+        }
+
+        $count = max(1, $participantCount);
+        $baseRate = self::baseRate();
+        $additionalRate = max(0, (float) get_setting('webinar_group_additional_price_per_person', 10));
+
+        $total = $baseRate + ($count > 10 ? ($count - 10) * $additionalRate : 0);
+
+        return floor($total) === $total ? (int) $total : $total;
     }
 
     /**
@@ -18,7 +38,7 @@ class GroupWebinarPricing
     public static function sharesFor(int $participantCount): array
     {
         $count = max(1, $participantCount);
-        $totalPaise = self::totalFor($count) * 100;
+        $totalPaise = (int) round(self::totalFor($count) * 100);
         $baseShare = intdiv($totalPaise, $count);
         $remainder = $totalPaise % $count;
 

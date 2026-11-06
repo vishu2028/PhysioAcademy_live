@@ -42,13 +42,15 @@ class GroupWebinarBookingController extends Controller
             'bookingType' => 'group',
             'years' => $years,
             'subjects' => $subjects,
-            'isFree' => false,
+            'isFree' => GroupWebinarPricing::isFree(),
             'price' => GroupWebinarPricing::totalFor(1),
+            'baseRate' => GroupWebinarPricing::baseRate(),
             'durationMinutes' => max(1, (int) get_setting('webinar_group_duration_minutes', 60)),
             'minimumParticipants' => 1,
             'maximumParticipants' => max(1, (int) get_setting('webinar_group_max_participants', 50)),
             'policyVersion' => config('webinar.group_policy_version'),
             'policySections' => config('webinar.group_policy'),
+            'guidelines' => config('webinar.group_guidelines'),
         ]);
     }
 
@@ -61,27 +63,47 @@ class GroupWebinarBookingController extends Controller
         $additionalMin = max(0, $minParticipants - 1);
         $additionalMax = max(0, $maxParticipants - 1);
 
+        $participants = collect($request->input('participants', []))
+            ->filter(static fn (mixed $participant): bool => is_array($participant)
+                && filled($participant['email'] ?? null))
+            ->values()
+            ->all();
+        $request->merge(['participants' => $participants]);
+
+        $user = $request->user();
+        $organizerErrors = [];
+        if (! filled($user?->name)) {
+            $organizerErrors['organizer_name'] = 'Your organizer name is required.';
+        }
+        if (! filter_var($user?->email, FILTER_VALIDATE_EMAIL)) {
+            $organizerErrors['organizer_email'] = 'Your organizer email address must be valid.';
+        }
+        if ($organizerErrors !== []) {
+            throw ValidationException::withMessages($organizerErrors);
+        }
+
         $validated = $request->validate([
-            'topic' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string', 'min:10', 'max:5000'],
+            'topic' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
             'preferred_schedule' => ['nullable', 'string', 'max:255'],
-            'preferred_slots' => ['required', 'array', 'size:3'],
-            'preferred_slots.*.date' => ['required', 'date_format:Y-m-d'],
-            'preferred_slots.*.time' => ['required', 'date_format:H:i'],
-            'academic_year_id' => ['required', 'integer', 'exists:academic_years,id'],
-            'subject_id' => ['required', 'integer', 'exists:subjects,id'],
+            'preferred_slots' => ['nullable', 'array'],
+            'preferred_slots.*.date' => ['nullable', 'date_format:Y-m-d'],
+            'preferred_slots.*.time' => ['nullable', 'date_format:H:i'],
+            'academic_year_id' => ['nullable', 'integer', 'exists:academic_years,id'],
+            'subject_id' => ['nullable', 'integer', 'exists:subjects,id'],
             'organizer_whatsapp' => ['required', 'string', 'max:16', 'regex:/^\+?[1-9][0-9]{7,14}$/'],
             'participants' => ['nullable', 'array', 'min:'.$additionalMin, 'max:'.$additionalMax],
-            'participants.*.email' => ['required', 'email:rfc', 'max:255', 'distinct:ignore_case'],
+            'participants.*.email' => ['nullable', 'email:rfc', 'max:255', 'distinct:ignore_case'],
             'terms_accepted' => ['accepted'],
         ], [
             'participants.min' => 'This request requires at least '.$minParticipants.' participants, including you as the organizer.',
             'participants.max' => 'The maximum group size is '.$maxParticipants.' participants, including you as the organizer.',
             'terms_accepted.accepted' => 'You must accept the Webinar Terms & Conditions and Privacy Policy before continuing.',
         ]);
-        $validated['preferred_slots'] = PreferredSlotService::validate($validated['preferred_slots']);
+        $validated['preferred_slots'] = isset($validated['preferred_slots'])
+            ? PreferredSlotService::validateOptional($validated['preferred_slots'])
+            : null;
 
-        $user = $request->user();
         $emails = array_map(
             static fn (array $participant): string => mb_strtolower(trim($participant['email'])),
             $validated['participants'] ?? []
@@ -104,16 +126,23 @@ class GroupWebinarBookingController extends Controller
         $participantAmounts = array_merge([$totalAmount], array_fill(0, $participantCount - 1, 0));
         $price = $totalAmount;
         $policyVersion = (string) config('webinar.group_policy_version');
-        $description = implode("\n\n", [
-            'Academic year: '.AcademicYear::findOrFail($validated['academic_year_id'])->name,
-            'Subject: '.Subject::findOrFail($validated['subject_id'])->name,
+        $descriptionParts = [
+            filled($validated['academic_year_id'] ?? null)
+                ? 'Academic year: '.AcademicYear::findOrFail($validated['academic_year_id'])->name
+                : null,
+            filled($validated['subject_id'] ?? null)
+                ? 'Subject: '.Subject::findOrFail($validated['subject_id'])->name
+                : null,
             filled($validated['preferred_schedule'] ?? null)
                 ? 'Scheduling notes: '.trim($validated['preferred_schedule'])
                 : null,
-            'Preferred date and time slots: '.PreferredSlotService::summary($validated['preferred_slots']),
-            trim($validated['description']),
-        ]);
-        $description = implode("\n\n", array_filter(explode("\n\n", $description), static fn (string $line): bool => $line !== ''));
+            filled($validated['preferred_slots'] ?? null)
+                ? 'Preferred date and time slots: '.PreferredSlotService::summary($validated['preferred_slots'])
+                : null,
+            filled($validated['description'] ?? null) ? trim($validated['description']) : null,
+        ];
+        $description = implode("\n\n", array_filter($descriptionParts, static fn (?string $line): bool => filled($line)));
+        $description = $description !== '' ? $description : null;
 
         $groupRequest = null;
         $organizerInvitation = null;
@@ -133,8 +162,9 @@ class GroupWebinarBookingController extends Controller
                 'organizer_name' => $user->name,
                 'organizer_email' => $user->email,
                 'organizer_whatsapp' => $validated['organizer_whatsapp'],
-                'topic' => $validated['topic'],
-                'description' => $description,
+                // Keep writes compatible until the nullable-fields migration is deployed.
+                'topic' => filled($validated['topic'] ?? null) ? trim($validated['topic']) : '',
+                'description' => $description ?? '',
                 'preferred_slots' => $validated['preferred_slots'],
                 'participant_count' => $participantCount,
                 'minimum_participants' => $minParticipants,
