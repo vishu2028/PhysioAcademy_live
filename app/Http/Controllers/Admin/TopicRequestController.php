@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Concerns\PreservesListingContext;
 use App\Http\Controllers\Controller;
-use App\Models\Topic;
 use App\Models\TopicRequest;
 use App\Notifications\TopicRequestStatusUpdated;
 use Illuminate\Http\Request;
@@ -21,7 +20,7 @@ class TopicRequestController extends Controller
         ]);
 
         $search = trim($validated['search'] ?? '');
-        $term = '%' . addcslashes($search, '%_\\') . '%';
+        $term = '%'.addcslashes($search, '%_\\').'%';
 
         $topicRequests = TopicRequest::with([
             'user',
@@ -47,24 +46,6 @@ class TopicRequestController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        $possibleTopics = Topic::active()
-            ->select(['id', 'title', 'slug', 'subject_id', 'academic_year_id'])
-            ->get()
-            ->groupBy(fn (Topic $topic): string => implode('|', [
-                mb_strtolower(trim($topic->title)),
-                $topic->subject_id,
-                $topic->academic_year_id,
-            ]));
-
-        $topicRequests->getCollection()->each(function (TopicRequest $topicRequest) use ($possibleTopics): void {
-            $key = implode('|', [
-                mb_strtolower(trim($topicRequest->topic_name)),
-                $topicRequest->subject_id,
-                $topicRequest->academic_year_id,
-            ]);
-            $topicRequest->setAttribute('possible_topic', $possibleTopics->get($key)?->first());
-        });
-
         return view('admin.topic-requests.index', compact('topicRequests'));
     }
 
@@ -80,10 +61,6 @@ class TopicRequestController extends Controller
                 ]),
             ],
             'topic_link' => ['nullable', 'url:http,https', 'max:2048'],
-            'topic_id' => [
-                'nullable',
-                Rule::exists('topics', 'id')->where('status', true),
-            ],
         ]);
 
         $statusChanged = $topicRequest->status !== $validated['status'];
@@ -93,7 +70,6 @@ class TopicRequestController extends Controller
         $data = [
             'status' => $validated['status'],
             'topic_link' => $topicLink,
-            'topic_id' => $validated['topic_id'] ?? null,
         ];
 
         if ($validated['status'] === TopicRequest::STATUS_RESOLVED && $statusChanged) {

@@ -122,7 +122,7 @@
                                         {!! $topic->description !!}
                                     @else
                                         <div class="preview-content" style="position: relative;">
-                                            {!! Str::limit($topic->description, strlen($topic->description) / 2) !!}
+                                            {!! \App\Support\HtmlPreview::half($topic->description) !!}
                                             <div class="content-overlay" style="background: linear-gradient(to bottom, transparent, #FFFFFF); height: 100px; margin-top: -100px; position: relative; z-index: 1;"></div>
                                             <div class="restricted-notice mt-4 px-4 py-3 rounded-4 border border-blue-100 bg-blue-50/50 text-center">
                                                 <p class="mb-2 fw-bold text-blue-900">✨ Reading in Preview Mode (50%)</p>

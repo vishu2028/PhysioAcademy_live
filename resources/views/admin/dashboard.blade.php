@@ -233,12 +233,12 @@
     </div>
 
     <div class="col-12 col-sm-6 col-md-4 col-xl-2">
-        <a href="{{ route('admin.subjects.index') }}" class="dash-stat-link">
+        <a href="{{ route('admin.unit-topics.index') }}" class="dash-stat-link">
             <div class="dash-stat-card card-cyan">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <p class="dash-stat-label">Subjects</p>
-                        <h3 class="dash-stat-value">{{ $stats['subjects'] }}</h3>
+                        <p class="dash-stat-label">Topics</p>
+                        <h3 class="dash-stat-value">{{ $stats['topics'] }}</h3>
                     </div>
                     <div class="dash-icon-wrap icon-cyan">
                         <i class="bi bi-book-half"></i>
@@ -249,12 +249,12 @@
     </div>
 
     <div class="col-12 col-sm-6 col-md-4 col-xl-2">
-        <a href="{{ route('admin.academic-years.index') }}" class="dash-stat-link">
+        <a href="{{ route('admin.topics.index') }}" class="dash-stat-link">
             <div class="dash-stat-card card-amber">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <p class="dash-stat-label">Academic Years</p>
-                        <h3 class="dash-stat-value">{{ $stats['academic_years'] }}</h3>
+                        <p class="dash-stat-label">Topics & LMS</p>
+                        <h3 class="dash-stat-value">{{ $stats['topics_lms'] }}</h3>
                     </div>
                     <div class="dash-icon-wrap icon-amber">
                         <i class="bi bi-calendar3"></i>

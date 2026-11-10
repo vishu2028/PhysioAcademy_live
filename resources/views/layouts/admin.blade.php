@@ -31,13 +31,13 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #f4f7fe;
             margin: 0;
-            overflow-x: hidden;
         }
 
         /* ─── LAYOUT WRAPPER ────────────────────────────────── */
         #wrapper {
             display: flex;
             width: 100%;
+            min-width: 0;
             min-height: 100vh;
         }
 
@@ -117,7 +117,9 @@
 
         /* ─── PAGE CONTENT ────────────────────────────────── */
         #page-content-wrapper {
-            width: 100%;
+            flex: 1 1 auto;
+            width: calc(100% - 280px);
+            min-width: 0;
             margin-left: 280px;
             min-height: 100vh;
             transition: margin-left 0.3s ease;
@@ -131,9 +133,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 0.75rem;
+            min-width: 0;
             position: sticky;
             top: 0;
             z-index: 1030;
+        }
+
+        .admin-header .search-form {
+            flex: 1 1 320px;
+            max-width: 360px;
+            min-width: 0;
         }
 
         .admin-header .search-form .input-group {
@@ -142,7 +152,7 @@
         }
 
         .admin-header .search-form .form-control {
-            min-width: 260px;
+            min-width: 0;
             border-radius: 12px;
             font-size: 0.9rem;
         }
@@ -206,6 +216,11 @@
         }
 
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        #page-content-wrapper .container-fluid,
+        #page-content-wrapper .card,
+        #page-content-wrapper .card-body {
+            min-width: 0;
+        }
 
         /* ─── BADGES ─────────────────────────────────────── */
         .bg-success-subtle { background: rgba(16,185,129,0.1) !important; }
@@ -227,13 +242,16 @@
         @media (max-width: 991.98px) {
             #sidebar-wrapper {
                 transform: translateX(-100%);
+                visibility: hidden;
             }
 
             #sidebar-wrapper.toggled {
                 transform: translateX(0);
+                visibility: visible;
             }
 
             #page-content-wrapper {
+                width: 100%;
                 margin-left: 0;
             }
 
@@ -253,6 +271,30 @@
         @media (max-width: 575.98px) {
             .admin-header .search-form {
                 display: none !important;
+            }
+
+            .admin-header {
+                padding-inline: 0.75rem;
+            }
+
+            .header-right {
+                gap: 0.5rem !important;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            #page-content-wrapper .container-fluid {
+                padding: clamp(0.75rem, 3.5vw, 1rem) !important;
+            }
+
+            #page-content-wrapper .table-responsive,
+            #page-content-wrapper .dataTables_wrapper {
+                max-width: 100%;
+            }
+
+            #page-content-wrapper .dataTables_wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
         }
 
@@ -471,7 +513,7 @@
         <!-- Page Content -->
         <div id="page-content-wrapper">
             <header class="admin-header">
-                <button class="btn btn-light d-lg-none rounded-3" id="menu-toggle" aria-label="Toggle sidebar">
+                <button class="btn btn-light d-lg-none rounded-3" id="menu-toggle" aria-label="Open sidebar" aria-controls="sidebar-wrapper" aria-expanded="false">
                     <i class="bi bi-list fs-5"></i>
                 </button>
                 <div class="search-form d-none d-md-flex">
@@ -481,14 +523,6 @@
                     </div>
                 </div>
                 <div class="header-right d-flex align-items-center gap-3">
-                    <div class="dropdown">
-                        <button class="btn btn-light rounded-circle shadow-sm position-relative" data-bs-toggle="dropdown" aria-label="Notifications">
-                            <i class="bi bi-bell"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
-                                3+
-                            </span>
-                        </button>
-                    </div>
                     <div class="dropdown">
                         <button class="btn btn-light d-flex align-items-center gap-2 border shadow-sm rounded-3" data-bs-toggle="dropdown">
                             <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=4f46e5&color=fff" class="rounded-2" width="30" alt="Avatar">
@@ -593,23 +627,28 @@
             toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right" };
 
             // Sidebar Toggle (responsive)
+            const setSidebarOpen = function(isOpen) {
+                $("#sidebar-wrapper").toggleClass("toggled", isOpen);
+                $("#sidebarOverlay").toggleClass("active", isOpen);
+                $("#menu-toggle")
+                    .attr("aria-expanded", String(isOpen))
+                    .attr("aria-label", isOpen ? "Close sidebar" : "Open sidebar");
+            };
+
             $("#menu-toggle").click(function(e) {
                 e.preventDefault();
-                $("#sidebar-wrapper").toggleClass("toggled");
-                $("#sidebarOverlay").toggleClass("active");
+                setSidebarOpen(!$("#sidebar-wrapper").hasClass("toggled"));
             });
 
             // Click overlay to close sidebar
             $("#sidebarOverlay").click(function() {
-                $("#sidebar-wrapper").removeClass("toggled");
-                $(this).removeClass("active");
+                setSidebarOpen(false);
             });
 
             // Close sidebar on resize to desktop
             $(window).on('resize', function() {
                 if ($(window).width() >= 992) {
-                    $("#sidebar-wrapper").removeClass("toggled");
-                    $("#sidebarOverlay").removeClass("active");
+                    setSidebarOpen(false);
                 }
             });
         });

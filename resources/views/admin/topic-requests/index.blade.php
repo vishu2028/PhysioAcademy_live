@@ -84,12 +84,6 @@
                                 @if($topicRequest->priority === 'high')
                                     <span class="badge bg-danger-subtle text-danger ms-1">High</span>
                                 @endif
-                                @if($topicRequest->possible_topic && !$topicRequest->topic_id)
-                                    <small class="d-block text-primary mt-1">
-                                        <i class="bi bi-info-circle me-1"></i>
-                                        A matching topic may already exist.
-                                    </small>
-                                @endif
                             </td>
                             <td>{{ $topicRequest->subject?->name ?? '-' }}</td>
                             <td style="min-width: 280px;">
@@ -120,18 +114,6 @@
                                             Existing admin note: {{ $topicRequest->admin_note }}
                                         </small>
                                     @endif
-                                    <label class="visually-hidden" for="topic-{{ $topicRequest->id }}">Published topic</label>
-                                    <select class="form-select form-select-sm mb-2" id="topic-{{ $topicRequest->id }}" name="topic_id">
-                                        <option value="">No published topic linked</option>
-                                        @if($topicRequest->possible_topic)
-                                            <option value="{{ $topicRequest->possible_topic->id }}" @selected($topicRequest->topic_id === $topicRequest->possible_topic->id)>
-                                                {{ $topicRequest->possible_topic->title }}
-                                            </option>
-                                        @endif
-                                        @if($topicRequest->topic && !$topicRequest->possible_topic)
-                                            <option value="{{ $topicRequest->topic->id }}" selected>{{ $topicRequest->topic->title }}</option>
-                                        @endif
-                                    </select>
                                     <button type="submit" class="btn btn-primary btn-sm">Save Update</button>
                                 </form>
                                     @if($topicRequest->topic)

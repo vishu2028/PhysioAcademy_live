@@ -15,7 +15,7 @@
 </div>
 
 <div class="card border-0 shadow-sm rounded-4">
-    <div class="card-body p-0">
+    <div class="card-body p-0 table-responsive">
         <table class="table table-striped mb-0">
             <thead>
                 <tr>

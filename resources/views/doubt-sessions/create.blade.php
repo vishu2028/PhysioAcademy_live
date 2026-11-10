@@ -25,22 +25,24 @@
 
                     <p>
                         @if($isGroupBooking)
-                            Bring a study group together. As the student representative, you will submit the group's pre-collected doubts and attendee details.
-                            @if($isFree)
-                                This Group Webinar is free; no payment is required.
-                            @else
-                                You will pay the combined total amount upfront.
-                            @endif
+                            Submit your topic, preferred schedule, and participant emails. As the student representative, you will coordinate the group and complete the single payment for everyone.
+                            <br><br>
+                            Want individual attention instead?
                         @else
-                            Submit your PhysioSource doubt and booking details.
-                            The admin will confirm your session date and time
-                            after your booking is completed.
+                            Submit your doubt and booking details for a one-on-one session. The admin will confirm your session date and time after your booking is completed.
+                            <br><br>
+                            Want to save more? You can also gather your batchmates to split the cost and join together.
                         @endif
                     </p>
                     @if($isGroupBooking)
                         <a href="{{ route('doubt-sessions.create') }}" class="btn btn-outline-primary rounded-pill mt-2">
                             <i class="bi bi-person me-1"></i>Book One-on-One instead
                         </a>
+                        @if($isFree)
+                            <p class="small text-secondary mt-2 mb-0">This Group Webinar is free; no payment is required.</p>
+                        @else
+                            <p class="small text-secondary mt-2 mb-0">You will pay the combined total amount upfront.</p>
+                        @endif
                     @elseif(get_setting('webinar_group_enabled', '0') == '1' && get_setting('webinar_group_allow_requests', '1') == '1')
                         <p class="small text-secondary mb-1">Want to split the cost? Gather your batchmates to share a session.</p>
                         <a href="{{ route('group-webinars.create') }}" class="btn btn-outline-primary rounded-pill mt-2">
@@ -58,13 +60,15 @@
                         <summary class="fw-bold">PhysioSource Group Doubt Class &amp; Webinar Guidelines</summary>
                         <div class="mt-3">
                             @foreach($guidelines as $heading => $items)
-                                <section class="mb-3">
+                                <section class="mb-4">
                                     <h2 class="h6 fw-bold">{{ $heading }}</h2>
-                                    @foreach($items as $item)
-                                        <p class="mb-2">
-                                            @if($item['label'])<strong>{{ $item['label'] }}</strong> @endif{{ $item['text'] }}
-                                        </p>
-                                    @endforeach
+                                    <ul class="mb-0 ps-4">
+                                        @foreach($items as $item)
+                                            <li class="mb-2">
+                                                @if($item['label'])<strong>{{ $item['label'] }}</strong> @endif{{ $item['text'] }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
                                 </section>
                             @endforeach
                         </div>
@@ -83,10 +87,10 @@
                         <div class="booking-card-header">
                             <div>
                                 <span class="booking-card-eyebrow">
-                                    {{ $isGroupBooking ? 'Group Booking Information' : 'Student Information' }}
+                                    {{ $isGroupBooking ? 'SHARED SUPPORT' : 'INDIVIDUAL SUPPORT' }}
                                 </span>
 
-                                <h2>{{ $isGroupBooking ? 'Group Session Booking Form' : 'Session Booking Form' }}</h2>
+                                <h2>{{ $isGroupBooking ? 'Group Session Booking' : 'One-on-One Session Booking' }}</h2>
                             </div>
 
                             <div class="booking-security">
@@ -178,7 +182,7 @@
                                     <div class="booking-field">
                                         <label for="studentName">Student Representative Name</label>
                                         <input type="text" id="studentName" value="{{ auth()->user()->name }}" readonly required>
-                                        <small>Student representative is included as a participant.</small>
+                                        <small>Representative is included as a participant.</small>
                                     </div>
                                     <div class="booking-field">
                                         <label for="studentEmail">Student Representative Email Address</label>

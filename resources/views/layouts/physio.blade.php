@@ -28,6 +28,7 @@
 
         .dashboard-layout {
             display: flex;
+            min-width: 0;
             min-height: 100vh;
             background:
                 radial-gradient(circle at 0% 0%, rgba(56,189,248,0.1), transparent 30%),
@@ -44,15 +45,37 @@
             display: flex;
             flex-direction: column;
             position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
             height: 100vh;
+            height: 100dvh;
             z-index: 100;
+            overflow-y: auto;
+            overscroll-behavior: contain;
         }
 
         .dashboard-main {
             flex: 1;
+            min-width: 0;
             margin-left: 280px;
-            padding: 40px;
+            padding: clamp(20px, 3vw, 40px);
             position: relative;
+        }
+
+        .dashboard-header,
+        .dashboard-header > * {
+            min-width: 0;
+        }
+
+        .dashboard-header h2 {
+            font-size: clamp(1.35rem, 2.4vw, 2rem);
+            overflow-wrap: anywhere;
+        }
+
+        .user-info-mini {
+            min-width: 0;
+            overflow-wrap: anywhere;
         }
 
         .nav-logo-db {
@@ -130,7 +153,8 @@
             backdrop-filter: blur(20px);
             border: 1px solid rgba(37,99,235,0.1);
             border-radius: 24px;
-            padding: 30px;
+            min-width: 0;
+            padding: clamp(20px, 2.2vw, 30px);
             box-shadow: 0 20px 50px rgba(37,99,235,0.05);
             transition: all 0.3s ease;
         }
@@ -139,6 +163,33 @@
             transform: translateY(-5px);
             box-shadow: 0 25px 60px rgba(37,99,235,0.1);
             border-color: rgba(37,99,235,0.2);
+        }
+
+        .dashboard-menu-toggle {
+            display: none;
+            flex: 0 0 44px;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border: 1px solid rgba(37,99,235,0.12);
+            border-radius: 12px;
+            color: #2563eb;
+            background: #fff;
+            box-shadow: 0 4px 14px rgba(37,99,235,0.08);
+        }
+
+        .dashboard-sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 99;
+            background: rgba(15,23,42,0.42);
+            backdrop-filter: blur(3px);
+        }
+
+        body.dashboard-nav-open {
+            overflow: hidden;
         }
 
         /* ─── SECURITY LAYER STYLES ─── */
@@ -207,12 +258,33 @@
             .dashboard-sidebar {
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
+                width: min(280px, calc(100vw - 32px));
+                visibility: hidden;
             }
             .dashboard-sidebar.active {
                 transform: translateX(0);
+                visibility: visible;
+            }
+            .dashboard-sidebar-overlay.active {
+                display: block;
             }
             .dashboard-main {
                 margin-left: 0;
+                padding: clamp(16px, 4vw, 32px);
+            }
+            .dashboard-header {
+                display: grid !important;
+                grid-template-columns: 44px minmax(0, 1fr);
+                align-items: start !important;
+                gap: 12px;
+            }
+            .dashboard-menu-toggle {
+                display: inline-flex;
+            }
+            .dashboard-header .header-actions-db {
+                grid-column: 2;
+                justify-self: start;
+                margin-top: 4px;
             }
         }
     </style>
@@ -234,6 +306,12 @@
     data-protection-watermark="{{ get_setting('protection_enable_watermark', '0') }}"
 >
     <div class="dashboard-layout">
+        <div
+            class="dashboard-sidebar-overlay"
+            id="dashboardSidebarOverlay"
+            aria-hidden="true"
+        ></div>
+
         <!-- Sidebar -->
         <aside class="dashboard-sidebar" id="dashboardSidebar">
             <a href="{{ url('/') }}" class="nav-logo-db">
@@ -303,6 +381,16 @@
         <main class="dashboard-main">
             <!-- Top Header -->
             <div class="dashboard-header d-flex justify-content-between align-items-center mb-5">
+                <button
+                    type="button"
+                    class="dashboard-menu-toggle"
+                    id="dashboardMenuToggle"
+                    aria-label="Open dashboard navigation"
+                    aria-controls="dashboardSidebar"
+                    aria-expanded="false"
+                >
+                    <i class="bi bi-list fs-5"></i>
+                </button>
                 <div class="search-bar-db">
                     <h2 class="fw-bold mb-0">Welcome back, <span class="text-gradient">{{ explode(' ', auth()->user()->name)[0] }}!</span></h2>
                     <p class="text-muted small mb-0">Track your learning progress and resume your studies.</p>
@@ -324,6 +412,45 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{{ asset('ui-physio/script.js') }}"></script>
     <script src="{{ asset('ui-physio/protection.js') }}?v={{ time() }}"></script>
+    <script>
+        (() => {
+            const menuToggle = document.getElementById('dashboardMenuToggle');
+            const sidebar = document.getElementById('dashboardSidebar');
+            const overlay = document.getElementById('dashboardSidebarOverlay');
+
+            if (!menuToggle || !sidebar || !overlay) return;
+
+            const setMenuOpen = (isOpen) => {
+                sidebar.classList.toggle('active', isOpen);
+                overlay.classList.toggle('active', isOpen);
+                menuToggle.setAttribute('aria-expanded', String(isOpen));
+                menuToggle.setAttribute(
+                    'aria-label',
+                    isOpen ? 'Close dashboard navigation' : 'Open dashboard navigation'
+                );
+                document.body.classList.toggle('dashboard-nav-open', isOpen);
+            };
+
+            menuToggle.addEventListener('click', () => {
+                setMenuOpen(!sidebar.classList.contains('active'));
+            });
+            overlay.addEventListener('click', () => setMenuOpen(false));
+            sidebar.querySelectorAll('a[href]').forEach((link) => {
+                link.addEventListener('click', () => setMenuOpen(false));
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && sidebar.classList.contains('active')) {
+                    setMenuOpen(false);
+                    menuToggle.focus();
+                }
+            });
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 992 && sidebar.classList.contains('active')) {
+                    setMenuOpen(false);
+                }
+            }, { passive: true });
+        })();
+    </script>
     @stack('scripts')
 </body>
 </html>

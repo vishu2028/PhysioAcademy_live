@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\AcademicYear;
 use App\Models\DoubtSessionBooking;
 use App\Models\ExamAid;
 use App\Models\GroupWebinarRequest;
 use App\Models\Media;
 use App\Models\Message;
 use App\Models\Page;
-use App\Models\Subject;
 use App\Models\Topic;
+use App\Models\UnitTopic;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -29,8 +28,8 @@ class DashboardController extends Controller
         $stats = [
             'users'      => User::count(),
             'pages'      => Page::count(),
-            'subjects'   => Subject::count(),
-            'academic_years' => AcademicYear::count(),
+            'topics' => UnitTopic::count(),
+            'topics_lms' => Topic::count(),
             'exam_aids' => ExamAid::count(),
             'doubt_sessions' => DoubtSessionBooking::count(),
             'group_webinars' => GroupWebinarRequest::count(),

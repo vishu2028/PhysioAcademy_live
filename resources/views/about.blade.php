@@ -13,7 +13,7 @@
 <section class="bg-light py-5">
     <div class="container py-lg-5">
 
-        <div class="row align-items-center g-5">
+        <div class="row align-items-center g-4 g-lg-5">
 
             {{-- Hero Content --}}
             <div class="col-lg-7">
@@ -100,7 +100,7 @@
 
     <div class="container py-lg-5">
 
-        <div class="row align-items-center g-5">
+        <div class="row align-items-center g-4 g-lg-5">
 
             {{-- Visual --}}
             <div class="col-lg-6">

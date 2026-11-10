@@ -26,19 +26,14 @@ return [
         'Definitions' => [
             ['label' => 'Instructor:', 'text' => 'The Physiosource expert leading and teaching the session.'],
             ['label' => 'Student:', 'text' => 'Any participant attending the class.'],
-            ['label' => 'Student Organizer:', 'text' => 'The designated group leader responsible for booking the class, paying the upfront fee, collecting doubts from the group, and handling all WhatsApp communication with the Instructor.'],
+            ['label' => 'Student Representative:', 'text' => 'The designated group leader responsible for booking the class, paying the upfront fee, collecting doubts from the group, and handling all WhatsApp communication with the Instructor.'],
         ],
         'How It Works (Booking & Scheduling)' => [
-            ['label' => 'Step 1: Assign a Student Organizer', 'text' => 'Gather your peers and choose one student to act as the Student Organizer.'],
-            ['label' => 'Step 2: Book & Pay', 'text' => 'The Organizer selects the topic, enters the total headcount, and provides the exact email addresses of all attending Students on the Physiosource website. Payment for the entire group is collected upfront from the Organizer during this step.'],
-            ['label' => 'Step 3: Schedule via WhatsApp', 'text' => 'Once booked, our Instructor will reach out to the Organizer on WhatsApp to confirm a mutual date and time.'],
-            ['label' => 'Step 4: Collect & Share Doubts', 'text' => 'The Student Organizer should ask their group for any specific questions beforehand, compile them, and send them to the Instructor via WhatsApp by 9:00 PM the day before the session. This allows the Instructor to prepare targeted explanations. Impromptu questions are still welcome during the live class; if they require extra preparation, they will be deferred to a future session.'],
-            ['label' => 'Step 5: Join the Class', 'text' => 'Attendees will receive a secure meeting link. Links are non-transferable, and only the registered email addresses provided by the Organizer will be admitted to the room.'],
-        ],
-        'Important' => [
-            ['label' => null, 'text' => 'Do not make the description or doubt-entry field mandatory just because the guidelines ask the Organizer to collect doubts.'],
-            ['label' => null, 'text' => 'Students may share their doubts later through WhatsApp.'],
-            ['label' => null, 'text' => 'Keep the guidelines informational and do not introduce additional form validation.'],
+            ['label' => 'Step 1: Assign a Student Representative', 'text' => 'Gather your peers and choose one student to act as the Student Representative.'],
+            ['label' => 'Step 2: Book & Pay', 'text' => 'The Student Representative selects the topic, enters the total headcount, and provides the exact email addresses of all attending Students on the Physiosource website. Payment for the entire group is collected upfront from the Student Representative during this step.'],
+            ['label' => 'Step 3: Schedule via WhatsApp', 'text' => 'Once booked, our Instructor will reach out to the Student Representative on WhatsApp to confirm a mutual date and time.'],
+            ['label' => 'Step 4: Collect & Share Doubts', 'text' => 'The Student Representative should ask their group for any specific questions beforehand, compile them, and send them to the Instructor via WhatsApp by 9:00 PM the day before the session. This allows the Instructor to prepare targeted explanations. Impromptu questions are still welcome during the live class; if they require extra preparation, they will be deferred to a future session.'],
+            ['label' => 'Step 5: Join the Class', 'text' => 'Attendees will receive a secure meeting link. Links are non-transferable, and only the registered email addresses provided by the Student Representative will be admitted to the room.'],
         ],
     ],
 ];

@@ -8,6 +8,8 @@ use App\Models\ExamAid;
 use App\Models\GroupWebinarRequest;
 use App\Models\Subject;
 use App\Models\Topic;
+use App\Models\Unit;
+use App\Models\UnitTopic;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +30,17 @@ class AdminDashboardStatisticsTest extends TestCase
         $subject = Subject::create([
             'name' => 'Dashboard Subject',
             'slug' => 'dashboard-subject',
+        ]);
+        $unit = Unit::create([
+            'subject_id' => $subject->id,
+            'name' => 'Dashboard Unit',
+            'slug' => 'dashboard-unit',
+        ]);
+        UnitTopic::create([
+            'subject_id' => $subject->id,
+            'unit_id' => $unit->id,
+            'title' => 'Dashboard Unit Topic',
+            'slug' => 'dashboard-unit-topic',
         ]);
         $academicYear = AcademicYear::create([
             'name' => 'Dashboard Year',
@@ -88,15 +101,17 @@ class AdminDashboardStatisticsTest extends TestCase
         $response->assertOk()
             ->assertViewHas('stats', function (array $stats): bool {
                 return $stats['users'] === 2
-                    && $stats['subjects'] === 1
-                    && $stats['academic_years'] === 1
+                    && $stats['topics'] === 1
+                    && $stats['topics_lms'] === 2
                     && $stats['exam_aids'] === 1
                     && $stats['doubt_sessions'] === 1
                     && $stats['group_webinars'] === 1;
             })
             ->assertSee(route('admin.users.index'), false)
-            ->assertSee(route('admin.subjects.index'), false)
-            ->assertSee(route('admin.academic-years.index'), false)
+            ->assertSee(route('admin.unit-topics.index'), false)
+            ->assertSee(route('admin.topics.index'), false)
+            ->assertSee('>Topics</p>', false)
+            ->assertSee('LMS')
             ->assertSee(route('admin.exam-aids.index'), false)
             ->assertSee(route('admin.doubt-session-bookings.index'), false)
             ->assertSee(route('admin.group-webinars.index'), false)

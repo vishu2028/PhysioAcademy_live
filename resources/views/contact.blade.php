@@ -12,24 +12,28 @@
     }
     .contact-grid {
         display: grid;
-        grid-template-columns: 1fr 1.5fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
         gap: 40px;
         margin-top: -60px;
         position: relative;
         z-index: 10;
         margin-bottom: 100px;
     }
+    .contact-grid > * {
+        min-width: 0;
+    }
     .contact-info-card {
-        background: rgba(255, 255, 255, 0.03);
+        background: linear-gradient(145deg, #10264f, #1d4ed8);
         backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.18);
         border-radius: 32px;
-        padding: 40px;
+        padding: clamp(20px, 4vw, 40px);
+        box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16);
     }
     .contact-form-card {
         background: #fff;
         border-radius: 32px;
-        padding: 50px;
+        padding: clamp(20px, 5vw, 50px);
         box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.1);
     }
     .info-item {
@@ -41,11 +45,12 @@
         width: 54px;
         height: 54px;
         background: rgba(37, 99, 235, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.14);
         border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #2563eb;
+        color: #fff;
         font-size: 1.5rem;
         flex-shrink: 0;
     }
@@ -54,9 +59,13 @@
         margin-bottom: 5px;
         font-family: 'Sora', sans-serif;
     }
+    .info-text {
+        min-width: 0;
+    }
     .info-text p {
         color: rgba(255, 255, 255, 0.6);
         margin: 0;
+        overflow-wrap: anywhere;
     }
     .form-label {
         font-weight: 700;
@@ -98,6 +107,16 @@
     @media (max-width: 992px) {
         .contact-grid {
             grid-template-columns: 1fr;
+        }
+    }
+    @media (max-width: 575.98px) {
+        .contact-hero {
+            padding: 112px 0 64px;
+        }
+        .contact-grid {
+            gap: 24px;
+            margin-top: -32px;
+            margin-bottom: 64px;
         }
     }
 </style>

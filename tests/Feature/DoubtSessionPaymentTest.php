@@ -36,6 +36,37 @@ class DoubtSessionPaymentTest extends TestCase
         }
     }
 
+    public function test_one_on_one_booking_page_shows_updated_content_and_group_booking_link(): void
+    {
+        Setting::updateOrCreate(['key' => 'webinar_group_enabled'], [
+            'value' => '1',
+            'group' => 'webinar_group',
+            'label' => 'Group Webinar enabled',
+            'type' => 'text',
+        ]);
+        Setting::updateOrCreate(['key' => 'webinar_group_allow_requests'], [
+            'value' => '1',
+            'group' => 'webinar_group',
+            'label' => 'Group Webinar requests enabled',
+            'type' => 'text',
+        ]);
+
+        $response = $this->actingAs(User::factory()->create())
+            ->get(route('doubt-sessions.create'))
+            ->assertOk()
+            ->assertSee('Submit your doubt and booking details for a one-on-one session. The admin will confirm your session date and time after your booking is completed.')
+            ->assertSee('Want to save more? You can also gather your batchmates to split the cost and join together.')
+            ->assertSee('Book for a Group instead')
+            ->assertSee(route('group-webinars.create'), false)
+            ->assertSee('INDIVIDUAL SUPPORT')
+            ->assertSee('One-on-One Session Booking');
+
+        $this->assertSame(
+            3,
+            substr_count($response->getContent(), 'class="preferred-slot-row"')
+        );
+    }
+
     public function test_percentage_coupon_persists_discount_and_creates_checkout_for_final_amount(): void
     {
         $user = User::factory()->create();
