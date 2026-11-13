@@ -19,6 +19,7 @@
         .admin-auth-error { color: #b42318; font-size: .9rem; }
         .admin-auth-back { display: inline-block; margin-bottom: 22px; color: #004aad; font-weight: 600; text-decoration: none; }
         .admin-auth-back:hover { text-decoration: underline; }
+        .admin-auth-forgot { display: none; }
     </style>
 </head>
 <body class="pauth-body">
@@ -44,7 +45,7 @@
             <label><input type="checkbox" name="remember"> Remember me</label>
             <button class="admin-auth-submit" type="submit">Sign in to Admin</button>
         </form>
-        <p><a href="{{ route('password.request') }}">Forgot your password?</a></p>
+        <p class="admin-auth-forgot"><a href="{{ route('password.request') }}">Forgot your password?</a></p>
     </main>
 </body>
 </html>
