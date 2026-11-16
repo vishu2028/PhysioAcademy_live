@@ -202,6 +202,63 @@
                                     </div>
                                 </div>
 
+                                <div class="p-3 p-md-4 border-top">
+                                    <h3 class="h5 fw-bold mb-3">Follow-up conversation</h3>
+                                    @foreach($booking->followUps as $followUp)
+                                        <article class="border rounded-3 p-3 mb-3" id="follow-up-{{ $followUp->id }}">
+                                            <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
+                                                <strong>
+                                                    {{ $followUp->user?->name ?? $booking->student_name }}
+                                                    @if($followUp->author_role === \App\Models\DoubtSessionFollowUp::ROLE_ADMIN)
+                                                        <span class="badge bg-primary">Admin</span>
+                                                    @endif
+                                                </strong>
+                                                <time class="small text-secondary" datetime="{{ $followUp->created_at?->toIso8601String() }}">
+                                                    {{ $followUp->created_at?->format('d M Y, h:i A') }}
+                                                </time>
+                                            </div>
+                                            @if($followUp->is_hidden)
+                                                <p class="text-secondary fst-italic">This message was hidden by an administrator.</p>
+                                            @else
+                                                <p class="mb-2" style="white-space: pre-wrap;">{{ $followUp->question }}</p>
+                                                @if($followUp->answer && $followUp->threadMessages->isEmpty())
+                                                    <div class="alert alert-light border mb-2">
+                                                        <strong>{{ $followUp->answeredBy?->name ?? 'Admin' }} · Admin</strong>
+                                                        <p class="mb-0 mt-1" style="white-space: pre-wrap;">{{ $followUp->answer }}</p>
+                                                        <small class="text-secondary">{{ $followUp->answered_at?->format('d M Y, h:i A') }}</small>
+                                                    </div>
+                                                @endif
+                                                <form method="POST" action="{{ route('doubt-sessions.follow-ups.replies.store', [$booking, $followUp]) }}" class="mb-3">
+                                                    @csrf
+                                                    <input type="hidden" name="parent_id" value="{{ $followUp->id }}">
+                                                    <input type="hidden" name="submission_key" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
+                                                    <label class="visually-hidden" for="session-reply-{{ $followUp->id }}">Reply to this follow-up</label>
+                                                    <div class="input-group">
+                                                        <input id="session-reply-{{ $followUp->id }}" name="question" class="form-control" maxlength="5000" placeholder="Write a reply…" required>
+                                                        <button class="btn btn-outline-primary" type="submit">Reply</button>
+                                                    </div>
+                                                </form>
+                                            @endif
+                                            <div class="ms-3">
+                                                @include('doubt-sessions._follow-up-messages', [
+                                                    'messages' => $followUp->replies,
+                                                    'booking' => $booking,
+                                                    'followUp' => $followUp,
+                                                ])
+                                            </div>
+                                        </article>
+                                    @endforeach
+
+                                    <form method="POST" action="{{ route('doubt-sessions.follow-ups.store', $booking) }}" class="mt-3">
+                                        @csrf
+                                        <input type="hidden" name="submission_key" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
+                                        <label for="new-follow-up-{{ $booking->id }}" class="form-label fw-semibold">Ask a new follow-up</label>
+                                        <textarea id="new-follow-up-{{ $booking->id }}" name="question" class="form-control" rows="3" maxlength="5000" required>{{ old('question') }}</textarea>
+                                        @error('question')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                                        <button type="submit" class="btn btn-primary mt-2">Send follow-up</button>
+                                    </form>
+                                </div>
+
                             </article>
                         @endforeach
                     </div>

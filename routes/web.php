@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DoubtSessionBookingController as AdminDoubtSessio
 use App\Http\Controllers\Admin\FeatureController;
 use App\Http\Controllers\DoubtController;
 use App\Http\Controllers\DoubtSessionBookingController;
+use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\WebinarController;
 use App\Http\Controllers\GroupWebinarBookingController;
 use App\Http\Controllers\CouponController;
@@ -158,7 +159,7 @@ Route::post('/group-webinars/invitations/resend', [GroupWebinarBookingController
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::get(
         '/download/material/{id}',
         [FrontendController::class, 'downloadMaterial']
@@ -185,6 +186,19 @@ Route::middleware('auth')->group(function () {
         '/notifications/{notification}/open',
         [NotificationController::class, 'open']
     )->name('notifications.open');
+
+    Route::get('/follow-ups', [FollowUpController::class, 'index'])
+        ->name('follow-ups.index');
+    Route::post('/follow-ups', [FollowUpController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('follow-ups.store');
+    Route::get('/follow-ups/{followUp}', [FollowUpController::class, 'show'])
+        ->whereNumber('followUp')
+        ->name('follow-ups.show');
+    Route::post('/follow-ups/{followUp}/replies', [FollowUpController::class, 'reply'])
+        ->whereNumber('followUp')
+        ->middleware('throttle:10,1')
+        ->name('follow-ups.replies.store');
 
     Route::get(
         '/notifications/poll',
@@ -255,7 +269,12 @@ Route::middleware('auth')->group(function () {
     Route::post(
         '/doubt-sessions/{booking}/follow-ups',
         [DoubtSessionBookingController::class, 'storeFollowUp']
-    )->whereNumber('booking')->name('doubt-sessions.follow-ups.store');
+    )->whereNumber('booking')->middleware('throttle:10,1')->name('doubt-sessions.follow-ups.store');
+    Route::post(
+        '/doubt-sessions/{booking}/follow-ups/{followUp}/replies',
+        [DoubtSessionBookingController::class, 'replyToFollowUp']
+    )->whereNumber('booking')->whereNumber('followUp')->middleware('throttle:10,1')
+        ->name('doubt-sessions.follow-ups.replies.store');
 
     Route::post('/coupons/validate', [CouponController::class, 'validateCoupon'])
         ->middleware('throttle:20,1')
@@ -314,7 +333,7 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::get(
         '/profile',
         [ProfileController::class, 'edit']
@@ -339,6 +358,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware([
     'auth:admin',
+    'auth.session',
     'role:super_admin|admin',
 ])
     ->prefix('admin')
@@ -609,6 +629,19 @@ Route::middleware([
             ->whereNumber('followUp')
             ->name('doubt-session-bookings.follow-ups.update');
 
+        Route::get('follow-ups', [\App\Http\Controllers\Admin\FollowUpController::class, 'index'])
+            ->name('follow-ups.index');
+        Route::get('follow-ups/{followUp}', [\App\Http\Controllers\Admin\FollowUpController::class, 'show'])
+            ->whereNumber('followUp')
+            ->name('follow-ups.show');
+        Route::post('follow-ups/{followUp}/replies', [\App\Http\Controllers\Admin\FollowUpController::class, 'reply'])
+            ->whereNumber('followUp')
+            ->middleware('throttle:10,1')
+            ->name('follow-ups.replies.store');
+        Route::patch('follow-ups/{followUp}/visibility', [\App\Http\Controllers\Admin\FollowUpController::class, 'toggleVisibility'])
+            ->whereNumber('followUp')
+            ->name('follow-ups.visibility.update');
+
         Route::resource('webinars', \App\Http\Controllers\Admin\WebinarController::class)->except(['destroy']);
         Route::patch('webinar-registrations/{registration}', [\App\Http\Controllers\Admin\WebinarController::class, 'updateRegistration'])->name('webinar-registrations.update');
         Route::get('group-webinars', [\App\Http\Controllers\Admin\GroupWebinarRequestController::class, 'index'])
@@ -749,7 +782,7 @@ Route::middleware([
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth')
+Route::middleware(['auth', 'auth.session'])
     ->get('/dashboard', function () {
         if (
             auth()->user()->hasRole('admin')
@@ -759,7 +792,7 @@ Route::middleware('auth')
         }
 
         return redirect()->route('home');
-    });
+    })->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------

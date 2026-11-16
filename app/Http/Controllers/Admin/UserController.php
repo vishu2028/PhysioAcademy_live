@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -63,7 +64,10 @@ class UserController extends Controller
         ]);
 
         if ($request->password) {
-            $user->update(['password' => Hash::make($request->password)]);
+            $user->forceFill([
+                'password' => Hash::make($request->password),
+                'remember_token' => Str::random(60),
+            ])->save();
         }
 
         $user->syncRoles([$request->role]);

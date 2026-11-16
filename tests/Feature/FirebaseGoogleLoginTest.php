@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Services\FirebaseService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Mockery\MockInterface;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -114,6 +115,7 @@ class FirebaseGoogleLoginTest extends TestCase
             'success' => true,
             'redirect' => route('home', absolute: false),
         ]);
+        $response->assertCookie(Auth::guard('web')->getRecallerName());
 
         $user = User::where('email', 'google.user@example.com')->firstOrFail();
         $this->assertAuthenticatedAs($user);
@@ -121,6 +123,7 @@ class FirebaseGoogleLoginTest extends TestCase
         $this->assertFalse($user->hasRole('admin'));
         $this->assertNotNull($user->email_verified_at);
         $this->assertSame('firebase-google-uid', $user->firebase_uid);
+        $this->assertNotNull($user->remember_token);
         $this->assertDatabaseCount('users', 1);
 
         $this->get(route('profile.edit'))->assertOk();

@@ -54,7 +54,7 @@ Route::post('admin/logout', [AuthenticatedSessionController::class, 'adminDestro
     ->middleware('auth:admin')
     ->name('admin.logout');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'auth.session'])->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
 

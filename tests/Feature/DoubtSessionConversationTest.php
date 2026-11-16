@@ -67,9 +67,15 @@ class DoubtSessionConversationTest extends TestCase
         $url = route('doubt-sessions.follow-ups.store', $booking);
 
         $this->actingAs($student)
-            ->post($url, ['question' => 'Could you explain this further?'])
+            ->post($url, [
+                'question' => 'Could you explain this further?',
+                'submission_key' => (string) Str::uuid(),
+            ])
             ->assertRedirect();
-        $this->post($url, ['question' => 'I have another follow-up question.'])
+        $this->post($url, [
+            'question' => 'I have another follow-up question.',
+            'submission_key' => (string) Str::uuid(),
+        ])
             ->assertRedirect();
 
         $this->assertDatabaseCount('doubt_session_follow_ups', 2);
@@ -99,7 +105,7 @@ class DoubtSessionConversationTest extends TestCase
         $this->assertDatabaseCount('doubt_session_follow_ups', 0);
     }
 
-    public function test_session_history_keeps_admin_notes_but_does_not_render_follow_up_conversations(): void
+    public function test_session_history_renders_owned_follow_up_conversations_without_exposing_other_bookings(): void
     {
         $student = User::factory()->create();
         $otherStudent = User::factory()->create();
@@ -125,7 +131,7 @@ class DoubtSessionConversationTest extends TestCase
             ->assertSee('Join Meeting')
             ->assertSee('https://meet.example.com/my-session')
             ->assertSee('My response')
-            ->assertDontSee('My question')
+            ->assertSee('My question')
             ->assertDontSee('Private response')
             ->assertDontSee('Another student question');
 
@@ -173,7 +179,7 @@ class DoubtSessionConversationTest extends TestCase
         $this->actingAs($student)
             ->get(route('doubt-sessions.history'))
             ->assertOk()
-            ->assertDontSee('Here is a more detailed explanation.')
+            ->assertSee('Here is a more detailed explanation.')
             ->assertSee('Booking Status');
     }
 

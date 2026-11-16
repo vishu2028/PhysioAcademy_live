@@ -458,6 +458,9 @@
                         <span class="badge bg-danger ms-auto rounded-pill">{{ $pendingDoubts }}</span>
                     @endif
                 </a>
+                <a href="{{ route('admin.follow-ups.index') }}" class="nav-link-admin @if(request()->routeIs('admin.follow-ups.*')) active @endif">
+                    <i class="bi bi-chat-dots"></i> Follow-up Discussions
+                </a>
                 @php
                     $pendingTopicRequests = \App\Models\TopicRequest::where('status', \App\Models\TopicRequest::STATUS_PENDING)->count();
                 @endphp

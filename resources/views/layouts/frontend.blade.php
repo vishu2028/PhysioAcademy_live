@@ -322,6 +322,12 @@
 
                     @if(! auth()->user()->hasAnyRole(['super_admin', 'admin']))
                         <a
+                            href="{{ route('follow-ups.index') }}"
+                            class="nav-mobile-action nav-mobile-action-secondary"
+                        >
+                            Follow-up Discussions
+                        </a>
+                        <a
                             href="{{ route('webinars.my') }}"
                             class="nav-mobile-action nav-mobile-action-secondary"
                         >
@@ -605,6 +611,16 @@
                             <div class="nav-user-divider"></div>
 
                             @if($isStudent)
+                                <a
+                                    href="{{ route('follow-ups.index') }}"
+                                    class="nav-user-menu-link {{ request()->routeIs('follow-ups.*') ? 'active' : '' }}"
+                                >
+                                    <i class="bi bi-chat-dots" aria-hidden="true"></i>
+                                    <span>Follow-up Discussions</span>
+                                </a>
+
+                                <div class="nav-user-divider"></div>
+
                                 <a
                                     href="{{ route('webinars.my') }}"
                                     class="nav-user-menu-link {{ request()->routeIs('webinars.my') ? 'active' : '' }}"

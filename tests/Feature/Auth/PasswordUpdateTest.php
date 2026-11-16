@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class PasswordUpdateTest extends TestCase
@@ -29,6 +30,7 @@ class PasswordUpdateTest extends TestCase
             ->assertRedirect('/profile');
 
         $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+        $this->get('/profile')->assertOk();
     }
 
     public function test_correct_password_must_be_provided_to_update_password(): void
@@ -47,5 +49,20 @@ class PasswordUpdateTest extends TestCase
         $response
             ->assertSessionHasErrorsIn('updatePassword', 'current_password')
             ->assertRedirect('/profile');
+    }
+
+    public function test_existing_session_is_revoked_after_password_changes_elsewhere(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get('/profile')->assertOk();
+
+        $user->forceFill([
+            'password' => Hash::make('changed-password'),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        $this->get('/profile')->assertRedirect(route('login'));
+        $this->assertGuest('web');
     }
 }

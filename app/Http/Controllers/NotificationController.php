@@ -28,6 +28,7 @@ class NotificationController extends Controller
         $topicId = $databaseNotification->data['topic_id'] ?? null;
         $topicLink = $databaseNotification->data['topic_link'] ?? null;
         $bookingId = $databaseNotification->data['booking_id'] ?? null;
+        $followUpId = $databaseNotification->data['follow_up_id'] ?? null;
         $groupWebinarRequestId = $databaseNotification->data['group_webinar_request_id'] ?? null;
 
         if (($databaseNotification->data['type'] ?? null) === 'group_webinar' && $groupWebinarRequestId) {
@@ -39,6 +40,21 @@ class NotificationController extends Controller
             && $bookingId
         ) {
             return redirect(url(route('doubt-sessions.history')) . '#session-booking-' . $bookingId);
+        }
+
+        if (
+            ($databaseNotification->data['type'] ?? null) === 'follow_up_discussion_reply'
+            && $followUpId
+        ) {
+            $thread = \App\Models\DoubtSessionFollowUp::find($followUpId);
+
+            if ($thread?->doubt_session_booking_id) {
+                return redirect(route('doubt-sessions.history').'#session-booking-'.$thread->doubt_session_booking_id);
+            }
+
+            if ($thread) {
+                return redirect(route('follow-ups.show', $thread).'#follow-up-'.($databaseNotification->data['reply_id'] ?? $thread->id));
+            }
         }
 
         if ($doubtId) {

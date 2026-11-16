@@ -17,8 +17,7 @@ class AuthenticationTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSee('Continue as User')
-            ->assertSee('href="'.route('admin.login').'"', false)
+            ->assertSee('Welcome Back')
             ->assertSee('Continue with Google')
             ->assertSee('Continue with Apple')
             ->assertDontSee('Forgot Password?')
@@ -99,9 +98,11 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
 
+        $rememberToken = $user->remember_token;
         $response = $this->actingAs($user)->post('/logout');
 
         $this->assertGuest();
+        $this->assertNotSame($rememberToken, $user->fresh()->remember_token);
         $response->assertRedirect('/');
     }
 

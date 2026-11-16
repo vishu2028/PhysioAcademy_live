@@ -196,7 +196,7 @@ class AppleAuthController extends Controller
             }
         }
 
-        Auth::guard('web')->login($user);
+        Auth::guard('web')->login($user, remember: true);
         $request->session()->regenerate();
 
         $redirect = $request->session()->pull('url.intended', route('home', absolute: false));

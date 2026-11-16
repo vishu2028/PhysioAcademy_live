@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\AcademicYear;
 use App\Models\DoubtSessionBooking;
-use App\Models\DoubtSessionFollowUp;
 use App\Models\Subject;
 use App\Services\RazorpayService;
 use App\Services\CouponService;
 use App\Services\PreferredSlotService;
+use App\Services\FollowUpDiscussionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -80,8 +80,19 @@ class DoubtSessionBookingController extends Controller
     {
         $bookings = $request->user()
             ->doubtSessionBookings()
+            ->with(['followUps' => fn ($followUps) => $followUps
+                ->whereNull('parent_id')
+                ->with(['user', 'threadMessages'])])
             ->latest('created_at')
             ->paginate(10);
+
+        $bookings->getCollection()->each(function (DoubtSessionBooking $booking): void {
+            foreach ($booking->followUps as $thread) {
+                $messages = $thread->threadMessages->keyBy('id');
+                $thread->setRelation('replies', $messages->where('parent_id', $thread->id)->values());
+                $this->attachFollowUpReplies($thread->replies, $messages);
+            }
+        });
 
         return view(
             'doubt-sessions.history',
@@ -117,7 +128,11 @@ class DoubtSessionBookingController extends Controller
         return back()->with('success', 'Your like was removed.');
     }
 
-    public function storeFollowUp(Request $request, int $booking)
+    public function storeFollowUp(
+        Request $request,
+        int $booking,
+        FollowUpDiscussionService $discussions
+    )
     {
         $booking = $request->user()
             ->doubtSessionBookings()
@@ -125,14 +140,55 @@ class DoubtSessionBookingController extends Controller
 
         $validated = $request->validate([
             'question' => ['required', 'string', 'max:5000'],
+            'submission_key' => ['required', 'uuid'],
         ]);
 
-        $booking->followUps()->create([
-            'question' => trim($validated['question']),
-            'status' => DoubtSessionFollowUp::STATUS_PENDING,
-        ]);
+        $discussions->createThread(
+            $request->user(),
+            $validated['question'],
+            $validated['submission_key'],
+            $booking
+        );
 
         return back()->with('success', 'Your follow-up question has been submitted.');
+    }
+
+    public function replyToFollowUp(
+        Request $request,
+        int $booking,
+        int $followUp,
+        FollowUpDiscussionService $discussions
+    ) {
+        $bookingRecord = $request->user()->doubtSessionBookings()->findOrFail($booking);
+        $thread = $bookingRecord->followUps()
+            ->whereNull('parent_id')
+            ->findOrFail($followUp);
+
+        $validated = $request->validate([
+            'question' => ['required', 'string', 'max:5000'],
+            'parent_id' => ['required', 'integer'],
+            'submission_key' => ['required', 'uuid'],
+        ]);
+
+        $discussions->reply(
+            $request->user(),
+            $thread->id,
+            $validated['parent_id'],
+            $validated['question'],
+            $validated['submission_key'],
+            allowBookingOwner: true
+        );
+
+        return back()->with('success', 'Your reply has been added to the conversation.');
+    }
+
+    private function attachFollowUpReplies(iterable $parents, $messages): void
+    {
+        foreach ($parents as $parent) {
+            $replies = $messages->where('parent_id', $parent->id)->values();
+            $parent->setRelation('replies', $replies);
+            $this->attachFollowUpReplies($replies, $messages);
+        }
     }
 
     /**

@@ -72,6 +72,7 @@ class AppleLoginTest extends TestCase
         $this->assertNotNull($user->email_verified_at);
         $this->assertTrue($user->hasRole('user'));
         $this->assertFalse($user->hasAnyRole(['admin', 'super_admin']));
+        $this->assertNotNull($user->remember_token);
         $this->assertAuthenticatedAs($user);
         $this->assertDatabaseCount('users', 1);
         $this->get(route('profile.edit'))->assertOk();
