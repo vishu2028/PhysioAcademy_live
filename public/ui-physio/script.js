@@ -378,10 +378,9 @@ function initSearchInput() {
         if (requestBtn)  requestBtn.href           = searchPageUrl + '?query=' + encodeURIComponent(query);
     }
 
-    // Render API results into the dynamic container
-    function renderResults(data, type, examAids = []) {
+    function renderResults(data, type) {
         if (!dynContainer) return;
-        if ((!data || !data.length) && (!examAids || !examAids.length)) {
+        if (!data || !data.length) {
             showNoResult(input.value.trim());
             return;
         }
@@ -393,35 +392,34 @@ function initSearchInput() {
             '"': '&quot;',
             "'": '&#039;'
         })[character]);
-        const label = type === 'trending' ? '🔥 Trending Topics' : '🔍 Search Results';
-        const topicItems = (data || []).map((topic, i) => {
-            const icon    = icons[i % icons.length];
-            const subject = topic.subject ? `<small style="opacity:.55;margin-left:8px;font-size:.75rem;">${escapeHtml(topic.subject.name)}</small>` : '';
-            const url     = `${topicBaseUrl}/${encodeURIComponent(topic.slug)}`;
-            return `<a href="${escapeHtml(url)}" class="suggestion-item" style="text-decoration:none;display:flex;align-items:center;gap:6px;">
-                <span class="suggest-icon ui-icon ${icon}" aria-hidden="true"></span>
-                <span>${escapeHtml(topic.title)}</span>${subject}
+        const groups = new Map();
+        data.forEach((result, index) => {
+            const category = result.category || 'Search Result';
+            const url = result.url || (result.slug
+                ? `${topicBaseUrl}/${encodeURIComponent(result.slug)}`
+                : searchPageUrl);
+            const detail = [
+                result.subject?.name,
+                result.academic_year?.name || result.year,
+                result.description
+            ].filter(Boolean).join(' · ');
+            const item = `<a href="${escapeHtml(url)}" class="suggestion-item" style="text-decoration:none;display:flex;align-items:flex-start;gap:10px;">
+                <span class="suggest-icon ui-icon ${icons[index % icons.length]}" aria-hidden="true"></span>
+                <span style="display:flex;flex-direction:column;min-width:0;">
+                    <span>${escapeHtml(result.title)}</span>
+                    <small style="opacity:.6;font-size:.75rem;">${escapeHtml(category)}${detail ? ` · ${escapeHtml(detail)}` : ''}</small>
+                </span>
               </a>`;
-        }).join('');
+            groups.set(category, [...(groups.get(category) || []), item]);
+        });
 
-        const examAidItems = (examAids || []).map((examAid, i) => {
-            const icon = icons[(i + (data || []).length) % icons.length];
-            const subject = examAid.subject ? `<small style="opacity:.55;margin-left:8px;font-size:.75rem;">${escapeHtml(examAid.subject.name)}</small>` : '';
-            return `<a href="${escapeHtml(examAid.url)}" class="suggestion-item" style="text-decoration:none;display:flex;align-items:center;gap:6px;">
-                <span class="suggest-icon ui-icon ${icon}" aria-hidden="true"></span>
-                <span>${escapeHtml(examAid.title)}</span>${subject}
-              </a>`;
-        }).join('');
-
-        dynContainer.innerHTML = `${topicItems ? `
-          <div class="suggestion-group">
-            <span class="suggestion-label">${label}</span>
-            <div class="suggestion-items">${topicItems}</div>
-          </div>` : ''}${examAidItems ? `
-          <div class="suggestion-group">
-            <span class="suggestion-label">📘 Exam Aid</span>
-            <div class="suggestion-items">${examAidItems}</div>
-          </div>` : ''}`;
+        const heading = type === 'trending' ? '🔥 Trending Topics' : '🔍 Search Results';
+        dynContainer.innerHTML = `<div class="suggestion-group">
+            <span class="suggestion-label">${heading}</span>
+            ${Array.from(groups, ([category, items]) => `<div class="suggestion-items">
+                <span class="suggestion-label">${escapeHtml(category)}</span>${items.join('')}
+            </div>`).join('')}
+        </div>`;
 
         showSuggestions();
     }
@@ -431,6 +429,8 @@ function initSearchInput() {
     async function fetchSuggestions(query) {
         if (controller) controller.abort();
         controller = new AbortController();
+        if (dynContainer) dynContainer.textContent = 'Loading search suggestions...';
+        showSuggestions();
         try {
             const url = query
                 ? `${suggestionsUrl}?query=${encodeURIComponent(query)}`
@@ -439,11 +439,14 @@ function initSearchInput() {
                 signal: controller.signal,
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
             });
-            if (!res.ok) return;
+            if (!res.ok) throw new Error(`Search suggestions failed with status ${res.status}`);
             const json = await res.json();
-            renderResults(json.data || [], json.type || 'search', json.exam_aids || []);
+            renderResults(json.data || [], json.type || 'search');
         } catch (e) {
-            if (e.name !== 'AbortError') console.warn('[Search] fetch error:', e);
+            if (e.name !== 'AbortError') {
+                console.warn('[Search] fetch error:', e);
+                if (dynContainer) dynContainer.textContent = 'Search suggestions could not be loaded. Press Enter to view results.';
+            }
         }
     }
 

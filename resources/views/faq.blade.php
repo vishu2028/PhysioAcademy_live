@@ -74,7 +74,7 @@
                     {{-- Main accordion --}}
                     <div class="faq-main reveal-right">
                         @forelse($faqs as $faq)
-                            <div class="faq-item {{ $loop->first ? 'faq-item--open' : '' }} reveal-up" style="transition-delay: {{ $loop->index * 0.05 }}s">
+                            <div class="faq-item {{ $loop->first ? 'faq-item--open' : '' }} reveal-up" id="faq-{{ $faq->id }}" style="transition-delay: {{ $loop->index * 0.05 }}s">
                                 <button class="faq-question" type="button" aria-expanded="{{ $loop->first ? 'true' : 'false' }}">
                                     <span class="faq-num">{{ sprintf('%02d', $loop->iteration) }}</span>
                                     <span class="faq-question-text">{{ brand_text($faq->question) }}</span>

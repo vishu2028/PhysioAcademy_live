@@ -1309,9 +1309,9 @@
                             @forelse($activities as $activity)
 
                                 @if($activity->destination_url)
-                                    <a href="{{ $activity->destination_url }}" class="feed-item">
+                                    <a href="{{ $activity->destination_url }}" class="feed-item" id="community-activity-{{ $activity->id }}">
                                 @else
-                                    <div class="feed-item">
+                                    <div class="feed-item" id="community-activity-{{ $activity->id }}">
                                 @endif
 
                                     <div class="feed-item-icon new-upload">
@@ -1395,9 +1395,9 @@
                                 @forelse($announcements as $announcement)
 
                                         @if($announcement->destination_url)
-                                            <a href="{{ $announcement->destination_url }}" class="ann-item">
+                                            <a href="{{ $announcement->destination_url }}" class="ann-item" id="announcement-{{ $announcement->id }}">
                                         @else
-                                            <div class="ann-item">
+                                            <div class="ann-item" id="announcement-{{ $announcement->id }}">
                                         @endif
 
                                             <div class="ann-dot"
@@ -1468,9 +1468,9 @@
                                 @forelse($trendings as $trending)
 
                                         @if($trending->destination_url)
-                                            <a href="{{ $trending->destination_url }}">
+                                            <a href="{{ $trending->destination_url }}" id="trending-topic-{{ $trending->id }}">
                                         @else
-                                            <span>
+                                            <span id="trending-topic-{{ $trending->id }}">
                                         @endif
                                             {{ $trending->title }}
                                         @if($trending->destination_url)
@@ -1550,7 +1550,7 @@
 
                     <div class="about-right reveal-right">
                         <div class="timeline">
-                            <div class="tl-item">
+                            <div class="tl-item" id="timeline-entry-{{ $timeline->id }}">
                                 <div class="tl-dot"></div>
                                 <div class="tl-content glass-card">
                                     <span class="tl-year">2024</span>

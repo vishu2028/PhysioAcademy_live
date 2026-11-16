@@ -428,7 +428,7 @@
             <div class="row g-4 justify-content-center">
 
                 @foreach($teamMembers as $member)
-                    <div class="col-sm-6 col-lg-4">
+                    <div class="col-sm-6 col-lg-4" id="team-member-{{ $member->id }}">
 
                         <div class="card border-0 shadow-sm rounded-4 h-100 text-center">
 

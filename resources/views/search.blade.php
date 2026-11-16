@@ -22,9 +22,10 @@
 
                 <div class="site-search-filters" aria-label="Search filters">
                     <button class="site-search-filter active" type="button" data-filter="all" aria-pressed="true">All</button>
-                    <button class="site-search-filter" type="button" data-filter="available" aria-pressed="false">Available</button>
-                    <button class="site-search-filter" type="button" data-filter="progress" aria-pressed="false">In Progress</button>
-                    <button class="site-search-filter" type="button" data-filter="developing" aria-pressed="false">Developing</button>
+                    <button class="site-search-filter" type="button" data-filter="topic" aria-pressed="false">Topics</button>
+                    <button class="site-search-filter" type="button" data-filter="learning-material" aria-pressed="false">Learning Material</button>
+                    <button class="site-search-filter" type="button" data-filter="exam-aid" aria-pressed="false">Exam Aid</button>
+                    <button class="site-search-filter" type="button" data-filter="faq" aria-pressed="false">FAQs</button>
                 </div>
             </div>
         </section>
@@ -33,10 +34,7 @@
             <div class="site-search-toolbar">
                 <p id="searchResultCount">
                     @if($query)
-                        @php
-                            $resultCount = $results->count() + $examAidResults->count();
-                        @endphp
-                        <span id="resultCountText">{{ $resultCount }}</span> result{{ $resultCount === 1 ? '' : 's' }} found for "{{ $query }}"
+                        <span id="resultCountText">{{ $searchResults->total() }}</span> result{{ $searchResults->total() === 1 ? '' : 's' }} found for "{{ $query }}"
                     @else
                         Showing trending topics
                     @endif
@@ -58,15 +56,11 @@
             </div>
 
             <div class="site-search-results" id="siteSearchResults">
-                @php
-                    $visibleResults = auth()->check() ? $results : $results->take(ceil($results->count() / 2) ?: 5);
-                @endphp
-
-                @if($visibleResults->isEmpty() && $examAidResults->isEmpty())
+                @if($searchResults->isEmpty())
                     @if($query)
                         <div class="site-search-empty" id="siteSearchEmpty">
                             <h2>No matching results found</h2>
-                            <p>Try a subject name, unit name, Exam Aid topic, or a shorter keyword.</p>
+                            <p>Try a topic, learning resource, subject, unit, Exam Aid, FAQ, or a shorter keyword.</p>
                             <a href="{{ route('topics.index') }}">Browse all topics</a>
                         </div>
                     @else
@@ -77,33 +71,18 @@
                         </div>
                     @endif
                 @else
-                    @foreach($visibleResults as $topic)
+                    @foreach($searchResults as $result)
                         <a class="site-search-result-card"
-                           href="{{ route('topics.show', ['slug' => $topic->slug]) }}"
-                           data-year="{{ $topic->academicYear->name ?? '' }}"
-                           data-subject="{{ $topic->subject->name ?? '' }}"
-                           data-status="available">
-                            <div>
-                                <span class="site-search-result-subject">{{ $topic->subject->name ?? 'General' }}</span>
-                                <h2>{{ $topic->title }}</h2>
-                                <p>{{ $topic->academicYear->name ?? 'All Years' }}</p>
-                            </div>
-                            <span class="site-search-status available">✓ Available</span>
-                        </a>
-                    @endforeach
-
-                    @foreach($examAidResults as $examAid)
-                        <a class="site-search-result-card"
-                           href="{{ route('exam-aid', ['q' => $examAid->title, 'exam_aid' => $examAid->id]) }}#exam-aid-card-{{ $examAid->id }}"
-                           data-year="{{ $examAid->academicYear->name ?? '' }}"
-                           data-subject="{{ $examAid->subject->name ?? '' }}"
-                           data-status="available">
+                           href="{{ $result['url'] }}"
+                           data-year="{{ $result['year'] ?? '' }}"
+                           data-subject="{{ $result['subject']['name'] ?? '' }}"
+                           data-category="{{ \Illuminate\Support\Str::slug($result['category']) }}">
                             <div>
                                 <span class="site-search-result-subject">
-                                    Exam Aid{{ $examAid->subject ? ' · ' . $examAid->subject->name : '' }}
+                                    {{ $result['category'] }}{{ !empty($result['subject']['name']) ? ' · ' . $result['subject']['name'] : '' }}
                                 </span>
-                                <h2>{{ $examAid->title }}</h2>
-                                <p>{{ $examAid->unit->name ?? $examAid->academicYear->name ?? 'Exam Aid resource' }}</p>
+                                <h2>{{ $result['title'] }}</h2>
+                                <p>{{ $result['description'] ?: ($result['year'] ?? 'Open result') }}</p>
                             </div>
                             <span class="site-search-status available">✓ Available</span>
                         </a>
@@ -111,19 +90,11 @@
                 @endif
             </div>
 
-            @guest
-                @if($results->count() > $visibleResults->count())
-                    <div class="site-search-result-card restricted-search-item mt-3 p-5 text-center d-flex flex-column" style="border: 2px dashed #D9D9D9; background: #FFFFFF;">
-                        <div class="mb-3"><i class="bi bi-lock-fill display-6 text-primary"></i></div>
-                        <h3 class="fw-bold fs-5 mb-2">More results are locked</h3>
-                        <p class="text-muted small mb-4 mx-auto" style="max-width: 400px;">We found more relevant topics for your search, but full access is reserved for registered students.</p>
-                        <div class="d-flex justify-content-center gap-2">
-                            <a href="{{ route('login') }}" class="btn btn-primary btn-sm rounded-pill px-4">Login</a>
-                            <a href="{{ route('register') }}" class="btn btn-outline-primary btn-sm rounded-pill px-4">Register</a>
-                        </div>
-                    </div>
-                @endif
-            @endguest
+            @if($searchResults->hasPages())
+                <div class="site-search-pagination mt-4">
+                    {{ $searchResults->links() }}
+                </div>
+            @endif
         </section>
     </main>
 
@@ -674,14 +645,14 @@
                 const yearSelect  = document.getElementById('yearFilter');
                 const resultsGrid = document.getElementById('siteSearchResults');
                 const countText   = document.getElementById('resultCountText');
-                const statusFilters = document.querySelectorAll('.site-search-filter');
+                const categoryFilters = document.querySelectorAll('.site-search-filter');
                 const initialEmpty = document.getElementById('siteSearchEmpty');
-                let selectedStatus = 'all';
+                let selectedCategory = 'all';
 
                 function applyFilters() {
                     if (!yearSelect || !resultsGrid) return;
                     const selectedYear = yearSelect.value;
-                    const cards = resultsGrid.querySelectorAll('.site-search-result-card[data-status]');
+                    const cards = resultsGrid.querySelectorAll('.site-search-result-card[data-category]');
                     let visible = 0;
 
                     if (!cards.length) {
@@ -690,10 +661,12 @@
 
                     cards.forEach(card => {
                         const cardYear = (card.dataset.year || '').trim();
-                        const cardStatus = (card.dataset.status || '').trim();
+                        const cardCategory = (card.dataset.category || '').trim();
                         const matchesYear = selectedYear === 'all' || cardYear === selectedYear;
-                        const matchesStatus = selectedStatus === 'all' || cardStatus === selectedStatus;
-                        const show = matchesYear && matchesStatus;
+                        const matchesCategory = selectedCategory === 'all'
+                            || cardCategory === selectedCategory
+                            || (selectedCategory === 'exam-aid' && ['exam-aid-category', 'exam-prep'].includes(cardCategory));
+                        const show = matchesYear && matchesCategory;
                         card.style.display = show ? '' : 'none';
                         if (show) visible++;
                     });
@@ -710,10 +683,7 @@
                             emptyEl.className = 'site-search-empty';
                             resultsGrid.after(emptyEl);
                         }
-                        const filterLabel = selectedStatus === 'all'
-                            ? 'topics for this year'
-                            : `${selectedStatus === 'available' ? 'Available' : selectedStatus === 'progress' ? 'In Progress' : 'Developing'} topics`;
-                        emptyEl.innerHTML = `<h2>No matching topics</h2><p>There are no ${filterLabel} in the current search results.</p>`;
+                        emptyEl.innerHTML = '<h2>No matching results</h2><p>Try a different content type or academic year.</p>';
                         emptyEl.style.display = 'block';
                     } else {
                         if (emptyEl) emptyEl.style.display = 'none';
@@ -728,42 +698,15 @@
                     yearSelect.addEventListener('change', applyFilters);
                 }
 
-                /* ── Search Input Live Redirect ─────────────────────────── */
-                const searchInput  = document.getElementById('siteSearchInput');
-                const searchPageUrl = document.querySelector('meta[name="search-url"]')?.content || '/search';
-
-                if (searchInput) {
-                    let timer;
-                    searchInput.addEventListener('input', () => {
-                        clearTimeout(timer);
-                        timer = setTimeout(() => {
-                            const q = searchInput.value.trim();
-                            if (q.length >= 2) {
-                                window.location.href = searchPageUrl + '?query=' + encodeURIComponent(q);
-                            }
-                        }, 600);
-                    });
-
-                    searchInput.addEventListener('keydown', e => {
-                        if (e.key === 'Enter') {
-                            clearTimeout(timer);
-                            const q = searchInput.value.trim();
-                            if (q) {
-                                window.location.href = searchPageUrl + '?query=' + encodeURIComponent(q);
-                            }
-                        }
-                    });
-                }
-
-                statusFilters.forEach(btn => {
+                categoryFilters.forEach(btn => {
                     btn.addEventListener('click', () => {
-                        statusFilters.forEach(b => {
+                        categoryFilters.forEach(b => {
                             b.classList.remove('active');
                             b.setAttribute('aria-pressed', 'false');
                         });
                         btn.classList.add('active');
                         btn.setAttribute('aria-pressed', 'true');
-                        selectedStatus = btn.dataset.filter || 'all';
+                        selectedCategory = btn.dataset.filter || 'all';
                         applyFilters();
                     });
                 });

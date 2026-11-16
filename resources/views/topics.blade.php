@@ -71,7 +71,7 @@
                             });
                         @endphp
 
-                        <div class="typage-subject-panel">
+                        <div class="typage-subject-panel" id="subject-{{ $subject->id }}">
                             <div class="typage-subject-head">
                                 <div>
                                     <h3 class="typage-subject-title">

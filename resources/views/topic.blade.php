@@ -138,7 +138,7 @@
                                 <h2 class="section-heading">Learning Materials</h2>
                                 <div class="materials-list">
                                     @forelse($topic->materials as $material)
-                                        <div class="material-card type-{{ $material->type }}">
+                                        <div class="material-card type-{{ $material->type }}" id="learning-material-{{ $material->id }}">
                                             <div class="mc-icon">
                                                 @if($material->type == 'pdf') <i class="bi bi-file-earmark-pdf"></i>
                                                 @elseif($material->type == 'document') <i class="bi bi-file-earmark-text"></i>

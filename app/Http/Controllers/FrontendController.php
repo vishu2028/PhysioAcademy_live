@@ -806,118 +806,45 @@ class FrontendController extends Controller
         ];
     }
 
-    public function search(Request $request)
+    public function search(Request $request, \App\Services\SiteSearch $siteSearch)
     {
-        $query = trim((string) $request->input('query', ''));
-        $results = collect();
-        $examAidResults = collect();
+        $validated = $request->validate([
+            'query' => ['nullable', 'string', 'max:255'],
+        ]);
+        $query = trim($validated['query'] ?? '');
+        $results = $query !== ''
+            ? $siteSearch->search($query)
+            : $siteSearch->trending(20);
+        $perPage = 20;
+        $page = max(1, $request->integer('page', 1));
+        $searchResults = new \Illuminate\Pagination\LengthAwarePaginator(
+            $results->forPage($page, $perPage)->values(),
+            $results->count(),
+            $perPage,
+            $page,
+            [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]
+        );
 
-        if ($query) {
-            $normalizedQuery = mb_strtolower($query);
-            $results = \App\Models\Topic::active()
-                ->where(function ($q) use ($normalizedQuery) {
-                    $like = "%{$normalizedQuery}%";
-
-                    $q->whereRaw('LOWER(topics.title) LIKE ?', [$like])
-                        ->orWhereRaw('LOWER(topics.description) LIKE ?', [$like])
-                        ->orWhereHas('subject', function ($subjectQuery) use ($like) {
-                            $subjectQuery->whereRaw('LOWER(name) LIKE ?', [$like]);
-                        })
-                        ->orWhereHas('unitTopic.unit', function ($unitQuery) use ($like) {
-                            $unitQuery->whereRaw('LOWER(units.name) LIKE ?', [$like]);
-                        })
-                        ->orWhereHas('academicYear', function ($yearQuery) use ($like) {
-                            $yearQuery->whereRaw('LOWER(name) LIKE ?', [$like]);
-                        });
-                })
-                ->with(['subject', 'academicYear'])
-                ->orderBy('order')
-                ->get();
-
-            $examAidResults = $this->examAidSearchQuery($query)
-                ->latest()
-                ->get();
-        } else {
-            // Show trending topics when no query is given
-            $results = \App\Models\Topic::active()
-                ->with(['subject', 'academicYear'])
-                ->orderBy('order')
-                ->limit(20)
-                ->get();
-        }
-
-        return view('search', compact('results', 'examAidResults', 'query'));
+        return view('search', compact('searchResults', 'query'));
     }
 
-    public function searchSuggestions(Request $request)
+    public function searchSuggestions(Request $request, \App\Services\SiteSearch $siteSearch)
     {
-        $query = trim($request->input('query', ''));
-
-        if (!$query) {
-            // Return trending/popular topics if query is empty
-            $trending = \App\Models\Topic::trending()
-                ->with('subject:id,name')
-                ->orderBy('order')
-                ->limit(8)
-                ->get(['id', 'title', 'slug', 'subject_id']);
-
-            return response()->json([
-                'status' => 'success',
-                'type'   => 'trending',
-                'data'   => $trending,
-                'exam_aids' => [],
-            ]);
-        }
-
-        // Wrap OR conditions in a grouped closure so active() scope is not broken
-        $normalizedQuery = mb_strtolower($query);
-        $like = "%{$normalizedQuery}%";
-
-        $results = \App\Models\Topic::active()
-            ->where(function ($q) use ($like) {
-                $q->whereRaw('LOWER(topics.title) LIKE ?', [$like])
-                    ->orWhereRaw('LOWER(topics.description) LIKE ?', [$like])
-                    ->orWhereHas('subject', function ($subjectQuery) use ($like) {
-                        $subjectQuery->whereRaw('LOWER(name) LIKE ?', [$like]);
-                    })
-                    ->orWhereHas('unitTopic.unit', function ($unitQuery) use ($like) {
-                        $unitQuery->whereRaw('LOWER(units.name) LIKE ?', [$like]);
-                    })
-                    ->orWhereHas('academicYear', function ($yearQuery) use ($like) {
-                        $yearQuery->whereRaw('LOWER(name) LIKE ?', [$like]);
-                    });
-            })
-            ->with(['subject:id,name', 'academicYear:id,name'])
-            ->orderBy('order')
-            ->limit(10)
-            ->get(['id', 'title', 'slug', 'subject_id']);
-
-        $examAids = $this->examAidSearchQuery($query)
-            ->latest()
-            ->limit(8)
-            ->get()
-            ->map(function (ExamAid $examAid) {
-                return [
-                    'id' => $examAid->id,
-                    'title' => $examAid->title,
-                    'subject' => $examAid->subject
-                        ? ['name' => $examAid->subject->name]
-                        : null,
-                    'unit' => $examAid->unit?->name,
-                    'year' => $examAid->academicYear?->name,
-                    'url' => route('exam-aid', [
-                        'q' => $examAid->title,
-                        'exam_aid' => $examAid->id,
-                    ]) . '#exam-aid-card-' . $examAid->id,
-                ];
-            })
-            ->values();
+        $validated = $request->validate([
+            'query' => ['nullable', 'string', 'max:255'],
+        ]);
+        $query = trim($validated['query'] ?? '');
+        $results = $query !== ''
+            ? $siteSearch->search($query, 10)
+            : $siteSearch->trending(8);
 
         return response()->json([
             'status' => 'success',
-            'type'   => 'search',
-            'data'   => $results,
-            'exam_aids' => $examAids,
+            'type' => $query !== '' ? 'search' : 'trending',
+            'data' => $results,
         ]);
     }
 
