@@ -6,10 +6,10 @@
             <div class="d-flex flex-wrap justify-content-between gap-2 mb-1">
                 <strong>
                     {{ $message->user?->name ?? 'Former user' }}
-                    @if($message->author_role === \App\Models\DoubtSessionFollowUp::ROLE_ADMIN)
-                        <span class="badge bg-primary ms-1">Admin</span>
-                    @endif
                 </strong>
+                <span class="badge {{ $message->author_role === \App\Models\DoubtSessionFollowUp::ROLE_ADMIN ? 'bg-primary' : 'bg-secondary' }}">
+                    {{ $message->author_role === \App\Models\DoubtSessionFollowUp::ROLE_ADMIN ? 'Admin' : 'Student' }}
+                </span>
                 <time class="small text-secondary" datetime="{{ $message->created_at?->toIso8601String() }}">
                     {{ $message->created_at?->format('d M Y, h:i A') }}
                 </time>

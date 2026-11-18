@@ -5675,3 +5675,109 @@ body {
     .navbar .nav-dropdown-toggle { padding: 8px 10px; }
     .navbar .nav-link::after { left: 10px; right: 10px; }
 }
+
+@media (max-width: 991px) {
+    .nav-links {
+        min-width: 0;
+        padding-bottom: max(28px, env(safe-area-inset-bottom));
+    }
+
+    .nav-mobile-actions {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+        margin-top: 10px;
+        padding-top: 14px;
+    }
+
+    .nav-mobile-user {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .nav-mobile-user-avatar {
+        display: grid;
+        place-items: center;
+        flex: 0 0 44px;
+        width: 44px;
+        height: 44px;
+        overflow: hidden;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb, #38bdf8);
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .nav-mobile-user-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .nav-mobile-user-info {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .nav-mobile-user strong,
+    .nav-mobile-user span {
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
+    .nav-mobile-action {
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        justify-content: flex-start;
+        gap: 12px;
+        padding: 11px 14px;
+        text-align: left;
+        text-decoration: none;
+        overflow-wrap: anywhere;
+    }
+
+    .nav-mobile-action i {
+        flex: 0 0 20px;
+        width: 20px;
+        font-size: 1.05rem;
+        text-align: center;
+    }
+
+    .nav-mobile-logout-form {
+        margin-top: 6px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(59,130,246,0.12);
+    }
+
+    .nav-mobile-action-logout {
+        justify-content: center;
+        color: #b42318;
+        background: #fff5f5;
+        border: 1px solid rgba(180,35,24,0.18);
+        cursor: pointer;
+    }
+
+    .nav-mobile-action-logout:hover,
+    .nav-mobile-action-logout:focus-visible {
+        color: #912018;
+        background: #ffebeb;
+    }
+
+    .student-notification-dropdown {
+        max-width: calc(100vw - 24px);
+    }
+}
+
+@media (max-width: 375px) {
+    .nav-links {
+        padding-inline: 12px;
+    }
+
+    .nav-mobile-action {
+        padding-inline: 12px;
+        font-size: 0.9rem;
+    }
+}

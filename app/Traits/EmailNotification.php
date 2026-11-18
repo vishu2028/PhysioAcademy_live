@@ -25,17 +25,20 @@ trait EmailNotification
 
     public function emailDeliveryKey(object $notifiable): string
     {
-        return hash('sha256', static::class.'|'.$notifiable->getKey().'|'.$this->id);
+        return hash('sha256', static::class.'|' . $notifiable->getKey() . '|' . $this->id);
     }
 
     protected function emailActionUrl(array $data): ?string
     {
         return match ($data['type'] ?? null) {
             'doubt_answered' => route('doubts.mine'),
+            'doubt_discussion_reply' => $data['url'] ?? route('doubts.mine'),
+            'follow_up_discussion_reply' => $data['url'] ?? route('doubts.mine'),
             'doubt_session_status_updated' => route('doubt-sessions.history'),
             'doubt_session_follow_up_answered' => route('doubt-sessions.history') . '#session-booking-' . $data['booking_id'],
             'topic_request_status_updated' => $data['topic_link'] ?? route('topic-requests.mine'),
             'webinar_registration', 'webinar_updated' => route('webinars.my'),
+            'support_ticket_created', 'support_ticket_reply', 'support_ticket_status' => $data['action_url'] ?? route('admin.help.support-ticket'),
             default => route('home'),
         };
     }

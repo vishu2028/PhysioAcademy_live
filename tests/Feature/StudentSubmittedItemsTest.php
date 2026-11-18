@@ -26,30 +26,55 @@ class StudentSubmittedItemsTest extends TestCase
             ->assertSee('Doubt Session History')
             ->assertSee('My Doubts')
             ->assertSee('My Topic Requests')
-            ->assertSee('Logout');
+            ->assertSee('Logout')
+            ->assertDontSee('Follow-up Discussions');
 
         $dropdownStart = strpos($response->getContent(), '<div class="nav-user-dropdown-card">');
         $this->assertNotFalse($dropdownStart);
 
         $dropdown = substr($response->getContent(), $dropdownStart);
+        $webinarsPosition = strpos($dropdown, 'My Webinars');
         $historyPosition = strpos($dropdown, 'Doubt Session History');
         $doubtsPosition = strpos($dropdown, 'My Doubts');
         $requestsPosition = strpos($dropdown, 'My Topic Requests');
         $logoutPosition = strpos($dropdown, 'Logout');
 
+        $this->assertNotFalse($webinarsPosition);
         $this->assertNotFalse($historyPosition);
         $this->assertNotFalse($doubtsPosition);
         $this->assertNotFalse($requestsPosition);
         $this->assertNotFalse($logoutPosition);
+        $this->assertLessThan($historyPosition, $webinarsPosition);
         $this->assertLessThan($doubtsPosition, $historyPosition);
         $this->assertLessThan($requestsPosition, $doubtsPosition);
         $this->assertLessThan($logoutPosition, $requestsPosition);
 
         $this->assertStringContainsString('href="' . route('doubts.mine') . '"', $dropdown);
         $this->assertStringContainsString('href="' . route('topic-requests.mine') . '"', $dropdown);
+
+        $mobileActionsStart = strpos($response->getContent(), '<div class="nav-mobile-actions">');
+        $navCtaStart = strpos($response->getContent(), '<div class="nav-cta">', $mobileActionsStart);
+        $this->assertNotFalse($mobileActionsStart);
+        $this->assertNotFalse($navCtaStart);
+        $mobileActions = substr($response->getContent(), $mobileActionsStart, $navCtaStart - $mobileActionsStart);
+
+        foreach ([
+            'My Webinars' => route('webinars.my'),
+            'Doubt Session History' => route('doubt-sessions.history'),
+            'My Doubts' => route('doubts.mine'),
+            'My Topic Requests' => route('topic-requests.mine'),
+        ] as $label => $url) {
+            $this->assertStringContainsString($label, $mobileActions);
+            $this->assertStringContainsString('href="' . $url . '"', $mobileActions);
+        }
+
+        $this->assertStringContainsString($user->email, $mobileActions);
+        $this->assertStringContainsString('nav-mobile-user-avatar', $mobileActions);
+        $this->assertStringContainsString('nav-mobile-action-logout', $mobileActions);
+        $this->assertStringContainsString('Logout', $mobileActions);
     }
 
-    public function test_my_doubts_shows_only_the_authenticated_users_doubts_and_answers(): void
+    public function test_my_doubts_shows_public_doubts_and_their_answers(): void
     {
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
@@ -85,13 +110,15 @@ class StudentSubmittedItemsTest extends TestCase
             ->assertSee('Here is the admin response.')
             ->assertSee('Answered')
             ->assertSee('Pending')
-            ->assertDontSee('Another users private doubt')
-            ->assertDontSee('This must not be visible.');
+            ->assertSee('Another users private doubt')
+            ->assertSee('This must not be visible.')
+            ->assertSee($otherUser->name);
 
         $this->get(route('doubts.show', $answeredDoubt))
             ->assertOk()
-            ->assertSee('Your question')
-        ->assertSee('Back to My Doubts')
+            ->assertSee('Original doubt')
+            ->assertSee($user->name)
+            ->assertSee('Back to My Doubts')
             ->assertSee('Here is the admin response.');
     }
 
@@ -178,7 +205,7 @@ class StudentSubmittedItemsTest extends TestCase
         $this->actingAs($user)
             ->get(route('doubts.mine'))
             ->assertOk()
-            ->assertSee('Doubt & Answer Library')
+            ->assertSee('Community Doubts &amp; Discussions', false)
             ->assertSee('Recently Answered Doubts')
             ->assertSee('Human Anatomy')
             ->assertSee('Physiology')
@@ -186,8 +213,8 @@ class StudentSubmittedItemsTest extends TestCase
             ->assertSee('Read Full Answer')
             ->assertSee('<details', false)
             ->assertSee('It has a shallow socket.')
-            ->assertDontSee('Private anatomy topic')
-            ->assertDontSee('This belongs to another user.');
+            ->assertSee('Private anatomy topic')
+            ->assertSee('This belongs to another user.');
 
         $this->get(route('doubts.mine', ['subject_id' => $physiology->id]))
             ->assertOk()
@@ -323,7 +350,7 @@ class StudentSubmittedItemsTest extends TestCase
         $this->assertDatabaseCount('doubt_messages', 3);
     }
 
-    public function test_users_cannot_read_or_add_messages_to_another_users_doubt(): void
+    public function test_users_can_read_and_reply_to_another_users_public_doubt(): void
     {
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
@@ -336,13 +363,20 @@ class StudentSubmittedItemsTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('doubts.show', $otherDoubt))
-            ->assertNotFound();
+            ->assertOk()
+            ->assertSee('Private question.')
+            ->assertSee($otherUser->name);
 
         $this->post(route('doubts.messages.store', $otherDoubt), [
-            'message' => 'Unauthorized follow-up.',
-        ])->assertNotFound();
+            'message' => 'Community reply.',
+        ])->assertRedirect(route('doubts.show', $otherDoubt));
 
-        $this->assertDatabaseCount('doubt_messages', 0);
+        $this->assertDatabaseHas('doubt_messages', [
+            'doubt_id' => $otherDoubt->id,
+            'sender_id' => $user->id,
+            'sender_role' => 'student',
+            'message' => 'Community reply.',
+        ]);
     }
 
     public function test_my_topic_requests_shows_only_the_authenticated_users_requests_and_responses(): void

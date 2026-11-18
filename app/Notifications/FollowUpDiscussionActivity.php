@@ -23,9 +23,9 @@ class FollowUpDiscussionActivity extends Notification
     {
         return [
             'type' => 'follow_up_discussion_reply',
-            'title' => 'New reply in a follow-up discussion',
+            'title' => 'New follow-up',
             'message' => ($this->reply->author_role === DoubtSessionFollowUp::ROLE_ADMIN ? 'An admin' : 'A user')
-                .' replied to a follow-up discussion.',
+                .' added a follow-up.',
             'follow_up_id' => $this->thread->id,
             'reply_id' => $this->reply->id,
             'notification_key' => 'follow_up_reply_'.$this->reply->id,

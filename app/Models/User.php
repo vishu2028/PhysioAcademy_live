@@ -106,4 +106,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(WebinarRegistration::class);
     }
+
+    public function supportTickets(): HasMany
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
+
+    public function discussionFollows(): HasMany
+    {
+        return $this->hasMany(DiscussionFollow::class);
+    }
 }

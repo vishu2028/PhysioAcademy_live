@@ -228,6 +228,7 @@
     .user-avatar-hero { width: 100px; height: 100px; border-radius: 28px; background: linear-gradient(135deg, #2563eb, #38bdf8); color: #fff; display: grid; place-items: center; font-size: 2.8rem; font-weight: 800; border: 4px solid #fff; overflow: hidden; flex: 0 0 100px; }
     .user-avatar-hero img { width: 100%; height: 100%; object-fit: cover; }
     .hero-decorative-orb { position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(37,99,235,0.05); border-radius: 50%; filter: blur(50px); pointer-events: none; }
+    .user-profile-hero > .glass-card-db { overflow: hidden; }
 
     .nav-link-item { width: 100%; padding: 12px 18px; border-radius: 14px; border: none; background: transparent; text-align: left; font-weight: 600; color: #64748b; transition: 0.2s; display: flex; align-items: center; gap: 12px; text-decoration: none; }
     .nav-link-item:hover, .nav-link-item.active { background: rgba(37,99,235,0.08); color: #2563eb; }

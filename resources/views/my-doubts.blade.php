@@ -27,6 +27,11 @@
         .doubt-library-cards { display: grid; gap: 14px; }
         .doubt-library-card { min-width: 0; padding: clamp(18px, 3vw, 24px); border: 1px solid #e0e6ee; border-radius: 16px; background: #fff; box-shadow: 0 3px 12px rgba(20, 35, 55, .035); }
         .doubt-library-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+        .doubt-community-author { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .doubt-community-author > div { display: grid; gap: 2px; }
+        .doubt-community-avatar { width: 42px; height: 42px; flex: 0 0 42px; border-radius: 50%; object-fit: cover; }
+        .doubt-community-avatar-fallback { display: grid; place-items: center; background: #e8f2ff; color: #1762b9; font-weight: 750; }
+        .doubt-community-role { color: #737f8f; font-size: .78rem; }
         .doubt-library-card-tags { display: flex; flex-wrap: wrap; gap: 7px; }
         .doubt-subject-tag, .doubt-status-tag { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; background: #eef4fb; color: #42536a; font-size: .75rem; font-weight: 700; }
         .doubt-subject-tag { background: #e8f2ff; color: #1762b9; }
@@ -74,8 +79,8 @@
             <h1 class="doubt-library-heading">My Doubts</h1>
 
             <header class="doubt-library-banner">
-                <h2>Doubt &amp; Answer Library</h2>
-                <p>Explore your submitted questions, follow the conversation, and learn from expert answers.</p>
+                <h2>Community Doubts &amp; Follow-ups</h2>
+                <p>Explore public doubts, add follow-ups, and follow the conversations you care about.</p>
             </header>
 
             <div class="doubt-library-tools">
@@ -139,6 +144,12 @@
                 <div class="alert alert-success rounded-4">{{ session('success') }}</div>
             @endif
 
+            @if(!$followUpSchemaAvailable || !$doubtFollowsAvailable)
+                <div class="alert alert-info rounded-4" role="status">
+                    Some follow-up features are unavailable until the pending follow-up migrations are applied.
+                </div>
+            @endif
+
             @if($recentlyAnsweredDoubts->isNotEmpty())
                 <section class="doubt-library-section" aria-labelledby="recently-answered-heading">
                     <h2 class="doubt-library-section-heading" id="recently-answered-heading">Recently Answered Doubts</h2>
@@ -153,7 +164,7 @@
 
             <section class="doubt-library-section" aria-labelledby="my-doubt-history-heading">
                 <h2 class="doubt-library-section-heading" id="my-doubt-history-heading">
-                    {{ $status === 'all' ? 'Your Doubts' : ($status === 'answered' ? 'Your Answered Doubts' : ($status === 'pending' ? 'Your Pending Doubts' : 'Your Closed Doubts')) }}
+                    {{ $status === 'all' ? 'Community Doubts' : ($status === 'answered' ? 'Answered Doubts' : ($status === 'pending' ? 'Pending Doubts' : 'Closed Doubts')) }}
                 </h2>
                 @if($doubts->isNotEmpty())
                     <div class="doubt-library-cards">
@@ -169,7 +180,7 @@
                             @if($status !== 'all' || $search !== '' || $subjectId !== '')
                                 No doubts match these filters. Try another subject, status, or search.
                             @else
-                                You have not submitted any doubts yet.
+                                No community doubts have been posted yet.
                             @endif
                         </p>
                         @if($status !== 'all' || $search !== '' || $subjectId !== '')
@@ -180,6 +191,30 @@
                     </div>
                 @endif
             </section>
+
+            @if($followUpSchemaAvailable)
+                <section class="doubt-library-section" aria-labelledby="community-follow-ups-heading">
+                    <h2 class="doubt-library-section-heading" id="community-follow-ups-heading">Community Follow-ups</h2>
+                    @if($featuredCommunityThread)
+                        @include('follow-ups._community-thread-card', ['thread' => $featuredCommunityThread])
+                    @endif
+                    @if($communityThreads->isNotEmpty())
+                        <div class="doubt-library-cards">
+                            @foreach($communityThreads as $thread)
+                                @include('follow-ups._community-thread-card', ['thread' => $thread])
+                            @endforeach
+                        </div>
+                        @if(method_exists($communityThreads, 'links'))
+                            <div class="mt-4">{{ $communityThreads->links() }}</div>
+                        @endif
+                    @elseif(!$featuredCommunityThread)
+                        <div class="doubt-library-empty">
+                            <h3>No community follow-ups yet</h3>
+                            <p>Add a follow-up to a public doubt to join the conversation.</p>
+                        </div>
+                    @endif
+                </section>
+            @endif
         </div>
     </section>
 @endsection

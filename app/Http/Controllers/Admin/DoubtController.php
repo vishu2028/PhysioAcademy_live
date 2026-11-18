@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Doubt;
 use App\Models\DoubtMessage;
 use App\Notifications\DoubtAnswered;
+use App\Services\DoubtDiscussionService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
@@ -54,7 +55,7 @@ class DoubtController extends Controller
         return view('admin.doubts.index', compact('doubts'));
     }
 
-    public function update(Request $request, Doubt $doubt)
+    public function update(Request $request, Doubt $doubt, DoubtDiscussionService $discussions)
     {
         $request->validate([
             'status' => ['required', 'in:pending,in_progress,answered,rejected'],
@@ -78,7 +79,7 @@ class DoubtController extends Controller
             $data['answered_at'] = now();
         }
 
-        DB::transaction(function () use ($doubt, $data, $answer, $wasAnswered, $previousAnswer): void {
+        DB::transaction(function () use ($doubt, $data, $answer, $wasAnswered, $previousAnswer, $discussions): void {
             if (filled($previousAnswer) && $previousAnswer !== $answer) {
                 $this->archiveLegacyAnswer($doubt, $previousAnswer);
             }
@@ -86,22 +87,31 @@ class DoubtController extends Controller
             $doubt->update($data);
 
             if (filled($answer) && $previousAnswer !== $answer) {
-                $doubt->messages()->create([
+                $reply = $doubt->messages()->create([
                     'sender_id' => auth()->id(),
                     'sender_role' => DoubtMessage::ROLE_ADMIN,
                     'message' => $answer,
                 ]);
             }
 
-            if (
-                ! $wasAnswered
+            $ownerNotified = (
+                !$wasAnswered
                 && $answer
                 && $data['status'] === Doubt::STATUS_ANSWERED
                 && $doubt->user
-            ) {
+            );
+            if ($ownerNotified) {
                 $doubt->user->notify(new DoubtAnswered($doubt->fresh([
                     'subject',
                 ])));
+            }
+
+            if (isset($reply)) {
+                $discussions->notifyFollowers(
+                    $doubt,
+                    $reply,
+                    $ownerNotified ? [(int) $doubt->user_id] : []
+                );
             }
         });
 

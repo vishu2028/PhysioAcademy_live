@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Notifications\DoubtSessionFollowUpAnswered;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
@@ -138,6 +139,40 @@ class DoubtSessionConversationTest extends TestCase
         $this->assertDatabaseHas('doubt_session_follow_ups', [
             'doubt_session_booking_id' => $ownBooking->id,
         ]);
+    }
+
+    public function test_session_history_stays_available_before_discussion_migration_is_applied(): void
+    {
+        $student = User::factory()->create();
+        $admin = User::factory()->create();
+        $booking = $this->bookingFor($student);
+        $booking->followUps()->create([
+            'question' => 'Legacy question',
+            'answer' => 'Legacy answer',
+            'answered_by' => $admin->id,
+            'answered_at' => now(),
+            'status' => DoubtSessionFollowUp::STATUS_ANSWERED,
+        ]);
+
+        Schema::shouldReceive('hasColumns')
+            ->once()
+            ->with('doubt_session_follow_ups', [
+                'user_id',
+                'parent_id',
+                'thread_id',
+                'author_role',
+                'submission_key',
+                'is_hidden',
+            ])
+            ->andReturnFalse();
+
+        $this->actingAs($student)
+            ->get(route('doubt-sessions.history'))
+            ->assertOk()
+            ->assertSee('Legacy question')
+            ->assertSee('Legacy answer')
+            ->assertSee('Follow-up conversations are temporarily unavailable')
+            ->assertDontSee('Ask a new follow-up');
     }
 
     public function test_admin_can_answer_follow_up_and_student_receives_database_and_email_notifications(): void

@@ -115,6 +115,75 @@
             box-shadow: 0 4px 12px rgba(79,70,229,0.3);
         }
 
+        .sidebar-help-section {
+            margin: 0 0.75rem 0.85rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #e8edf5;
+        }
+
+        .sidebar-help-toggle {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            gap: 0.75rem;
+            padding: 0.75rem 0.85rem;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            background: #f3f4ff;
+            color: #4338ca;
+            font-size: 0.92rem;
+            font-weight: 700;
+            text-align: left;
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .sidebar-help-toggle:hover,
+        .sidebar-help-toggle.is-current {
+            background: #eceeff;
+            border-color: #e0e3ff;
+            color: #3730a3;
+        }
+
+        .sidebar-help-toggle:focus-visible {
+            outline: 2px solid #818cf8;
+            outline-offset: 2px;
+        }
+
+        .sidebar-help-toggle > .bi-life-preserver {
+            width: 20px;
+            flex: 0 0 20px;
+            font-size: 1.15rem;
+            text-align: center;
+        }
+
+        .sidebar-help-chevron {
+            margin-left: auto;
+            font-size: 0.8rem;
+            transition: transform 0.2s ease;
+        }
+
+        .sidebar-help-toggle[aria-expanded="true"] .sidebar-help-chevron {
+            transform: rotate(90deg);
+        }
+
+        .sidebar-help-submenu {
+            margin: 0.3rem 0.25rem 0 1.15rem;
+            padding-left: 0.55rem;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        .nav-link-admin.sidebar-help-link {
+            margin: 0.15rem 0;
+            padding: 0.62rem 0.75rem;
+            border-radius: 9px;
+            font-size: 0.84rem;
+        }
+
+        .nav-link-admin.sidebar-help-link:hover:not(.active) {
+            background-color: #f1f3ff;
+            color: #4338ca;
+        }
+
         /* ─── PAGE CONTENT ────────────────────────────────── */
         #page-content-wrapper {
             flex: 1 1 auto;
@@ -510,6 +579,29 @@
                 <a href="{{ route('admin.activity-logs.index') }}" class="nav-link-admin @if(request()->routeIs('admin.activity-logs.*')) active @endif">
                     <i class="bi bi-journal-text"></i> Activity Logs
                 </a>
+
+                <div class="sidebar-help-section">
+                    <button
+                        class="sidebar-help-toggle @if(request()->routeIs('admin.help.*')) is-current @endif"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#adminHelpDropdown"
+                        aria-expanded="{{ request()->routeIs('admin.help.*') ? 'true' : 'false' }}"
+                        aria-controls="adminHelpDropdown"
+                    >
+                        <i class="bi bi-life-preserver" aria-hidden="true"></i>
+                        <span>Help</span>
+                        <i class="bi bi-chevron-right sidebar-help-chevron" aria-hidden="true"></i>
+                    </button>
+                    <div class="collapse sidebar-help-submenu @if(request()->routeIs('admin.help.*')) show @endif" id="adminHelpDropdown">
+                        <a href="{{ route('admin.help.support-ticket') }}" class="nav-link-admin sidebar-help-link @if(request()->routeIs('admin.help.support-ticket')) active @endif">
+                            Support Ticket
+                        </a>
+                        <a href="{{ route('admin.help.subscription') }}" class="nav-link-admin sidebar-help-link @if(request()->routeIs('admin.help.subscription')) active @endif">
+                            Subscription
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 

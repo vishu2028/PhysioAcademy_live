@@ -32,12 +32,20 @@ class FollowUpDiscussionTest extends TestCase
         ])->assertRedirect();
 
         $thread = DoubtSessionFollowUp::where('submission_key', $rootKey)->firstOrFail();
+        $this->assertDatabaseHas('discussion_follows', [
+            'user_id' => $author->id,
+            'followable_type' => DoubtSessionFollowUp::class,
+            'followable_id' => $thread->id,
+        ]);
         $this->post(route('follow-ups.store'), [
             'question' => 'Duplicate submission',
             'submission_key' => $rootKey,
         ])->assertRedirect();
         $this->assertDatabaseCount('doubt_session_follow_ups', 1);
 
+        $this->actingAs($participant)
+            ->post(route('follow-ups.follow.store', $thread))
+            ->assertRedirect(route('doubts.mine', ['discussion_id' => $thread->id]).'#community-thread-'.$thread->id);
         $participantKey = (string) Str::uuid();
         $this->actingAs($participant)->post(route('follow-ups.replies.store', $thread), [
             'question' => 'Start gently and focus on form.',
@@ -59,6 +67,9 @@ class FollowUpDiscussionTest extends TestCase
             'submission_key' => $authorKey,
         ])->assertRedirect();
 
+        $this->actingAs($thirdUser)
+            ->post(route('follow-ups.follow.store', $thread))
+            ->assertRedirect();
         $thirdKey = (string) Str::uuid();
         $this->actingAs($thirdUser)->post(route('follow-ups.replies.store', $thread), [
             'question' => 'I found this useful too.',
@@ -103,7 +114,7 @@ class FollowUpDiscussionTest extends TestCase
         ]);
 
         $this->actingAs($author)
-            ->get(route('follow-ups.show', $thread))
+            ->get(route('doubts.mine', ['discussion_id' => $thread->id]))
             ->assertOk()
             ->assertSee('Author User')
             ->assertSee('Participant User')
@@ -115,6 +126,8 @@ class FollowUpDiscussionTest extends TestCase
         $this->post(route('logout'))->assertRedirect('/');
         $this->actingAs($author)
             ->get(route('follow-ups.show', $thread))
+            ->assertRedirect(route('doubts.mine', ['discussion_id' => $thread->id]).'#community-thread-'.$thread->id);
+        $this->get(route('doubts.mine', ['discussion_id' => $thread->id]))
             ->assertOk()
             ->assertSee('How should I approach this exercise?')
             ->assertSee('Thanks, that helps.');
@@ -181,9 +194,12 @@ class FollowUpDiscussionTest extends TestCase
         ]);
 
         $this->actingAs(User::factory()->create())
-            ->get(route('follow-ups.index'))
+            ->get(route('doubts.mine'))
             ->assertOk()
             ->assertDontSee('Private medical session follow-up');
+
+        $this->get(route('follow-ups.index'))
+            ->assertRedirect(route('doubts.mine'));
     }
 
     public function test_only_the_booking_owner_and_admin_can_participate_in_private_follow_ups(): void

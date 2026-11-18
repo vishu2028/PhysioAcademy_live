@@ -199,6 +199,12 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
         ->whereNumber('followUp')
         ->middleware('throttle:10,1')
         ->name('follow-ups.replies.store');
+    Route::post('/follow-ups/{followUp}/follow', [FollowUpController::class, 'follow'])
+        ->whereNumber('followUp')
+        ->name('follow-ups.follow.store');
+    Route::delete('/follow-ups/{followUp}/follow', [FollowUpController::class, 'unfollow'])
+        ->whereNumber('followUp')
+        ->name('follow-ups.follow.destroy');
 
     Route::get(
         '/notifications/poll',
@@ -237,6 +243,16 @@ Route::middleware(['auth', 'auth.session'])->group(function () {
         '/my-doubts/{doubt}/messages',
         [DoubtController::class, 'storeMessage']
     )->whereNumber('doubt')->middleware('throttle:10,1')->name('doubts.messages.store');
+
+    Route::post(
+        '/my-doubts/{doubt}/follow',
+        [DoubtController::class, 'follow']
+    )->whereNumber('doubt')->name('doubts.follow.store');
+
+    Route::delete(
+        '/my-doubts/{doubt}/follow',
+        [DoubtController::class, 'unfollow']
+    )->whereNumber('doubt')->name('doubts.follow.destroy');
 
     Route::post(
         '/my-doubts/{doubt}/like',
@@ -371,6 +387,31 @@ Route::middleware([
             '/dashboard',
             [DashboardController::class, 'index']
         )->name('dashboard');
+
+        Route::get('/help/support-ticket', [\App\Http\Controllers\SupportTicketController::class, 'index'])
+            ->name('help.support-ticket');
+        Route::get('/help/support-ticket/create', [\App\Http\Controllers\SupportTicketController::class, 'create'])
+            ->name('help.support-ticket.create');
+        Route::post('/help/support-ticket', [\App\Http\Controllers\SupportTicketController::class, 'store'])
+            ->middleware('throttle:5,1')
+            ->name('help.support-ticket.store');
+        Route::post('/help/support-ticket/{ticket}/sync', [\App\Http\Controllers\SupportTicketController::class, 'retry'])
+            ->whereNumber('ticket')
+            ->middleware('throttle:5,1')
+            ->name('help.support-ticket.sync');
+        Route::get('/help/support-ticket/{ticket}/attachments/{attachment}', [\App\Http\Controllers\SupportTicketController::class, 'downloadAttachment'])
+            ->whereNumber('ticket')
+            ->whereNumber('attachment')
+            ->name('help.support-ticket.attachments.download');
+        Route::get('/help/support-ticket/{ticket}/rootflash-attachments/{attachment}', [\App\Http\Controllers\SupportTicketController::class, 'downloadRootFlashAttachment'])
+            ->whereNumber('ticket')
+            ->where('attachment', 'ticket|reply-[0-9]+')
+            ->name('help.support-ticket.rootflash-attachments.download');
+        Route::get('/help/support-ticket/{ticket}', [\App\Http\Controllers\SupportTicketController::class, 'show'])
+            ->whereNumber('ticket')
+            ->name('help.support-ticket.show');
+        Route::get('/help/subscription', [\App\Http\Controllers\Admin\HelpController::class, 'subscription'])
+            ->name('help.subscription');
 
         /*
          * CMS Content Resources

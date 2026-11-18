@@ -286,6 +286,10 @@
                 </a>
             @endif
 
+            <a href="{{ route('support.help-center') }}" class="nav-link {{ Request::routeIs('support.help-center') ? 'active' : '' }}">
+                Support
+            </a>
+
             <button class="nav-search-btn" id="searchToggle" aria-label="Search">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="11" cy="11" r="8"/>
@@ -306,9 +310,23 @@
                     <a href="{{ route('login') }}" class="nav-mobile-action nav-mobile-action-secondary">Login</a>
                     <a href="{{ route('register') }}" class="nav-mobile-action nav-mobile-action-primary">Sign Up</a>
                 @else
+                    @php
+                        $mobileAccount = auth()->user();
+                        $mobileDisplayName = trim($mobileAccount->name ?? '') ?: 'My Account';
+                        $mobileInitial = strtoupper(mb_substr($mobileDisplayName, 0, 1));
+                    @endphp
                     <div class="nav-mobile-user">
-                        <strong>{{ auth()->user()->name ?: 'My Account' }}</strong>
-                        <span>{{ auth()->user()->email }}</span>
+                        <div class="nav-mobile-user-avatar" aria-hidden="true">
+                            @if($mobileAccount->avatarUrl())
+                                <img src="{{ $mobileAccount->avatarUrl() }}" alt="">
+                            @else
+                                {{ $mobileInitial }}
+                            @endif
+                        </div>
+                        <div class="nav-mobile-user-info">
+                            <strong>{{ $mobileDisplayName }}</strong>
+                            <span>{{ $mobileAccount->email }}</span>
+                        </div>
                     </div>
 
                     @role('super_admin|admin')
@@ -316,28 +334,39 @@
                         href="{{ route('admin.dashboard') }}"
                         class="nav-mobile-action nav-mobile-action-secondary"
                     >
+                        <i class="bi bi-speedometer2" aria-hidden="true"></i>
                         Admin Dashboard
                     </a>
                     @endrole
 
                     @if(! auth()->user()->hasAnyRole(['super_admin', 'admin']))
                         <a
-                            href="{{ route('follow-ups.index') }}"
-                            class="nav-mobile-action nav-mobile-action-secondary"
-                        >
-                            Follow-up Discussions
-                        </a>
-                        <a
                             href="{{ route('webinars.my') }}"
                             class="nav-mobile-action nav-mobile-action-secondary"
                         >
+                            <i class="bi bi-camera-video" aria-hidden="true"></i>
                             My Webinars
                         </a>
                         <a
                             href="{{ route('doubt-sessions.history') }}"
                             class="nav-mobile-action nav-mobile-action-secondary"
                         >
+                            <i class="bi bi-clock-history" aria-hidden="true"></i>
                             Doubt Session History
+                        </a>
+                        <a
+                            href="{{ route('doubts.mine') }}"
+                            class="nav-mobile-action nav-mobile-action-secondary"
+                        >
+                            <i class="bi bi-question-circle" aria-hidden="true"></i>
+                            My Doubts
+                        </a>
+                        <a
+                            href="{{ route('topic-requests.mine') }}"
+                            class="nav-mobile-action nav-mobile-action-secondary"
+                        >
+                            <i class="bi bi-journal-text" aria-hidden="true"></i>
+                            My Topic Requests
                         </a>
                     @endif
 
@@ -350,8 +379,9 @@
 
                         <button
                             type="submit"
-                            class="nav-mobile-action nav-mobile-action-primary"
+                            class="nav-mobile-action nav-mobile-action-logout"
                         >
+                            <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
                             Logout
                         </button>
                     </form>
@@ -611,16 +641,6 @@
                             <div class="nav-user-divider"></div>
 
                             @if($isStudent)
-                                <a
-                                    href="{{ route('follow-ups.index') }}"
-                                    class="nav-user-menu-link {{ request()->routeIs('follow-ups.*') ? 'active' : '' }}"
-                                >
-                                    <i class="bi bi-chat-dots" aria-hidden="true"></i>
-                                    <span>Follow-up Discussions</span>
-                                </a>
-
-                                <div class="nav-user-divider"></div>
-
                                 <a
                                     href="{{ route('webinars.my') }}"
                                     class="nav-user-menu-link {{ request()->routeIs('webinars.my') ? 'active' : '' }}"
@@ -1300,13 +1320,13 @@
         color: #003B8A;
     }
 
-    @media (max-width: 575.98px) {
+    @media (max-width: 991.98px) {
         .student-notification-dropdown {
             position: fixed;
             top: 76px;
             right: 12px;
-            left: 12px;
-            width: auto;
+            left: auto;
+            width: min(370px, calc(100vw - 24px));
         }
     }
     .nav-user-menu {

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
@@ -30,6 +30,20 @@ class NotificationController extends Controller
         $bookingId = $databaseNotification->data['booking_id'] ?? null;
         $followUpId = $databaseNotification->data['follow_up_id'] ?? null;
         $groupWebinarRequestId = $databaseNotification->data['group_webinar_request_id'] ?? null;
+        $supportTicketId = $databaseNotification->data['support_ticket_id'] ?? null;
+
+        if (
+            is_numeric($supportTicketId)
+            && str_starts_with((string) ($databaseNotification->data['type'] ?? ''), 'support_ticket_')
+        ) {
+            if ($request->user()->hasAnyRole(['super_admin', 'admin'])) {
+                $ticket = \App\Models\SupportTicket::query()->findOrFail($supportTicketId);
+
+                return redirect()->route('admin.help.support-ticket.show', $ticket);
+            }
+
+            return redirect()->route('support.help-center');
+        }
 
         if (($databaseNotification->data['type'] ?? null) === 'group_webinar' && $groupWebinarRequestId) {
             return redirect(url(route('webinars.my')).'#group-booking-'.$groupWebinarRequestId);
@@ -53,8 +67,26 @@ class NotificationController extends Controller
             }
 
             if ($thread) {
-                return redirect(route('follow-ups.show', $thread).'#follow-up-'.($databaseNotification->data['reply_id'] ?? $thread->id));
+                $discussionId = $thread->thread_id ?: $thread->id;
+                $replyId = $databaseNotification->data['reply_id'] ?? $thread->id;
+
+                return redirect()->to(
+                    route('doubts.mine', ['discussion_id' => $discussionId])
+                    . '#follow-up-' . $replyId
+                );
             }
+        }
+
+        if (
+            ($databaseNotification->data['type'] ?? null) === 'doubt_discussion_reply'
+            && is_numeric($doubtId)
+        ) {
+            $replyId = $databaseNotification->data['reply_id'] ?? null;
+
+            return redirect()->to(
+                route('doubts.show', (int) $doubtId)
+                .(is_numeric($replyId) ? '#doubt-message-'.(int) $replyId : '')
+            );
         }
 
         if ($doubtId) {

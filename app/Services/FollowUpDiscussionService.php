@@ -6,6 +6,7 @@ use App\Models\DoubtSessionBooking;
 use App\Models\DoubtSessionFollowUp;
 use App\Models\User;
 use App\Notifications\FollowUpDiscussionActivity;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class FollowUpDiscussionService
@@ -31,6 +32,10 @@ class FollowUpDiscussionService
 
         if ((int) $post->thread_id !== (int) $post->id) {
             $post->forceFill(['thread_id' => $post->id])->save();
+        }
+
+        if ($booking === null && Schema::hasTable('discussion_follows')) {
+            $post->discussionFollows()->firstOrCreate(['user_id' => $author->id]);
         }
 
         return $post;
@@ -103,21 +108,27 @@ class FollowUpDiscussionService
         User $author,
         bool $asAdmin
     ): void {
-        $participantIds = collect([$root->user_id, $parent->user_id]);
+        if ($root->doubt_session_booking_id === null) {
+            $participantIds = Schema::hasTable('discussion_follows')
+                ? $root->discussionFollows()->pluck('user_id')
+                : collect();
+        } else {
+            $participantIds = collect([$root->user_id, $parent->user_id]);
 
-        if ($asAdmin) {
-            $participantIds = $participantIds->merge(
-                DoubtSessionFollowUp::query()
-                    ->where('thread_id', $root->id)
-                    ->whereNotNull('user_id')
-                    ->pluck('user_id')
-            );
+            if ($asAdmin) {
+                $participantIds = $participantIds->merge(
+                    DoubtSessionFollowUp::query()
+                        ->where('thread_id', $root->id)
+                        ->whereNotNull('user_id')
+                        ->pluck('user_id')
+                );
+            }
         }
 
         $notificationKey = 'follow_up_reply_'.$reply->id;
         $url = $root->doubt_session_booking_id
             ? route('doubt-sessions.history').'#session-booking-'.$root->doubt_session_booking_id
-            : route('follow-ups.show', $root).'#follow-up-'.$reply->id;
+            : route('doubts.mine', ['discussion_id' => $root->id]).'#community-thread-'.$root->id;
 
         User::query()
             ->whereIn('id', $participantIds->filter()->unique()->reject(

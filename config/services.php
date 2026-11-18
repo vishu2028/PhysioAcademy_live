@@ -53,5 +53,16 @@ return [
         'client_id' => env('APPLE_CLIENT_ID'),
         'redirect_uri' => env('APPLE_REDIRECT_URI'),
     ],
+    'rootflash' => [
+        'admin_url' => env('ROOTFLASH_ADMIN_URL'),
+        'tickets' => [
+            'api_url' => env('ROOTFLASH_API_URL', env('ROOTFLASH_TICKET_API_URL')),
+            'identifier' => env('ROOTFLASH_WEBSITE_ID', env('ROOTFLASH_TICKET_IDENTIFIER')),
+            'key_id' => env('ROOTFLASH_INTEGRATION_KEY_ID', env('ROOTFLASH_TICKET_KEY_ID')),
+            'secret' => env('ROOTFLASH_INTEGRATION_SECRET', env('ROOTFLASH_TICKET_SECRET')),
+            'client_reference' => env('ROOTFLASH_TICKET_CLIENT_REFERENCE'),
+            'client_email' => env('ROOTFLASH_TICKET_CLIENT_EMAIL'),
+        ],
+    ],
 
 ];

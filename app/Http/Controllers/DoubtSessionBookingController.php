@@ -12,6 +12,7 @@ use App\Services\FollowUpDiscussionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Razorpay\Api\Errors\SignatureVerificationError;
 use Throwable;
@@ -78,25 +79,38 @@ class DoubtSessionBookingController extends Controller
      */
     public function history(Request $request)
     {
-        $bookings = $request->user()
-            ->doubtSessionBookings()
-            ->with(['followUps' => fn ($followUps) => $followUps
-                ->whereNull('parent_id')
-                ->with(['user', 'threadMessages'])])
-            ->latest('created_at')
-            ->paginate(10);
+        $followUpDiscussionsEnabled = Schema::hasColumns(
+            'doubt_session_follow_ups',
+            ['user_id', 'parent_id', 'thread_id', 'author_role', 'submission_key', 'is_hidden']
+        );
 
-        $bookings->getCollection()->each(function (DoubtSessionBooking $booking): void {
-            foreach ($booking->followUps as $thread) {
-                $messages = $thread->threadMessages->keyBy('id');
-                $thread->setRelation('replies', $messages->where('parent_id', $thread->id)->values());
-                $this->attachFollowUpReplies($thread->replies, $messages);
-            }
-        });
+        $bookingsQuery = $request->user()
+            ->doubtSessionBookings()
+            ->latest('created_at');
+
+        if ($followUpDiscussionsEnabled) {
+            $bookingsQuery->with(['followUps' => fn ($followUps) => $followUps
+                ->whereNull('parent_id')
+                ->with(['user', 'threadMessages'])]);
+        } else {
+            $bookingsQuery->with('followUps.answeredBy');
+        }
+
+        $bookings = $bookingsQuery->paginate(10);
+
+        if ($followUpDiscussionsEnabled) {
+            $bookings->getCollection()->each(function (DoubtSessionBooking $booking): void {
+                foreach ($booking->followUps as $thread) {
+                    $messages = $thread->threadMessages->keyBy('id');
+                    $thread->setRelation('replies', $messages->where('parent_id', $thread->id)->values());
+                    $this->attachFollowUpReplies($thread->replies, $messages);
+                }
+            });
+        }
 
         return view(
             'doubt-sessions.history',
-            compact('bookings')
+            compact('bookings', 'followUpDiscussionsEnabled')
         );
     }
 

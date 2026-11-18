@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Doubt extends Model
 {
@@ -36,6 +37,11 @@ class Doubt extends Model
     public function likes(): HasMany
     {
         return $this->hasMany(DoubtLike::class);
+    }
+
+    public function discussionFollows(): MorphMany
+    {
+        return $this->morphMany(DiscussionFollow::class, 'followable');
     }
 
     public static function sanitizeHtml(?string $html): string

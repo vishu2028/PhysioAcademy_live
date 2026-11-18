@@ -15,6 +15,9 @@
         .doubt-conversation-message h3 { margin: 0 0 8px; font-size: 1rem; font-weight: 800; }
         .doubt-conversation-message time { color: #64748b; font-size: .85rem; }
         .doubt-conversation-body { margin-top: 14px; color: #334155; line-height: 1.75; overflow-wrap: anywhere; }
+        .doubt-conversation-author { display: flex; align-items: center; gap: 10px; }
+        .doubt-conversation-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; }
+        .doubt-conversation-avatar-fallback { display: grid; place-items: center; background: #e8f2ff; color: #1762b9; font-weight: 750; }
         .doubt-conversation-body img { max-width: 100%; height: auto; }
         .doubt-conversation-body table { width: 100%; border-collapse: collapse; }
         .doubt-conversation-body th, .doubt-conversation-body td { padding: 8px; border: 1px solid #cbd5e1; }
@@ -35,6 +38,8 @@
         $hasAdminMessages = $doubt->messages->contains(
             fn ($message) => $message->sender_role === \App\Models\DoubtMessage::ROLE_ADMIN
         );
+        $replyCount = (int) ($doubt->messages_count ?? 0)
+            + (filled($doubt->answer) && ! $hasAdminMessages ? 1 : 0);
     @endphp
 
     <section class="section doubt-conversation-page">
@@ -48,7 +53,7 @@
             @endif
 
             <article class="glass-card doubt-conversation-card">
-                @if($doubt->status === \App\Models\Doubt::STATUS_ANSWERED)
+                @if($doubt->status === \App\Models\Doubt::STATUS_ANSWERED && (int) $doubt->user_id === (int) auth()->id())
                     <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
                         @if($doubt->liked_by_user)
                             <form method="POST" action="{{ route('doubts.likes.destroy', $doubt) }}">
@@ -72,7 +77,7 @@
                 @endif
                 <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
                     <div>
-                        <span class="section-tag">Ask Doubt Conversation</span>
+                        <span class="section-tag">Public Doubt Follow-up</span>
                         <h1 class="section-title mb-3">{{ $doubt->topic ?: 'General Doubt' }}</h1>
                         <div class="doubt-conversation-meta">
                             <span><i class="bi bi-book"></i>{{ $doubt->subject?->name ?? 'Subject not specified' }}</span>
@@ -86,9 +91,52 @@
                     <span class="badge bg-{{ $badgeClass }} rounded-pill px-3 py-2">{{ $statusLabel }}</span>
                 </div>
 
+                <div class="d-flex flex-wrap align-items-center gap-3 mt-4">
+                    <div class="doubt-conversation-author">
+                        @if($doubt->user?->avatarUrl())
+                            <img class="doubt-conversation-avatar" src="{{ $doubt->user->avatarUrl() }}" alt="">
+                        @else
+                            <span class="doubt-conversation-avatar doubt-conversation-avatar-fallback" aria-hidden="true">
+                                {{ strtoupper(mb_substr($doubt->user?->name ?? 'U', 0, 1)) }}
+                            </span>
+                        @endif
+                        <div>
+                            <strong>{{ $doubt->user?->name ?? 'Former user' }}</strong>
+                            <div class="small text-muted">
+                                Original author · {{ $doubt->user?->hasAnyRole(['admin', 'super_admin']) ? 'Admin' : 'Student' }}
+                            </div>
+                        </div>
+                    </div>
+                    <span class="small text-muted">
+                        {{ $replyCount }} {{ \Illuminate\Support\Str::plural('reply', $replyCount) }}
+                        · {{ $doubt->discussion_follows_count ?? 0 }} {{ \Illuminate\Support\Str::plural('follower', $doubt->discussion_follows_count ?? 0) }}
+                    </span>
+                    @if($doubtFollowsAvailable)
+                        @if($doubt->followed_by_user ?? false)
+                            <form method="POST" action="{{ route('doubts.follow.destroy', $doubt) }}">
+                                @csrf
+                                @method('DELETE')
+                                <button class="btn btn-outline-primary rounded-pill" type="submit">
+                                    <i class="bi bi-bookmark-check me-1" aria-hidden="true"></i> Unfollow
+                                </button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('doubts.follow.store', $doubt) }}">
+                                @csrf
+                                <button class="btn btn-outline-primary rounded-pill" type="submit">
+                                    <i class="bi bi-bookmark-plus me-1" aria-hidden="true"></i> Follow
+                                </button>
+                            </form>
+                        @endif
+                    @endif
+                </div>
+
                 <div class="doubt-conversation-timeline" aria-label="Doubt conversation history">
-                    <section class="doubt-conversation-message student-follow-up">
-                        <h3>Your question</h3>
+                    <section class="doubt-conversation-message student-follow-up" id="original-doubt">
+                        <h3>
+                            Original doubt · {{ $doubt->user?->name ?? 'Former user' }}
+                            · {{ $doubt->user?->hasAnyRole(['admin', 'super_admin']) ? 'Admin' : 'Student' }}
+                        </h3>
                         <time datetime="{{ $doubt->created_at?->toIso8601String() }}">
                             {{ $doubt->created_at?->copy()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A') }}
                         </time>
@@ -96,11 +144,12 @@
                     </section>
 
                     @forelse($doubt->messages as $message)
-                        <section class="doubt-conversation-message {{ $message->sender_role === \App\Models\DoubtMessage::ROLE_ADMIN ? 'admin' : 'student-follow-up' }}">
+                        <section class="doubt-conversation-message {{ $message->sender_role === \App\Models\DoubtMessage::ROLE_ADMIN ? 'admin' : 'student-follow-up' }}" id="doubt-message-{{ $message->id }}">
                             <h3>
                                 {{ $message->sender_role === \App\Models\DoubtMessage::ROLE_ADMIN
-                                    ? ($message->sender?->name ?? 'Admin response')
-                                    : 'Your follow-up' }}
+                                    ? ($message->sender?->name ?? 'Admin')
+                                    : ($message->sender?->name ?? 'Student') }}
+                                · {{ $message->sender_role === \App\Models\DoubtMessage::ROLE_ADMIN ? 'Admin' : 'Student' }}
                             </h3>
                             <time datetime="{{ $message->created_at?->toIso8601String() }}">
                                 {{ $message->created_at?->copy()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A') }}
@@ -116,7 +165,7 @@
                     @empty
                         @if($doubt->answer)
                             <section class="doubt-conversation-message admin">
-                                <h3>{{ $doubt->answeredBy?->name ?? 'Admin response' }}</h3>
+                                <h3>{{ $doubt->answeredBy?->name ?? 'Admin' }} · Admin</h3>
                                 <time datetime="{{ ($doubt->answered_at ?? $doubt->updated_at)?->toIso8601String() }}">
                                     {{ ($doubt->answered_at ?? $doubt->updated_at)?->copy()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A') }}
                                 </time>
@@ -131,7 +180,7 @@
                     && ! $doubt->answer)
                     <div class="alert alert-warning rounded-4">
                         <i class="bi bi-hourglass-split me-2"></i>
-                        Your doubt is awaiting an admin response.
+                        This doubt is awaiting an admin response.
                     </div>
                 @endif
 
@@ -141,7 +190,7 @@
                     class="doubt-follow-up-form border-top pt-4 mt-4"
                 >
                     @csrf
-                    <label class="form-label fw-bold" for="follow-up-message">Ask a follow-up question</label>
+                    <label class="form-label fw-bold" for="follow-up-message">Add a follow-up</label>
                     <textarea
                         class="form-control rounded-4 @error('message') is-invalid @enderror"
                         id="follow-up-message"
@@ -153,8 +202,8 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
-                        <small class="text-muted">A follow-up reopens this conversation as Pending.</small>
-                        <button class="btn btn-primary rounded-pill px-4" type="submit">Send Follow-up</button>
+                        <small class="text-muted">Replies appear in chronological order for all community members.</small>
+                        <button class="btn btn-primary rounded-pill px-4" type="submit">Post reply</button>
                     </div>
                 </form>
             </article>

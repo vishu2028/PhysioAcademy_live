@@ -40,6 +40,12 @@
                     </div>
                 @endif
 
+                @if(!$followUpDiscussionsEnabled && !$bookings->isEmpty())
+                    <div class="alert alert-info" role="status">
+                        Follow-up conversations are temporarily unavailable. Existing questions and answers are shown below.
+                    </div>
+                @endif
+
                 @if($bookings->isEmpty())
                     <div class="doubt-history-empty">
                         <div class="doubt-history-empty-icon">
@@ -204,6 +210,7 @@
 
                                 <div class="p-3 p-md-4 border-top">
                                     <h3 class="h5 fw-bold mb-3">Follow-up conversation</h3>
+                                    @if($followUpDiscussionsEnabled)
                                     @foreach($booking->followUps as $followUp)
                                         <article class="border rounded-3 p-3 mb-3" id="follow-up-{{ $followUp->id }}">
                                             <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
@@ -257,6 +264,26 @@
                                         @error('question')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                                         <button type="submit" class="btn btn-primary mt-2">Send follow-up</button>
                                     </form>
+                                    @else
+                                        @foreach($booking->followUps as $followUp)
+                                            <article class="border rounded-3 p-3 mb-3" id="follow-up-{{ $followUp->id }}">
+                                                <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
+                                                    <strong>{{ $booking->student_name }}</strong>
+                                                    <time class="small text-secondary" datetime="{{ $followUp->created_at?->toIso8601String() }}">
+                                                        {{ $followUp->created_at?->format('d M Y, h:i A') }}
+                                                    </time>
+                                                </div>
+                                                <p class="mb-2" style="white-space: pre-wrap;">{{ $followUp->question }}</p>
+                                                @if($followUp->answer)
+                                                    <div class="alert alert-light border mb-0">
+                                                        <strong>{{ $followUp->answeredBy?->name ?? 'Admin' }} · Admin</strong>
+                                                        <p class="mb-0 mt-1" style="white-space: pre-wrap;">{{ $followUp->answer }}</p>
+                                                        <small class="text-secondary">{{ $followUp->answered_at?->format('d M Y, h:i A') }}</small>
+                                                    </div>
+                                                @endif
+                                            </article>
+                                        @endforeach
+                                    @endif
                                 </div>
 
                             </article>

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class DoubtSessionFollowUp extends Model
 {
@@ -69,6 +70,11 @@ class DoubtSessionFollowUp extends Model
             ->orderBy('created_at')
             ->orderBy('id')
             ->with('user');
+    }
+
+    public function discussionFollows(): MorphMany
+    {
+        return $this->morphMany(DiscussionFollow::class, 'followable');
     }
 
     public function answeredBy(): BelongsTo
