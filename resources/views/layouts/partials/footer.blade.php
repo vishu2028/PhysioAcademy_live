@@ -60,7 +60,6 @@
             @else
                 <a href="{{ route('faq') }}">FAQ</a>
                 <a href="{{ route('support.feedback') }}">Feedback</a>
-                <a href="{{ route('support.help-center') }}">Help Center</a>
                 <a href="{{ route('support.privacy-policy') }}">Privacy Policy</a>
                 <a href="{{ route('support.terms') }}">Terms &amp; Conditions</a>
             @endif

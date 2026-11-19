@@ -810,11 +810,35 @@ class FrontendController extends Controller
     {
         $validated = $request->validate([
             'query' => ['nullable', 'string', 'max:255'],
+            'filter' => ['nullable', 'in:all,topic,learning-material,exam-aid,faq'],
+            'year' => ['nullable', 'string', 'max:255'],
         ]);
         $query = trim($validated['query'] ?? '');
-        $results = $query !== ''
+        $filter = $validated['filter'] ?? 'all';
+        $selectedYear = $validated['year'] ?? 'all';
+        $shouldBrowseCategory = $request->has('filter');
+        $allResults = $query !== '' || $shouldBrowseCategory
             ? $siteSearch->search($query)
-            : $siteSearch->trending(20);
+            : collect();
+
+        if ($selectedYear !== 'all') {
+            $allResults = $allResults->filter(
+                fn (array $result): bool => ($result['year'] ?? null) === $selectedYear
+            )->values();
+        }
+
+        $categoryFilters = [
+            'all' => static fn (array $result): bool => true,
+            'topic' => static fn (array $result): bool => $result['category'] === 'Topic',
+            'learning-material' => static fn (array $result): bool => $result['category'] === 'Learning Material',
+            'exam-aid' => static fn (array $result): bool => in_array(
+                $result['category'],
+                ['Exam Aid', 'Exam Aid Category', 'Exam Prep'],
+                true
+            ),
+            'faq' => static fn (array $result): bool => $result['category'] === 'FAQ',
+        ];
+        $results = $allResults->filter($categoryFilters[$filter])->values();
         $perPage = 20;
         $page = max(1, $request->integer('page', 1));
         $searchResults = new \Illuminate\Pagination\LengthAwarePaginator(
@@ -827,8 +851,15 @@ class FrontendController extends Controller
                 'query' => $request->query(),
             ]
         );
+        $trendingTopics = $siteSearch->trending(8);
 
-        return view('search', compact('searchResults', 'query'));
+        return view('search', compact(
+            'searchResults',
+            'query',
+            'filter',
+            'selectedYear',
+            'trendingTopics',
+        ));
     }
 
     public function searchSuggestions(Request $request, \App\Services\SiteSearch $siteSearch)

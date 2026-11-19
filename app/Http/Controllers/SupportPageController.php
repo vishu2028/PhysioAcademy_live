@@ -12,7 +12,6 @@ class SupportPageController extends Controller
     private const PAGE_TITLES = [
         'faq' => 'FAQ',
         'feedback' => 'Feedback',
-        'help-center' => 'Help Center',
         'privacy-policy' => 'Privacy Policy',
         'terms-and-conditions' => 'Terms & Conditions',
     ];

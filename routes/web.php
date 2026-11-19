@@ -111,10 +111,7 @@ Route::post(
     [SupportPageController::class, 'feedbackSubmit']
 )->middleware('throttle:10,1')->name('support.feedback.submit');
 
-Route::get(
-    '/help-center',
-    [SupportPageController::class, 'show']
-)->defaults('slug', 'help-center')->name('support.help-center');
+Route::get('/help-center', fn () => redirect('/'))->name('support.help-center');
 
 Route::get(
     '/privacy-policy',

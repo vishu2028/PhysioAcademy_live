@@ -21,7 +21,6 @@ use App\Models\Page;
 use App\Models\Subject;
 use App\Models\TeamMember;
 use App\Models\Topic;
-use App\Models\TrendingTopic;
 use App\Models\Unit;
 use App\Models\UnitTopic;
 use App\Models\Webinar;
@@ -37,10 +36,6 @@ class SiteSearch
     {
         $search = $this->normalize($search);
         $terms = $this->terms($search);
-
-        if ($terms === []) {
-            return collect();
-        }
 
         $limit = $perTypeLimit === null
             ? null
@@ -60,7 +55,6 @@ class SiteSearch
             ->concat($this->webinars($search, $terms, $limit))
             ->concat($this->announcements($search, $terms, $limit))
             ->concat($this->communityActivities($search, $terms, $limit))
-            ->concat($this->trendingTopics($search, $terms, $limit))
             ->concat($this->aboutTimelines($search, $terms, $limit))
             ->concat($this->aboutContent($search, $terms))
             ->concat($this->teamMembers($search, $terms, $limit))
@@ -214,7 +208,8 @@ class SiteSearch
                     $topic->academicYear,
                     $topic->title,
                     $this->topicDescription($topic),
-                    $search
+                    $search,
+                    $topic->unitTopic?->unit
                 ),
                 [
                     'slug' => $topic->slug,
@@ -311,7 +306,8 @@ class SiteSearch
                     $topic?->academicYear,
                     $material->title,
                     $description,
-                    $search
+                    $search,
+                    $topic?->unitTopic?->unit
                 );
             });
     }
@@ -449,7 +445,8 @@ class SiteSearch
                     null,
                     $unitTopic->title,
                     $unitTopic->unit?->name,
-                    $search
+                    $search,
+                    $unitTopic->unit
                 );
             });
     }
@@ -538,7 +535,8 @@ class SiteSearch
                     $aid->academicYear,
                     $aid->title,
                     $description,
-                    $search
+                    $search,
+                    $aid->unit
                 );
             });
     }
@@ -762,33 +760,6 @@ class SiteSearch
                 null,
                 $activity->title,
                 $activity->subject . ' ' . $activity->time,
-                $search
-            ));
-    }
-
-    private function trendingTopics(string $search, array $terms, ?int $limit): Collection
-    {
-        $query = TrendingTopic::query();
-        $this->whereTerms($query, $terms, fn (Builder $match, string $term) => $this->columns(
-            $match,
-            'trending_topics',
-            ['title'],
-            $term
-        ));
-
-        return $this->orderByTitleRelevance($query, 'trending_topics.title', $search)
-            ->when($limit !== null, fn (Builder $builder) => $builder->limit($limit))
-            ->get()
-            ->map(fn (TrendingTopic $topic): array => $this->result(
-                $topic->id,
-                $topic->title,
-                'Trending Topic',
-                'Trending on PhysioSource',
-                route('home') . '#trending-topic-' . $topic->id,
-                null,
-                null,
-                $topic->title,
-                '',
                 $search
             ));
     }
@@ -1032,6 +1003,10 @@ class SiteSearch
 
     private function whereTerms(Builder $query, array $terms, Closure $addAlternatives): void
     {
+        if ($terms === []) {
+            return;
+        }
+
         $query->where(function (Builder $allTerms) use ($terms, $addAlternatives): void {
             foreach ($terms as $term) {
                 $allTerms->where(function (Builder $alternatives) use ($term, $addAlternatives): void {
@@ -1077,10 +1052,12 @@ class SiteSearch
         mixed $academicYear,
         string $titleForRank,
         ?string $contentForRank,
-        string $search = ''
+        string $search = '',
+        mixed $unit = null
     ): array {
         $subject = $this->relation($subject);
         $academicYear = $this->relation($academicYear);
+        $unit = $this->relation($unit);
 
         return [
             'id' => $id,
@@ -1090,6 +1067,7 @@ class SiteSearch
             'url' => $url,
             'slug' => null,
             'subject' => $subject,
+            'unit' => $unit,
             'academic_year' => $academicYear,
             'year' => $academicYear['name'] ?? null,
             'status' => 'available',

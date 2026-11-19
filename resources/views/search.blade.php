@@ -21,11 +21,19 @@
                 </form>
 
                 <div class="site-search-filters" aria-label="Search filters">
-                    <button class="site-search-filter active" type="button" data-filter="all" aria-pressed="true">All</button>
-                    <button class="site-search-filter" type="button" data-filter="topic" aria-pressed="false">Topics</button>
-                    <button class="site-search-filter" type="button" data-filter="learning-material" aria-pressed="false">Learning Material</button>
-                    <button class="site-search-filter" type="button" data-filter="exam-aid" aria-pressed="false">Exam Aid</button>
-                    <button class="site-search-filter" type="button" data-filter="faq" aria-pressed="false">FAQs</button>
+                    @foreach([
+                        'all' => 'All',
+                        'topic' => 'Topics',
+                        'learning-material' => 'Learning Material',
+                        'exam-aid' => 'Exam Aid',
+                        'faq' => 'FAQs',
+                    ] as $filterKey => $filterLabel)
+                        <a class="site-search-filter {{ $filter === $filterKey ? 'active' : '' }}"
+                           href="{{ route('search', array_merge(request()->except('page'), ['filter' => $filterKey])) }}"
+                           aria-current="{{ $filter === $filterKey ? 'page' : 'false' }}">
+                            {{ $filterLabel }}
+                        </a>
+                    @endforeach
                 </div>
             </div>
         </section>
@@ -34,25 +42,17 @@
             <div class="site-search-toolbar">
                 <p id="searchResultCount">
                     @if($query)
-                        <span id="resultCountText">{{ $searchResults->total() }}</span> result{{ $searchResults->total() === 1 ? '' : 's' }} found for "{{ $query }}"
+                        Results for "{{ $query }}"
                     @else
-                        Showing trending topics
+                        Enter a search term to find content
                     @endif
                 </p>
                 <select id="yearFilter" aria-label="Filter by year">
-                    <option value="all">All years</option>
+                    <option value="all" {{ $selectedYear === 'all' ? 'selected' : '' }}>All years</option>
                     @foreach(\App\Models\AcademicYear::active()->orderBy('order')->get() as $yr)
-                        <option value="{{ $yr->name }}">{{ $yr->name }}</option>
+                        <option value="{{ $yr->name }}" {{ $selectedYear === $yr->name ? 'selected' : '' }}>{{ $yr->name }}</option>
                     @endforeach
                 </select>
-            </div>
-
-            <div class="popular-searches" aria-label="Popular searches">
-                @foreach(['Brachial Plexus', 'Gait Cycle', 'Wound Healing', 'Patient Management', 'Hospital Rotations'] as $tag)
-                    <a href="{{ route('search', ['query' => $tag]) }}">
-                        <button type="button">{{ $tag }}</button>
-                    </a>
-                @endforeach
             </div>
 
             <div class="site-search-results" id="siteSearchResults">
@@ -65,9 +65,8 @@
                         </div>
                     @else
                         <div class="site-search-empty" id="siteSearchEmpty">
-                            <h2>No topics available yet</h2>
-                            <p>Check back soon as we add more content.</p>
-                            <a href="{{ route('home') }}">Go to Homepage</a>
+                            <h2>Search all PhysioSource content</h2>
+                            <p>Enter a topic, learning resource, subject, unit, Exam Aid, or FAQ above.</p>
                         </div>
                     @endif
                 @else
@@ -79,7 +78,12 @@
                            data-category="{{ \Illuminate\Support\Str::slug($result['category']) }}">
                             <div>
                                 <span class="site-search-result-subject">
-                                    {{ $result['category'] }}{{ !empty($result['subject']['name']) ? ' · ' . $result['subject']['name'] : '' }}
+                                    {{ collect([
+                                        $result['category'],
+                                        $result['subject']['name'] ?? null,
+                                        $result['unit']['name'] ?? null,
+                                        $result['year'] ?? null,
+                                    ])->filter()->implode(' · ') }}
                                 </span>
                                 <h2>{{ $result['title'] }}</h2>
                                 <p>{{ $result['description'] ?: ($result['year'] ?? 'Open result') }}</p>
@@ -91,10 +95,29 @@
             </div>
 
             @if($searchResults->hasPages())
-                <div class="site-search-pagination mt-4">
-                    {{ $searchResults->links() }}
+                <div class="site-search-pagination">
+                    {{ $searchResults->links('vendor.pagination.search') }}
                 </div>
             @endif
+
+            <section class="site-search-trending" aria-labelledby="trendingTopicsTitle">
+                <h2 id="trendingTopicsTitle">Trending Topics</h2>
+                @forelse($trendingTopics as $topic)
+                    <a class="site-search-result-card"
+                       href="{{ $topic['url'] }}">
+                        <div>
+                            <span class="site-search-result-subject">
+                                Topic{{ !empty($topic['subject']['name']) ? ' · ' . $topic['subject']['name'] : '' }}
+                            </span>
+                            <h3>{{ $topic['title'] }}</h3>
+                            <p>{{ $topic['description'] ?: 'Explore this trending topic.' }}</p>
+                        </div>
+                        <span class="site-search-status available">✓ Available</span>
+                    </a>
+                @empty
+                    <p>No trending topics are available right now.</p>
+                @endforelse
+            </section>
         </section>
     </main>
 
@@ -102,10 +125,10 @@
         <style>
             /* ─── SEARCH PAGE — FULLY SCOPED ──────────────────────── */
             .site-search-page {
-                min-height: 100vh;
+                min-height: auto;
                 background: #FFFFFF;
                 font-family: 'Outfit', sans-serif;
-                padding-top: 72px;
+                padding: 72px 24px 24px;
             }
 
             .site-search-hero {
@@ -213,6 +236,9 @@
             }
 
             .site-search-filter {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
                 padding: 10px 22px;
                 border-radius: 999px;
                 border: 1px solid rgba(15,23,42,0.08);
@@ -224,6 +250,7 @@
                 transition: all 0.2s;
                 white-space: nowrap;
                 font-family: 'Sora', sans-serif;
+                text-decoration: none;
             }
 
             .site-search-filter.active {
@@ -235,7 +262,7 @@
             .site-search-content {
                 max-width: 1100px;
                 margin: 0 auto;
-                padding: 60px 24px;
+                padding: 44px 24px 48px;
             }
 
             .site-search-toolbar {
@@ -269,35 +296,147 @@
                 cursor: pointer;
             }
 
-            .popular-searches {
+            .site-search-page .site-search-results {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                align-items: stretch;
+                gap: 18px;
+            }
+
+            .site-search-page .site-search-results .site-search-result-card {
                 display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 16px;
+                min-width: 0;
+                min-height: 220px;
+                height: 100%;
+                padding: 22px;
+                border: 1px solid #D9D9D9;
+                border-radius: 20px;
+                background: #fff;
+            }
+
+            .site-search-page .site-search-results .site-search-result-card > div:first-child {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .site-search-page .site-search-results .site-search-result-card h2,
+            .site-search-page .site-search-results .site-search-result-card p,
+            .site-search-page .site-search-results .site-search-result-subject {
+                overflow-wrap: anywhere;
+            }
+
+            .site-search-page .site-search-results .site-search-status {
+                margin-top: 0;
+                align-self: flex-start;
+            }
+
+            @media (max-width: 1024px) {
+                .site-search-page .site-search-results {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+            }
+
+            .site-search-pagination {
+                margin-top: 24px !important;
+            }
+
+            .site-search-pagination-nav,
+            .site-search-page-numbers {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                min-width: 0;
+            }
+
+            .site-search-pagination-nav {
                 flex-wrap: wrap;
-                gap: 10px;
-                margin-bottom: 40px;
+                width: 100%;
             }
 
-            .popular-searches a { text-decoration: none; }
+            .site-search-page-numbers {
+                flex-wrap: wrap;
+            }
 
-            .popular-searches button {
-                padding: 10px 18px;
-                border-radius: 12px;
-                border: 1px solid rgba(0, 74, 173, 0.1);
-                background: rgba(0, 74, 173, 0.03);
+            .site-search-page-control,
+            .site-search-page-number {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex: 0 0 40px;
+                width: 40px;
+                min-width: 40px;
+                height: 40px;
+                padding: 0;
+                border: 1px solid #dbe3ee;
+                border-radius: 10px;
+                background: #fff;
+                color: #334155;
+                font: 600 0.9rem/1 'Outfit', sans-serif;
+                text-decoration: none;
+                transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+            }
+
+            .site-search-page-control:hover,
+            .site-search-page-number:not(.is-current):hover {
+                border-color: #004AAD;
                 color: #004AAD;
-                font-weight: 700;
-                font-size: 0.85rem;
-                transition: all 0.2s;
-                font-family: 'Sora', sans-serif;
-                cursor: pointer;
+                background: #f3f8ff;
             }
 
-            .popular-searches button:hover {
+            .site-search-page-control svg {
+                display: block;
+                flex: 0 0 18px;
+                width: 18px !important;
+                min-width: 18px;
+                max-width: 18px;
+                height: 18px !important;
+                min-height: 18px;
+                max-height: 18px;
+                fill: none;
+                stroke: currentColor;
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .site-search-page-control.is-disabled {
+                color: #a0aec0;
+                background: #f8fafc;
+                cursor: default;
+            }
+
+            .site-search-page-number.is-current {
+                border-color: #004AAD;
                 background: #004AAD;
-                color: white;
-                transform: translateY(-2px);
+                color: #fff;
+                cursor: default;
             }
 
-            .site-search-results { display: grid; gap: 18px; }
+            .site-search-page-ellipsis {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex: 0 0 24px;
+                width: 24px;
+                color: #64748b;
+            }
+
+            .site-search-trending {
+                display: grid;
+                gap: 18px;
+                margin-top: 36px;
+            }
+
+            .site-search-trending h2 {
+                margin: 0;
+                color: #0f172a;
+                font-family: 'Sora', sans-serif;
+            }
 
             .site-search-result-card {
                 display: flex;
@@ -416,7 +555,7 @@
 
             @media (max-width: 768px) {
                 .site-search-page {
-                    padding-top: 64px;
+                    padding: 64px 18px 24px;
                     overflow-x: hidden;
                 }
 
@@ -476,7 +615,7 @@
                 }
 
                 .site-search-page .site-search-content {
-                    padding: 34px 16px 64px;
+                    padding: 30px 16px 40px;
                 }
 
                 .site-search-page .site-search-toolbar {
@@ -496,30 +635,37 @@
                     font-size: 16px;
                 }
 
-                .site-search-page .popular-searches {
-                    gap: 8px;
-                    margin-bottom: 28px;
-                }
-
-                .site-search-page .popular-searches a,
-                .site-search-page .popular-searches button {
-                    max-width: 100%;
-                }
-
-                .site-search-page .popular-searches button {
-                    padding: 9px 14px;
-                    overflow-wrap: anywhere;
-                }
-
                 .site-search-page .site-search-results {
                     gap: 14px;
+                }
+
+                .site-search-page .site-search-pagination {
+                    margin-top: 20px !important;
+                }
+
+                .site-search-page .site-search-pagination-nav,
+                .site-search-page .site-search-page-numbers {
+                    gap: 4px;
+                }
+
+                .site-search-page .site-search-page-control,
+                .site-search-page .site-search-page-number {
+                    flex-basis: 36px;
+                    width: 36px;
+                    min-width: 36px;
+                    height: 36px;
+                }
+
+                .site-search-page .site-search-page-ellipsis {
+                    flex-basis: 18px;
+                    width: 18px;
                 }
 
                 .site-search-page .site-search-result-card {
                     flex-direction: column;
                     align-items: flex-start;
                     gap: 14px;
-                    padding: 20px;
+                    padding: 22px;
                     border-radius: 20px;
                     min-width: 0;
                 }
@@ -615,8 +761,21 @@
                     padding-right: 12px;
                 }
 
+                .site-search-page .site-search-pagination-nav,
+                .site-search-page .site-search-page-numbers {
+                    gap: 2px;
+                }
+
+                .site-search-page .site-search-page-control,
+                .site-search-page .site-search-page-number {
+                    flex-basis: 32px;
+                    width: 32px;
+                    min-width: 32px;
+                    height: 32px;
+                }
+
                 .site-search-page .site-search-result-card {
-                    padding: 18px 16px;
+                    padding: 20px 18px;
                     border-radius: 18px;
                 }
 
@@ -633,6 +792,12 @@
                     padding: 13px 18px;
                 }
             }
+
+            @media (max-width: 767px) {
+                .site-search-page .site-search-results {
+                    grid-template-columns: minmax(0, 1fr);
+                }
+            }
         </style>
     @endpush
 
@@ -641,77 +806,21 @@
             (function () {
                 'use strict';
 
-                /* ── Result filters ─────────────────────────────────────── */
+                /* ── Academic year filter ───────────────────────────────── */
                 const yearSelect  = document.getElementById('yearFilter');
-                const resultsGrid = document.getElementById('siteSearchResults');
-                const countText   = document.getElementById('resultCountText');
-                const categoryFilters = document.querySelectorAll('.site-search-filter');
-                const initialEmpty = document.getElementById('siteSearchEmpty');
-                let selectedCategory = 'all';
-
-                function applyFilters() {
-                    if (!yearSelect || !resultsGrid) return;
-                    const selectedYear = yearSelect.value;
-                    const cards = resultsGrid.querySelectorAll('.site-search-result-card[data-category]');
-                    let visible = 0;
-
-                    if (!cards.length) {
-                        return;
-                    }
-
-                    cards.forEach(card => {
-                        const cardYear = (card.dataset.year || '').trim();
-                        const cardCategory = (card.dataset.category || '').trim();
-                        const matchesYear = selectedYear === 'all' || cardYear === selectedYear;
-                        const matchesCategory = selectedCategory === 'all'
-                            || cardCategory === selectedCategory
-                            || (selectedCategory === 'exam-aid' && ['exam-aid-category', 'exam-prep'].includes(cardCategory));
-                        const show = matchesYear && matchesCategory;
-                        card.style.display = show ? '' : 'none';
-                        if (show) visible++;
-                    });
-
-                    if (countText) {
-                        countText.textContent = visible;
-                    }
-
-                    let emptyEl = document.getElementById('dynamicEmptyState');
-                    if (visible === 0) {
-                        if (!emptyEl) {
-                            emptyEl = document.createElement('div');
-                            emptyEl.id = 'dynamicEmptyState';
-                            emptyEl.className = 'site-search-empty';
-                            resultsGrid.after(emptyEl);
-                        }
-                        emptyEl.innerHTML = '<h2>No matching results</h2><p>Try a different content type or academic year.</p>';
-                        emptyEl.style.display = 'block';
-                    } else {
-                        if (emptyEl) emptyEl.style.display = 'none';
-                    }
-
-                    if (initialEmpty) {
-                        initialEmpty.style.display = 'none';
-                    }
-                }
 
                 if (yearSelect) {
-                    yearSelect.addEventListener('change', applyFilters);
-                }
-
-                categoryFilters.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        categoryFilters.forEach(b => {
-                            b.classList.remove('active');
-                            b.setAttribute('aria-pressed', 'false');
-                        });
-                        btn.classList.add('active');
-                        btn.setAttribute('aria-pressed', 'true');
-                        selectedCategory = btn.dataset.filter || 'all';
-                        applyFilters();
+                    yearSelect.addEventListener('change', () => {
+                        const url = new URL(window.location.href);
+                        if (yearSelect.value === 'all') {
+                            url.searchParams.delete('year');
+                        } else {
+                            url.searchParams.set('year', yearSelect.value);
+                        }
+                        url.searchParams.delete('page');
+                        window.location.assign(url);
                     });
-                });
-
-                applyFilters();
+                }
             })();
         </script>
     @endpush

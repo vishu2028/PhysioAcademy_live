@@ -20,6 +20,7 @@ use App\Models\UnitTopic;
 use App\Models\User;
 use App\Models\Webinar;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
 
 class GlobalSearchTest extends TestCase
@@ -154,7 +155,222 @@ class GlobalSearchTest extends TestCase
             ->assertOk()
             ->assertSee('Unit Topic')
             ->assertSee('Cardiac Rehabilitation Basics')
+            ->assertSee('Cardiology')
             ->assertSee(route('topics.show', ['slug' => $records['topic']->slug]), false);
+    }
+
+    public function test_category_filters_paginate_complete_case_insensitive_result_sets_without_counts(): void
+    {
+        $records = $this->createCurriculumRecords();
+        $topics = collect(range(1, 23))->map(fn (int $number) => Topic::create([
+            'title' => "Matchable Clinical Topic {$number}",
+            'slug' => "matchable-clinical-topic-{$number}",
+            'description' => 'Newly created searchable curriculum content.',
+            'subject_id' => $records['subject']->id,
+            'academic_year_id' => $records['year']->id,
+            'unit_topic_id' => $records['unitTopic']->id,
+            'status' => true,
+        ]));
+        $material = $topics->first()->materials()->create([
+            'title' => 'Matchable Learning Material',
+            'type' => 'note',
+            'content' => 'Matchable material content.',
+        ]);
+        $aid = ExamAid::create([
+            'subject_id' => $records['subject']->id,
+            'unit_id' => $records['unit']->id,
+            'academic_year_id' => $records['year']->id,
+            'title' => 'Matchable Exam Aid',
+            'description' => 'Searchable exam resource.',
+            'status' => true,
+        ]);
+        $faq = FAQ::create([
+            'question' => 'Matchable FAQ',
+            'answer' => 'Searchable frequently asked question.',
+            'status' => true,
+        ]);
+
+        $all = $this->get(route('search', ['query' => 'MATCHABLE', 'filter' => 'all']))
+            ->assertOk()
+            ->assertSee('Matchable Clinical Topic 1')
+            ->assertSee('Learning Material')
+            ->assertSee('Exam Aid')
+            ->assertSee('FAQs')
+            ->assertDontSee('resultCountText');
+
+        $this->assertSame(26, app(\App\Services\SiteSearch::class)->search('MATCHABLE')->count());
+        $allContent = html_entity_decode($all->getContent(), ENT_QUOTES);
+        $this->assertStringContainsString('page=2', $allContent);
+        $this->assertStringContainsString('site-search-pagination-nav', $allContent);
+        $this->assertStringContainsString('rel="next"', $allContent);
+        $this->assertStringContainsString('width="18" height="18"', $allContent);
+        $this->assertStringNotContainsString('w-5 h-5', $allContent);
+        $this->get(route('search', ['query' => 'MATCHABLE', 'filter' => 'all', 'page' => 2]))
+            ->assertOk()
+            ->assertSee('Matchable Learning Material')
+            ->assertSee('Matchable Exam Aid')
+            ->assertSee('Matchable FAQ');
+
+        $materialResponse = $this->get(route('search', [
+            'query' => 'matchable',
+            'filter' => 'learning-material',
+        ]))->assertOk();
+        $this->assertStringContainsString(
+            route('topics.show', ['slug' => $topics->first()->slug]) . '#learning-material-' . $material->id,
+            html_entity_decode($materialResponse->getContent(), ENT_QUOTES),
+        );
+
+        $examAidResponse = $this->get(route('search', [
+            'query' => 'matchable',
+            'filter' => 'exam-aid',
+        ]))->assertOk();
+        $this->assertStringContainsString(
+            route('exam-aid', ['q' => $aid->title, 'exam_aid' => $aid->id]) . '#exam-aid-card-' . $aid->id,
+            html_entity_decode($examAidResponse->getContent(), ENT_QUOTES),
+        );
+
+        $this->get(route('search', ['query' => 'matchable', 'filter' => 'topic']))
+            ->assertOk()
+            ->assertSee('Matchable Clinical Topic 23')
+            ->assertDontSee('Matchable Learning Material');
+
+        $this->get(route('search', ['query' => 'matchable', 'filter' => 'topic', 'page' => 2]))
+            ->assertOk()
+            ->assertSee('Matchable Clinical Topic 9')
+            ->assertDontSee('Matchable Learning Material');
+
+        $this->get(route('search', ['query' => 'matchable', 'filter' => 'learning-material']))
+            ->assertOk()
+            ->assertSee('Matchable Learning Material')
+            ->assertDontSee('Matchable Exam Aid');
+
+        $this->get(route('search', ['query' => 'matchable', 'filter' => 'exam-aid']))
+            ->assertOk()
+            ->assertSee('Matchable Exam Aid')
+            ->assertDontSee('Matchable FAQ');
+
+        $faqResponse = $this->get(route('search', ['query' => 'matchable', 'filter' => 'faq']))
+            ->assertOk()
+            ->assertSee('Matchable FAQ')
+            ->assertDontSee('Matchable Clinical Topic');
+        $this->assertStringContainsString(
+            route('faq') . '#faq-' . $faq->id,
+            html_entity_decode($faqResponse->getContent(), ENT_QUOTES),
+        );
+    }
+
+    public function test_search_pagination_stays_compact_with_large_page_ranges_and_working_arrows(): void
+    {
+        $paginator = new LengthAwarePaginator(
+            collect(),
+            2000,
+            20,
+            50,
+            ['path' => route('search'), 'query' => ['query' => 'topic']],
+        );
+        $html = $paginator->links('vendor.pagination.search')->render();
+
+        $this->assertStringContainsString('rel="prev"', $html);
+        $this->assertStringContainsString('rel="next"', $html);
+        $this->assertStringContainsString('aria-label="Go to page 1"', $html);
+        $this->assertStringContainsString('aria-label="Go to page 49"', $html);
+        $this->assertStringContainsString('aria-current="page">50</span>', $html);
+        $this->assertStringContainsString('aria-label="Go to page 51"', $html);
+        $this->assertStringContainsString('aria-label="Go to page 100"', $html);
+        $this->assertStringContainsString('<span class="site-search-page-ellipsis"', $html);
+        $this->assertSame(2, substr_count($html, 'width="18" height="18"'));
+        $this->assertStringNotContainsString('w-5 h-5', $html);
+    }
+
+    public function test_trending_topics_are_separate_from_search_results(): void
+    {
+        $records = $this->createCurriculumRecords();
+        $records['topic']->update([
+            'title' => 'Searchable Trending Topic',
+            'slug' => 'searchable-trending-topic',
+            'is_trending' => true,
+        ]);
+
+        $results = app(\App\Services\SiteSearch::class)->search('Searchable Trending');
+
+        $this->assertCount(1, $results);
+        $this->assertSame('Topic', $results->sole()['category']);
+
+        $this->get(route('search', ['query' => 'Searchable Trending']))
+            ->assertOk()
+            ->assertSee('Topics')
+            ->assertSee('Trending Topics')
+            ->assertSee('Searchable Trending Topic');
+    }
+
+    public function test_initial_search_state_shows_instructions_without_empty_message_or_counts(): void
+    {
+        $this->get(route('search'))
+            ->assertOk()
+            ->assertSee('Enter a search term to find content')
+            ->assertSee('Enter a topic, learning resource, subject, unit, Exam Aid, or FAQ above.')
+            ->assertDontSee('No matching results found')
+            ->assertDontSee('resultCountText')
+            ->assertDontSee('All (')
+            ->assertDontSee('Topics (')
+            ->assertDontSee('Learning Material (')
+            ->assertDontSee('Exam Aid (')
+            ->assertDontSee('FAQs (');
+    }
+
+    public function test_category_filters_browse_existing_records_without_a_search_term(): void
+    {
+        $records = $this->createCurriculumRecords();
+        $records['topic']->materials()->create([
+            'title' => 'Browseable Learning Material',
+            'type' => 'note',
+            'content' => 'Published learning material for browse testing.',
+        ]);
+        ExamAid::create([
+            'subject_id' => $records['subject']->id,
+            'unit_id' => $records['unit']->id,
+            'academic_year_id' => $records['year']->id,
+            'title' => 'Browseable Exam Aid',
+            'description' => 'Published exam aid for browse testing.',
+            'status' => true,
+        ]);
+        FAQ::create([
+            'question' => 'Browseable FAQ',
+            'answer' => 'Published FAQ for browse testing.',
+            'status' => true,
+        ]);
+
+        $this->get(route('search', ['filter' => 'all']))
+            ->assertOk()
+            ->assertSee($records['topic']->title)
+            ->assertSee('Browseable Learning Material')
+            ->assertSee('Browseable Exam Aid')
+            ->assertSee('Browseable FAQ');
+
+        $this->get(route('search', ['filter' => 'topic']))
+            ->assertOk()
+            ->assertSee($records['topic']->title)
+            ->assertDontSee('Browseable Learning Material')
+            ->assertDontSee('Browseable Exam Aid')
+            ->assertDontSee('Browseable FAQ');
+
+        $this->get(route('search', ['filter' => 'learning-material']))
+            ->assertOk()
+            ->assertSee('Browseable Learning Material')
+            ->assertDontSee($records['topic']->title)
+            ->assertDontSee('Browseable Exam Aid');
+
+        $this->get(route('search', ['filter' => 'exam-aid']))
+            ->assertOk()
+            ->assertSee('Browseable Exam Aid')
+            ->assertDontSee('Browseable Learning Material')
+            ->assertDontSee('Browseable FAQ');
+
+        $this->get(route('search', ['filter' => 'faq']))
+            ->assertOk()
+            ->assertSee('Browseable FAQ')
+            ->assertDontSee('Browseable Exam Aid')
+            ->assertDontSee($records['topic']->title);
     }
 
     public function test_newly_added_and_updated_content_is_searchable_and_unpublished_records_are_hidden(): void

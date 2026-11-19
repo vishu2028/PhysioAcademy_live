@@ -188,7 +188,7 @@
                             }
                         @endphp
 
-                        <div class="nav-dropdown {{ $itemActive ? 'active' : '' }}">
+                        <div class="nav-dropdown {{ $itemActive ? 'route-active' : '' }}">
                             @if($isGuestUser)
                                 <a href="{{ $signupUrl }}" class="nav-link nav-dropdown-toggle">
                                     {{ brand_text($item->title) }}
@@ -197,7 +197,12 @@
                                     </svg>
                                 </a>
                             @else
-                                <button class="nav-link nav-dropdown-toggle {{ $itemActive ? 'active' : '' }}">
+                                <button
+                                    type="button"
+                                    class="nav-link nav-dropdown-toggle {{ $itemActive ? 'active' : '' }}"
+                                    data-route-active="{{ $itemActive ? 'true' : 'false' }}"
+                                    aria-expanded="false"
+                                >
                                     {{ brand_text($item->title) }}
                                     <svg class="dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                         <polyline points="6 9 12 15 18 9"/>
@@ -246,7 +251,7 @@
                     $topicsDropdownActive = Request::routeIs('topics.*') || Request::routeIs('search');
                 @endphp
 
-                <div class="nav-dropdown {{ $topicsDropdownActive ? 'active' : '' }}">
+                <div class="nav-dropdown topics-nav-dropdown {{ $topicsDropdownActive ? 'route-active' : '' }}">
                     @if($isGuestUser)
                         <a href="{{ $signupUrl }}" class="nav-link nav-dropdown-toggle">
                             Topics
@@ -255,7 +260,12 @@
                             </svg>
                         </a>
                     @else
-                        <button class="nav-link nav-dropdown-toggle {{ $topicsDropdownActive ? 'active' : '' }}">
+                        <button
+                            type="button"
+                            class="nav-link nav-dropdown-toggle {{ $topicsDropdownActive ? 'active' : '' }}"
+                            data-route-active="{{ $topicsDropdownActive ? 'true' : 'false' }}"
+                            aria-expanded="false"
+                        >
                             Topics
                             <svg class="dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                 <polyline points="6 9 12 15 18 9"/>
@@ -285,10 +295,6 @@
                     Exam Aid
                 </a>
             @endif
-
-            <a href="{{ route('support.help-center') }}" class="nav-link {{ Request::routeIs('support.help-center') ? 'active' : '' }}">
-                Support
-            </a>
 
             <button class="nav-search-btn" id="searchToggle" aria-label="Search">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

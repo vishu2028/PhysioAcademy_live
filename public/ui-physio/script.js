@@ -102,6 +102,10 @@ function initNavbar() {
 // ── NAVBAR DROPDOWNS ──────────────────────────────────────────────────
 function initNavbarDropdowns() {
     const dropdowns = document.querySelectorAll('.nav-dropdown');
+    const closeDropdown = (dropdown) => {
+        dropdown.classList.remove('is-open');
+        dropdown.querySelector('.nav-dropdown-toggle')?.setAttribute('aria-expanded', 'false');
+    };
 
     dropdowns.forEach(dropdown => {
         const toggle = dropdown.querySelector('.nav-dropdown-toggle');
@@ -109,41 +113,38 @@ function initNavbarDropdowns() {
 
         if (!toggle || !menu) return;
 
-        // Toggle dropdown on click
         toggle.addEventListener('click', (e) => {
             e.preventDefault();
-            // Close other dropdowns
+
+            const isOpen = dropdown.classList.contains('is-open');
+
             dropdowns.forEach(other => {
-                if (other !== dropdown) {
-                    other.classList.remove('active');
-                }
+                if (other !== dropdown) closeDropdown(other);
             });
-            // Toggle current dropdown
-            dropdown.classList.toggle('active');
+
+            dropdown.classList.toggle('is-open', !isOpen);
+            toggle.setAttribute('aria-expanded', String(!isOpen));
         });
 
-        // Close dropdown when clicking on menu items
         menu.querySelectorAll('.nav-dropdown-item').forEach(item => {
             item.addEventListener('click', () => {
-                dropdown.classList.remove('active');
+                closeDropdown(dropdown);
             });
         });
     });
 
-    // Close dropdowns when clicking outside
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.nav-dropdown')) {
             dropdowns.forEach(dropdown => {
-                dropdown.classList.remove('active');
+                closeDropdown(dropdown);
             });
         }
     });
 
-    // Close dropdowns on escape
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             dropdowns.forEach(dropdown => {
-                dropdown.classList.remove('active');
+                closeDropdown(dropdown);
             });
         }
     });
@@ -575,7 +576,11 @@ function initActiveNav() {
     const currentPageName = currentUrl.pathname.split('/').pop() || 'index.html';
 
     // Clear existing active states
-    document.querySelectorAll('.nav-link.active, .nav-dropdown-toggle.active').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-link.active, .nav-dropdown-toggle.active').forEach(el => {
+        if (el.dataset.routeActive !== 'true') {
+            el.classList.remove('active');
+        }
+    });
 
     // Mark direct anchor links active when their resolved filename matches current page
     navAnchors.forEach(a => {

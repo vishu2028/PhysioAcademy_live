@@ -408,14 +408,12 @@ class SupportTicketTest extends TestCase
             ->assertDontSee('My closed ticket');
     }
 
-    public function test_clients_do_not_see_ticket_controls_and_admins_get_a_protected_ticket_form(): void
+    public function test_removed_public_help_center_redirects_and_admins_get_a_protected_ticket_form(): void
     {
         $client = User::factory()->create();
         $this->actingAs($client)
             ->get(route('support.help-center'))
-            ->assertOk()
-            ->assertDontSee('Raise Support Ticket')
-            ->assertDontSee('My Support Tickets');
+            ->assertRedirect('/');
 
         $admin = $this->createAdminUser();
         $this->actingAs($admin, 'admin')

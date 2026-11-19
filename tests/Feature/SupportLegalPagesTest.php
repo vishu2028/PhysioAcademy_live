@@ -19,12 +19,30 @@ class SupportLegalPagesTest extends TestCase
         foreach ([
             'faq',
             'support.feedback',
-            'support.help-center',
             'support.privacy-policy',
             'support.terms',
         ] as $routeName) {
             $this->get(route($routeName))->assertOk();
         }
+    }
+
+    public function test_public_help_center_redirects_away_from_the_removed_page(): void
+    {
+        $this->get(route('support.help-center'))
+            ->assertRedirect('/');
+    }
+
+    public function test_public_navigation_no_longer_links_to_support_or_help_center(): void
+    {
+        Role::findOrCreate('user', 'web');
+        $response = $this->get('/');
+
+        $response->assertOk()
+            ->assertDontSee('href="/help-center"', false);
+        $this->assertDoesNotMatchRegularExpression(
+            '/<a\b[^>]*class="nav-link[^"]*"[^>]*>\s*Support\s*<\/a>/s',
+            $response->getContent(),
+        );
     }
 
     public function test_admin_can_publish_and_update_a_support_page(): void

@@ -30,7 +30,7 @@
             @if($slug === 'faq' && $faqs->isNotEmpty())
                 <div class="support-content">
                     @foreach($faqs as $faq)
-                        <h3>{{ brand_text($faq->question) }}</h3>
+                        <h3 id="faq-{{ $faq->id }}">{{ brand_text($faq->question) }}</h3>
                         <p>{!! nl2br(e(brand_text($faq->answer))) !!}</p>
                     @endforeach
                 </div>
