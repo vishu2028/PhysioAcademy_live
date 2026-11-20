@@ -75,17 +75,6 @@
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-header bg-white py-3">
-                    <h6 class="fw-bold mb-0">SEO Metadata (Optional)</h6>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Meta Description</label>
-                        <textarea name="meta_description" class="form-control rounded-3" rows="3">{{ old('meta_description') }}</textarea>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </form>

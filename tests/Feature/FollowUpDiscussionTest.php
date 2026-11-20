@@ -83,7 +83,8 @@ class FollowUpDiscussionTest extends TestCase
             ->get(route('admin.follow-ups.show', $thread))
             ->assertOk()
             ->assertSee('Author User')
-            ->assertSee('Participant User');
+            ->assertSee('Participant User')
+            ->assertDontSee('Follow-up Discussions');
         $this->post(route('admin.follow-ups.replies.store', $thread), [
             'question' => 'Please consult a qualified instructor if you feel pain.',
             'parent_id' => $thirdReply->id,
@@ -169,7 +170,7 @@ class FollowUpDiscussionTest extends TestCase
         $thread = $this->createThread($author);
 
         $this->actingAs($author)
-            ->get(route('admin.follow-ups.index'))
+            ->get(route('admin.follow-ups.show', $thread))
             ->assertRedirect(route('admin.login'));
 
         $this->actingAs($author)
@@ -180,6 +181,17 @@ class FollowUpDiscussionTest extends TestCase
             'id' => $thread->id,
             'is_hidden' => false,
         ]);
+    }
+
+    public function test_standalone_admin_follow_up_listing_is_removed(): void
+    {
+        Role::findOrCreate('admin', 'web');
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin, 'admin')
+            ->get('/admin/follow-ups')
+            ->assertNotFound();
     }
 
     public function test_community_feed_does_not_expose_existing_private_booking_follow_ups(): void

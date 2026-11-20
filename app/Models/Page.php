@@ -9,10 +9,29 @@ class Page extends Model
 {
     use Loggable;
 
-    protected $fillable = ['title', 'slug', 'content', 'meta_title', 'meta_description', 'status', 'is_protected'];
+    protected $fillable = [
+        'title',
+        'slug',
+        'content',
+        'meta_title',
+        'meta_description',
+        'status',
+        'is_protected',
+        'seo_title',
+        'meta_keywords',
+        'seo_slug',
+        'canonical_url',
+        'og_title',
+        'og_description',
+        'og_image',
+        'robots_index',
+        'robots_follow',
+    ];
 
     protected $casts = [
         'status' => 'boolean',
+        'robots_index' => 'boolean',
+        'robots_follow' => 'boolean',
     ];
 
     public function scopeActive($query)

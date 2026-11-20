@@ -34,10 +34,11 @@ class AcademicYearController extends Controller
             'semesters.*' => 'string|max:255',
         ]);
 
-        $data = $request->except([
-            'semesters',
-            'units_count',
-            'topics_count',
+        $data = $request->only([
+            'name',
+            'description',
+            'order',
+            'status',
         ]);
         $data['slug'] = Str::slug($request->name);
         $data['status'] = $request->has('status');
@@ -75,10 +76,11 @@ class AcademicYearController extends Controller
             'semesters.*.name' => 'required|string|max:255',
         ]);
 
-        $data = $request->except([
-            'semesters',
-            'units_count',
-            'topics_count',
+        $data = $request->only([
+            'name',
+            'description',
+            'order',
+            'status',
         ]);
         $data['slug'] = Str::slug($request->name);
         $data['status'] = $request->has('status');

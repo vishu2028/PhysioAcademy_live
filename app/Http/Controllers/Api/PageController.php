@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
+use App\Services\SeoMetadata;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -11,7 +12,8 @@ class PageController extends Controller
 {
     public function show(
         Request $request,
-        string $slug
+        string $slug,
+        SeoMetadata $seoMetadata
     ): JsonResponse {
         $page = Page::query()
             ->active()
@@ -44,6 +46,7 @@ class PageController extends Controller
                 'message' => 'Please login to access this page.',
             ], 401);
         }
+        $seo = $seoMetadata->for($page, $page->title, isPrivate: $page->is_protected);
 
         return response()->json([
             'data' => [
@@ -54,8 +57,8 @@ class PageController extends Controller
                 'is_protected' => (bool) $page->is_protected,
 
                 'meta' => [
-                    'title' => brand_text($page->meta_title),
-                    'description' => brand_text($page->meta_description),
+                    'title' => $seo['title'],
+                    'description' => $seo['description'],
                 ],
 
                 'sections' => $page->sections

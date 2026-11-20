@@ -13,9 +13,6 @@
                 <a class="list-group-item list-group-item-action active py-3 border-0" id="general-tab" data-bs-toggle="list" href="#general" role="tab">
                     <i class="bi bi-gear me-2"></i> General Settings
                 </a>
-                <a class="list-group-item list-group-item-action py-3 border-0" id="seo-tab" data-bs-toggle="list" href="#seo" role="tab">
-                    <i class="bi bi-search me-2"></i> SEO & Meta
-                </a>
                 <a class="list-group-item list-group-item-action py-3 border-0" id="theme-tab" data-bs-toggle="list" href="#theme" role="tab">
                     <i class="bi bi-palette me-2"></i> Theme & Brand
                 </a>
@@ -123,21 +120,6 @@
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted">Secondary Color</label>
                                 <input type="color" name="settings[secondary_color]" class="form-control form-control-color w-100 rounded-3 p-1" value="{{ get_setting('secondary_color', '#10b981') }}">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SEO -->
-                    <div class="tab-pane fade" id="seo" role="tabpanel">
-                        <h5 class="fw-bold mb-4">SEO Settings</h5>
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-muted">Global Meta Keywords</label>
-                                <input type="text" name="settings[meta_keywords]" class="form-control rounded-3" placeholder="keyword1, keyword2" value="{{ get_setting('meta_keywords') }}">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-muted">Global Meta Description</label>
-                                <textarea name="settings[site_description]" class="form-control rounded-3" rows="4">{{ get_setting('site_description') }}</textarea>
                             </div>
                         </div>
                     </div>

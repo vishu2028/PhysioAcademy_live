@@ -6,7 +6,31 @@ use Illuminate\Database\Eloquent\Model;
 
 class LearningMaterial extends Model
 {
-    protected $fillable = ['topic_id', 'exam_aid_category_id', 'title', 'type', 'content', 'file_path', 'url', 'order'];
+    protected $fillable = [
+        'topic_id',
+        'exam_aid_category_id',
+        'title',
+        'type',
+        'content',
+        'file_path',
+        'url',
+        'order',
+        'seo_title',
+        'meta_description',
+        'meta_keywords',
+        'seo_slug',
+        'canonical_url',
+        'og_title',
+        'og_description',
+        'og_image',
+        'robots_index',
+        'robots_follow',
+    ];
+
+    protected $casts = [
+        'robots_index' => 'boolean',
+        'robots_follow' => 'boolean',
+    ];
 
     public function topic()
     {

@@ -12,10 +12,22 @@ class ExamAidCategory extends Model
         'description',
         'sort_order',
         'is_active',
+        'seo_title',
+        'meta_description',
+        'meta_keywords',
+        'seo_slug',
+        'canonical_url',
+        'og_title',
+        'og_description',
+        'og_image',
+        'robots_index',
+        'robots_follow',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'robots_index' => 'boolean',
+        'robots_follow' => 'boolean',
     ];
 
     public function materials()

@@ -34,13 +34,14 @@ class SubjectController extends Controller
         ]);
 
         try {
-            $data = $request->only([
+            $fields = [
                 'name',
                 'code',
                 'description',
                 'icon',
                 'order',
-            ]);
+            ];
+            $data = $request->only($fields);
 
             $data['slug'] = Str::slug($request->name);
             $data['status'] = $request->has('status') ? 1 : 0;
@@ -81,13 +82,14 @@ class SubjectController extends Controller
         ]);
 
         try {
-            $data = $request->only([
+            $fields = [
                 'name',
                 'code',
                 'description',
                 'icon',
                 'order',
-            ]);
+            ];
+            $data = $request->only($fields);
 
             $data['slug'] = Str::slug($request->name);
             $data['status'] = $request->has('status') ? 1 : 0;

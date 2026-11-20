@@ -19,7 +19,7 @@
         </div>
         <div id="webinarPaymentMessage" class="alert d-none" role="status"></div>
         <button id="webinarPayNow" class="btn btn-primary btn-lg w-100" type="button">Pay ₹{{ number_format($registration->amount, 2) }}</button>
-        <a class="btn btn-link mt-2" href="{{ route('webinars.show', $webinar) }}">Return to webinar</a>
+        <a class="btn btn-link mt-2" href="{{ route('webinars.show', ['webinar' => $webinar->seo_slug ?: $webinar->slug]) }}">Return to webinar</a>
         <form id="webinarPaymentVerification" method="post" action="{{ route('webinars.payment.verify', $registration) }}" class="d-none">
             @csrf
             <input name="razorpay_payment_id" id="webinarPaymentId">

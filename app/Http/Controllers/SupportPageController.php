@@ -6,6 +6,7 @@ use App\Models\FAQ;
 use App\Models\Message;
 use App\Models\Page;
 use Illuminate\Http\Request;
+use App\Services\SeoMetadata;
 
 class SupportPageController extends Controller
 {
@@ -25,12 +26,33 @@ class SupportPageController extends Controller
             : Page::query()->where('slug', $slug)->first();
         $page = $pageRecord?->status ? $pageRecord : null;
         $faqs = $slug === 'faq' ? FAQ::active()->ordered()->get() : collect();
+        $pageTitle = $page?->title ?: self::PAGE_TITLES[$slug];
+        $supportRoute = match ($slug) {
+            'privacy-policy' => 'support.privacy-policy',
+            'terms-and-conditions' => 'support.terms',
+            'feedback' => 'support.feedback',
+            default => 'faq',
+        };
+        $seo = $page
+            ? app(SeoMetadata::class)->for(
+                $page,
+                $pageTitle,
+                rtrim(config('app.url'), '/') . route($supportRoute, [], false),
+                $page->is_protected
+            )
+            : app(SeoMetadata::class)->forPage(
+                $pageTitle,
+                $faqs->first()?->answer,
+                rtrim(config('app.url'), '/') . route($supportRoute, [], false)
+            );
 
         return view('support.page', [
             'page' => $page,
-            'pageTitle' => $page?->title ?: self::PAGE_TITLES[$slug],
+            'pageTitle' => $pageTitle,
             'faqs' => $faqs,
             'slug' => $slug,
+            'pageProtected' => $page?->is_protected ?? false,
+            'seo' => $seo,
         ]);
     }
 

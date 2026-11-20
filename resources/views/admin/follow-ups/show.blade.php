@@ -3,9 +3,6 @@
 @section('title', 'Follow-up Discussion')
 
 @section('content')
-    <div class="mb-3">
-        <a href="{{ route('admin.follow-ups.index') }}" class="text-decoration-none text-secondary">&larr; All follow-ups</a>
-    </div>
     @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
     @if($errors->any())
         <div class="alert alert-danger">@foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>

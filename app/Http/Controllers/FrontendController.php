@@ -6,6 +6,7 @@ use App\Models\Page;
 use App\Models\FAQ;
 use Illuminate\Http\Request;
 use App\Models\ExamAid;
+use App\Services\SeoMetadata;
 use App\Models\AcademicYear;
 use App\Models\Message;
 use App\Models\CommunityActivity;
@@ -194,6 +195,13 @@ class FrontendController extends Controller
         }
         $promotionalCoupons = $couponService->publicCoupons($couponServiceAmounts);
         $hasPromotionalCoupons = $promotionalCoupons->isNotEmpty();
+        $seo = app(SeoMetadata::class)->forPage(
+            get_setting('site_name', 'PhysioSource'),
+            $hero->subtitle
+                ?: $hero->title
+                ?: 'Physiotherapy study topics, learning resources, and exam preparation from PhysioSource.',
+            $this->canonicalUrl('home')
+        );
 
         return view('welcome', compact(
             'hero',
@@ -228,7 +236,8 @@ class FrontendController extends Controller
             'doubtSessionPrice',
             'doubtSessionDuration',
             'promotionalCoupons',
-            'hasPromotionalCoupons'
+            'hasPromotionalCoupons',
+            'seo'
 
         ));
     }
@@ -276,6 +285,12 @@ class FrontendController extends Controller
     {
         $page = Page::where('slug', 'about-us')->active()->firstOrFail();
         $pageProtected = $page->is_protected;
+        $seo = app(SeoMetadata::class)->for(
+            $page,
+            $page->title,
+            $this->canonicalUrl('about'),
+            $pageProtected
+        );
 
         // Eager-load sections with items, keyed by slug for easy lookup in the view
         $sections = \App\Models\PageSection::with('items')
@@ -287,7 +302,7 @@ class FrontendController extends Controller
 
         $teamMembers = \App\Models\TeamMember::active()->ordered()->get();
 
-        return view('about', compact('page', 'pageProtected', 'sections', 'teamMembers'));
+        return view('about', compact('page', 'pageProtected', 'sections', 'teamMembers', 'seo'));
     }
 
 //    public function topics()
@@ -342,7 +357,16 @@ class FrontendController extends Controller
             ->limit(5)
             ->pluck('subject');
 
-        return view('topics', compact('subjects', 'requestedTags'));
+        $subjectNames = $subjects->pluck('name')->take(5)->implode(', ');
+        $seo = app(SeoMetadata::class)->forPage(
+            'Physiotherapy Topics and Study Guides',
+            $subjectNames !== ''
+                ? 'Explore study topics across ' . $subjectNames . '.'
+                : 'Explore physiotherapy study topics and learning resources.',
+            $this->canonicalUrl('topics.index')
+        );
+
+        return view('topics', compact('subjects', 'requestedTags', 'seo'));
     }
 
     public function topicsByYear($yearSlug = null)
@@ -353,13 +377,27 @@ class FrontendController extends Controller
             ->get();
 
         $currentYear = $yearSlug
-            ? \App\Models\AcademicYear::where('slug', $yearSlug)
+            ? \App\Models\AcademicYear::where(function ($query) use ($yearSlug) {
+                $query->where('slug', $yearSlug)->orWhere('seo_slug', $yearSlug);
+            })
                 ->active()
                 ->firstOrFail()
             : null;
-        
+
+        if ($currentYear && $currentYear->seo_slug && $yearSlug !== $currentYear->seo_slug) {
+            return redirect()->route('topics.year', ['year' => $currentYear->seo_slug], 301);
+        }
 
         if (! $currentYear) {
+            $yearNames = $years->pluck('name')->implode(', ');
+            $seo = app(SeoMetadata::class)->forPage(
+                'Syllabus by Academic Year',
+                $yearNames !== ''
+                    ? 'Browse academic years: ' . $yearNames . '.'
+                    : 'Browse the PhysioSource curriculum by academic year.',
+                $this->canonicalUrl('topics.year')
+            );
+
             return view('topics-year', [
                 'years' => $years,
                 'currentYear' => null,
@@ -367,6 +405,7 @@ class FrontendController extends Controller
                 'curriculumSubjects' => collect(),
                 'subjectCount' => 0,
                 'topicCount' => 0,
+                'seo' => $seo,
             ]);
         }
 
@@ -400,6 +439,11 @@ class FrontendController extends Controller
         $curriculumSubjects = $this->getCurriculumSubjectsForYear(
             $currentYear
         );
+        $seo = app(SeoMetadata::class)->for(
+            $currentYear,
+            $currentYear->name,
+            $this->canonicalUrl('topics.year', ['year' => $currentYear->seo_slug ?: $currentYear->slug])
+        );
 
         return view('topics-year', compact(
             'years',
@@ -407,16 +451,24 @@ class FrontendController extends Controller
             'topics',
             'curriculumSubjects',
             'subjectCount',
-            'topicCount'
+            'topicCount',
+            'seo'
         ));
     }
 
     public function topicShow($slug)
     {
         $topic = \App\Models\Topic::with(['materials', 'subject', 'academicYear', 'semester', 'subtopics'])
-            ->where('slug', $slug)
+            ->where(function ($query) use ($slug) {
+                $query->where('slug', $slug)->orWhere('seo_slug', $slug);
+            })
             ->active()
             ->firstOrFail();
+
+        $preferredSlug = $topic->seo_slug ?: $topic->slug;
+        if ($slug !== $preferredSlug) {
+            return redirect()->route('topics.show', $preferredSlug, 301);
+        }
 
         $relatedTopics = \App\Models\Topic::active()
             ->where('subject_id', $topic->subject_id)
@@ -426,7 +478,21 @@ class FrontendController extends Controller
             ->get();
 
         $pageProtected = $topic->is_protected;
-        return view('topic', compact('topic', 'pageProtected', 'relatedTopics'));
+        $topic->loadMissing('unitTopic.unit');
+        $isPublicContent = $topic->subject?->status
+            && $topic->academicYear?->status
+            && $topic->unitTopic?->status
+            && $topic->unitTopic?->unit?->is_active;
+        $seo = app(SeoMetadata::class)->for(
+            $topic,
+            $topic->title,
+            $this->canonicalUrl('topics.show', ['slug' => $preferredSlug]),
+            $pageProtected || ! $isPublicContent
+        );
+        $seo['structured_data']['@type'] = 'LearningResource';
+        $seo['structured_data']['learningResourceType'] = 'Study guide';
+
+        return view('topic', compact('topic', 'pageProtected', 'relatedTopics', 'seo'));
     }
 
     public function examAidSearch(Request $request)
@@ -490,6 +556,13 @@ class FrontendController extends Controller
             ->where('enabled', true)
             ->orderBy('order')
             ->get();
+
+        $seo = app(SeoMetadata::class)->for(
+            $page,
+            $page->title,
+            $this->canonicalUrl('exam-aid'),
+            $page->is_protected
+        );
 
         $defaults = $this->examAidDefaultSections();
 
@@ -582,17 +655,32 @@ class FrontendController extends Controller
             'examPrepSettings',
             'examPrepCards',
             'examTopicsCount',
-            'examSubjectsCount'
+            'examSubjectsCount',
+            'seo'
         ));
     }
     public function examAidCategory(string $slug)
     {
         $category = \App\Models\ExamAidCategory::active()
-            ->where('slug', $slug)
+            ->where(function ($query) use ($slug) {
+                $query->where('slug', $slug)->orWhere('seo_slug', $slug);
+            })
             ->firstOrFail();
 
+        $preferredSlug = $category->seo_slug ?: $category->slug;
+        if ($slug !== $preferredSlug) {
+            return redirect()->route('exam-aid.category', $preferredSlug, 301);
+        }
+
         $examAidMaterials = $category->materials()
-            ->whereHas('examAid', fn ($query) => $query->where('status', 1))
+            ->whereHas('examAid', function ($query) {
+                $query->where('status', 1)
+                    ->whereHas('subject', fn ($subject) => $subject->where('status', true))
+                    ->where(function ($year) {
+                        $year->whereNull('academic_year_id')
+                            ->orWhereHas('academicYear', fn ($academicYear) => $academicYear->where('status', true));
+                    });
+            })
             ->with('examAid:id,title')
             ->get()
             ->each(function ($material) {
@@ -601,6 +689,16 @@ class FrontendController extends Controller
             });
 
         $topicMaterials = $category->learningMaterials()
+            ->whereHas('topic', function ($query) {
+                $query->active()
+                    ->where('is_protected', false)
+                    ->whereHas('subject', fn ($subject) => $subject->where('status', true))
+                    ->whereHas('academicYear', fn ($year) => $year->where('status', true))
+                    ->whereHas('unitTopic', function ($unitTopic) {
+                        $unitTopic->where('status', true)
+                            ->whereHas('unit', fn ($unit) => $unit->where('is_active', true));
+                    });
+            })
             ->with('topic:id,title')
             ->get()
             ->each(function ($material) {
@@ -625,7 +723,13 @@ class FrontendController extends Controller
 
         $categories = \App\Models\ExamAidCategory::active()->ordered()->get(['id', 'name', 'slug']);
 
-        return view('exam-aid-category', compact('category', 'materials', 'categories'));
+        $seo = app(SeoMetadata::class)->for(
+            $category,
+            $category->name,
+            $this->canonicalUrl('exam-aid.category', ['slug' => $preferredSlug])
+        );
+
+        return view('exam-aid-category', compact('category', 'materials', 'categories', 'seo'));
     }
 
     private function examAidHeroStats(): array
@@ -982,7 +1086,14 @@ class FrontendController extends Controller
     public function faq()
     {
         $faqs = FAQ::active()->ordered()->get();
-        return view('faq', compact('faqs'));
+        $firstFaq = $faqs->first();
+        $seo = app(SeoMetadata::class)->forPage(
+            'Frequently Asked Questions',
+            $firstFaq?->answer ?: 'Answers to common questions about PhysioSource and its learning resources.',
+            $this->canonicalUrl('faq')
+        );
+
+        return view('faq', compact('faqs', 'seo'));
     }
 
     public function contact()
@@ -994,9 +1105,15 @@ class FrontendController extends Controller
             ->orderBy('order')
             ->get()
             ->keyBy('slug');
-        $pageProtected = false;
+        $pageProtected = $page->is_protected;
+        $seo = app(SeoMetadata::class)->for(
+            $page,
+            $page->title,
+            $this->canonicalUrl('contact'),
+            $pageProtected
+        );
 
-        return view('contact', compact('page', 'sections', 'pageProtected'));
+        return view('contact', compact('page', 'sections', 'pageProtected', 'seo'));
     }
 
     public function contactSubmit(Request $request)
@@ -1015,9 +1132,28 @@ class FrontendController extends Controller
 
     public function dynamicPage($slug)
     {
-        $page = \App\Models\Page::where('slug', $slug)->active()->firstOrFail();
+        $page = \App\Models\Page::where(function ($query) use ($slug) {
+            $query->where('slug', $slug)->orWhere('seo_slug', $slug);
+        })->active()->firstOrFail();
+        $preferredSlug = $page->seo_slug ?: $page->slug;
+        if ($slug !== $preferredSlug) {
+            return redirect()->route('page.show', $preferredSlug, 301);
+        }
+
         $pageProtected = $page->is_protected;
-        return view('page', compact('page', 'pageProtected'));
+        $seo = app(SeoMetadata::class)->for(
+            $page,
+            $page->title,
+            $this->canonicalUrl('page.show', ['slug' => $preferredSlug]),
+            $pageProtected
+        );
+
+        return view('page', compact('page', 'pageProtected', 'seo'));
+    }
+
+    private function canonicalUrl(string $routeName, array $parameters = []): string
+    {
+        return rtrim(config('app.url'), '/') . route($routeName, $parameters, false);
     }
 
     public function downloadMaterial($id)

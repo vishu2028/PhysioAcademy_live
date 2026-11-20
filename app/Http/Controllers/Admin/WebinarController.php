@@ -67,7 +67,7 @@ class WebinarController extends Controller
         return back()->with('success','Registration updated.');
     }
     private function save(Webinar $webinar, Request $request): Webinar {
-        $data=$request->validate([
+        $rules = [
             'title'=>'required|string|max:255','subject'=>'nullable|string|max:255',
             'academic_year'=>'nullable|string|max:100','semester'=>'nullable|string|max:100',
             'description'=>'nullable|string','learning_objectives'=>'nullable|string',
@@ -77,7 +77,8 @@ class WebinarController extends Controller
             'meeting_link'=>'nullable|url|max:2048','capacity'=>'nullable|integer|min:1',
             'registration_deadline'=>'nullable|date|before:starts_at','price'=>'required|numeric|min:0',
             'currency'=>'required|string|size:3','status'=>['required',Rule::in(['draft','published','registration_closed','completed','cancelled'])],
-        ]);
+        ];
+        $data = $request->validate($rules);
         if ($request->status === 'published' && blank($request->meeting_link)) {
             abort(422, 'A published webinar must have a meeting link.');
         }

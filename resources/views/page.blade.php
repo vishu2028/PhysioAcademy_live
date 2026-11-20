@@ -1,6 +1,6 @@
 @extends('layouts.frontend')
 
-@section('title', brand_text($page->meta_title ?: $page->title))
+@section('title', brand_text($page->title))
 
 @push('styles')
 <style>

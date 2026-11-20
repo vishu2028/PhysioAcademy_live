@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\AboutContentController;
 use App\Http\Controllers\Admin\AboutController;
 use App\Http\Controllers\Admin\ExamAidBannerController;
 use App\Http\Controllers\SupportPageController;
+use App\Http\Controllers\SitemapController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +36,17 @@ Route::get(
     '/',
     [FrontendController::class, 'home']
 )->name('home');
+
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
+Route::get('/robots.txt', function () {
+    $siteUrl = rtrim(config('app.url'), '/');
+
+    return response(
+        "User-agent: *\nDisallow: /admin/\nDisallow: /api/\nDisallow: /dashboard\nDisallow: /bookmarks\nDisallow: /download/\nDisallow: /my-\nDisallow: /follow-ups\nSitemap: {$siteUrl}/sitemap.xml\n",
+        200,
+        ['Content-Type' => 'text/plain; charset=UTF-8']
+    );
+})->name('robots');
 
 Route::get(
     '/about',
@@ -124,7 +136,7 @@ Route::get(
 )->defaults('slug', 'terms-and-conditions')->name('support.terms');
 
 Route::get('/webinars', [WebinarController::class, 'index'])->name('webinars.index');
-Route::get('/webinars/{webinar:slug}', [WebinarController::class, 'show'])->name('webinars.show');
+Route::get('/webinars/{webinar}', [WebinarController::class, 'show'])->name('webinars.show');
 Route::get('/group-webinars/invitations/{token}', [GroupWebinarBookingController::class, 'invitation'])
     ->middleware('throttle:30,1')
     ->name('group-webinars.invitation');
@@ -667,8 +679,6 @@ Route::middleware([
             ->whereNumber('followUp')
             ->name('doubt-session-bookings.follow-ups.update');
 
-        Route::get('follow-ups', [\App\Http\Controllers\Admin\FollowUpController::class, 'index'])
-            ->name('follow-ups.index');
         Route::get('follow-ups/{followUp}', [\App\Http\Controllers\Admin\FollowUpController::class, 'show'])
             ->whereNumber('followUp')
             ->name('follow-ups.show');

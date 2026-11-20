@@ -6,6 +6,7 @@ use App\Models\Webinar;
 use App\Models\WebinarRegistration;
 use App\Services\RazorpayService;
 use App\Services\CouponService;
+use App\Services\SeoMetadata;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -28,10 +29,24 @@ class WebinarController extends Controller
             ->orderBy('starts_at')
             ->paginate(12);
 
-        return view('webinars.index', compact('webinars'));
+        $featuredWebinar = $webinars->first();
+        $seo = app(SeoMetadata::class)->forPage(
+            'Physiotherapy Webinars',
+            $featuredWebinar?->description ?: 'Explore upcoming physiotherapy webinars and learning sessions.',
+            rtrim(config('app.url'), '/') . route('webinars.index', [], false)
+        );
+
+        return view('webinars.index', compact('webinars', 'seo'));
     }
-    public function show(Webinar $webinar) {
+    public function show(string $webinarSlug) {
+        $webinar = Webinar::query()
+            ->where(fn ($query) => $query->where('slug', $webinarSlug)->orWhere('seo_slug', $webinarSlug))
+            ->firstOrFail();
         abort_unless($webinar->status === 'published', 404);
+        $preferredSlug = $webinar->seo_slug ?: $webinar->slug;
+        if ($webinarSlug !== $preferredSlug) {
+            return redirect()->route('webinars.show', ['webinar' => $preferredSlug], 301);
+        }
         $webinar->loadCount(['registrations as active_registrations_count' => fn ($query) => $query
             ->whereIn('registration_status', [
                 WebinarRegistration::STATUS_PENDING,
@@ -39,8 +54,13 @@ class WebinarController extends Controller
             ])]);
         $registration = auth()->user()?->webinarRegistrations()->where('webinar_id',$webinar->id)->first();
         $registrationOpen = $webinar->registrationIsOpen();
+        $canonicalUrl = rtrim(config('app.url'), '/') . route('webinars.show', ['webinar' => $preferredSlug], false);
+        $seo = app(SeoMetadata::class)->for($webinar, $webinar->title, $canonicalUrl);
+        $seo['structured_data']['startDate'] = $webinar->starts_at?->toAtomString();
+        $seo['structured_data']['endDate'] = $webinar->ends_at?->toAtomString();
+        $seo['structured_data']['eventAttendanceMode'] = 'https://schema.org/OnlineEventAttendanceMode';
 
-        return view('webinars.show', compact('webinar', 'registration', 'registrationOpen'));
+        return view('webinars.show', compact('webinar', 'registration', 'registrationOpen', 'seo'));
     }
     public function myWebinars(Request $request) {
         $registrations = $request->user()->webinarRegistrations()->with('webinar')->latest()->paginate(12);

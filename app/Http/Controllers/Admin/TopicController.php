@@ -133,7 +133,20 @@ class TopicController extends Controller
 
         $unitTopic = UnitTopic::findOrFail($request->unit_topic_id);
 
-        $data = $request->except('materials', 'unit_id');
+        $data = $request->except([
+            'materials',
+            'unit_id',
+            'seo_title',
+            'meta_description',
+            'meta_keywords',
+            'seo_slug',
+            'canonical_url',
+            'og_title',
+            'og_description',
+            'og_image',
+            'robots_index',
+            'robots_follow',
+        ]);
 
         $data['title'] = $unitTopic->title;
         $data['slug'] = Str::slug($unitTopic->title . '-' . time());
@@ -286,7 +299,20 @@ class TopicController extends Controller
 
         $unitTopic = UnitTopic::findOrFail($request->unit_topic_id);
 
-        $data = $request->except('materials', 'unit_id');
+        $data = $request->except([
+            'materials',
+            'unit_id',
+            'seo_title',
+            'meta_description',
+            'meta_keywords',
+            'seo_slug',
+            'canonical_url',
+            'og_title',
+            'og_description',
+            'og_image',
+            'robots_index',
+            'robots_follow',
+        ]);
 
         $data['title'] = $unitTopic->title;
         $data['slug'] = Str::slug($unitTopic->title . '-' . $topic->id);

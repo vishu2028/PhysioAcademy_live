@@ -39,7 +39,7 @@
                             @endif
                         </p>
                     </div>
-                    <a class="btn btn-outline-primary mt-auto" href="{{ route('webinars.show',$webinar) }}">View webinar</a>
+                    <a class="btn btn-outline-primary mt-auto" href="{{ route('webinars.show', ['webinar' => $webinar->seo_slug ?: $webinar->slug]) }}">View webinar</a>
                 </div>
             </div>
         @empty

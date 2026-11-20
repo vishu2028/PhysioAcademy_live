@@ -4,8 +4,27 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 class Webinar extends Model
 {
-    protected $fillable = ['title','slug','subject','academic_year','semester','description','learning_objectives','speaker','starts_at','ends_at','duration_minutes','timezone','meeting_platform','meeting_link','capacity','price','currency','is_free','status','published_at','registration_deadline'];
-    protected function casts(): array { return ['starts_at'=>'datetime','ends_at'=>'datetime','published_at'=>'datetime','registration_deadline'=>'datetime','price'=>'decimal:2','is_free'=>'boolean']; }
+    protected $fillable = [
+        'title','slug','subject','academic_year','semester','description','learning_objectives','speaker',
+        'starts_at','ends_at','duration_minutes','timezone','meeting_platform','meeting_link','capacity',
+        'price','currency','is_free','status','published_at','registration_deadline',
+        'seo_title','meta_description','meta_keywords','seo_slug','canonical_url','og_title',
+        'og_description','og_image','robots_index','robots_follow',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
+            'published_at' => 'datetime',
+            'registration_deadline' => 'datetime',
+            'price' => 'decimal:2',
+            'is_free' => 'boolean',
+            'robots_index' => 'boolean',
+            'robots_follow' => 'boolean',
+        ];
+    }
     public function registrations(): HasMany { return $this->hasMany(WebinarRegistration::class); }
     public function scopePublished($query) { return $query->where('status','published')->where(function ($q) { $q->whereNull('starts_at')->orWhere('starts_at','>=',now()->subDay()); })->where(function ($q) { $q->whereNull('registration_deadline')->orWhere('registration_deadline','>',now()); }); }
     public function scopeRegistrationOpen($query)

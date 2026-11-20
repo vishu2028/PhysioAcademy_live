@@ -79,7 +79,7 @@
             <h1 class="doubt-library-heading">My Doubts</h1>
 
             <header class="doubt-library-banner">
-                <h2>Community Doubts &amp; Follow-ups</h2>
+                <h2>Community Doubts &amp; Discussions</h2>
                 <p>Explore public doubts, add follow-ups, and follow the conversations you care about.</p>
             </header>
 

@@ -26,12 +26,24 @@ class Topic extends Model
         'order',
         'study_time',
         'is_protected',
+        'seo_title',
+        'meta_description',
+        'meta_keywords',
+        'seo_slug',
+        'canonical_url',
+        'og_title',
+        'og_description',
+        'og_image',
+        'robots_index',
+        'robots_follow',
     ];
 
     protected $casts = [
         'status' => 'boolean',
         'is_trending' => 'boolean',
         'is_protected' => 'boolean',
+        'robots_index' => 'boolean',
+        'robots_follow' => 'boolean',
     ];
 
     public function parentTopic()

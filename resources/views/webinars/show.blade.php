@@ -27,7 +27,7 @@
 <section class="coupon-entry-card mb-3"><h3>Apply Coupon</h3><div class="input-group"><input id="webinarCouponInput" class="form-control text-uppercase" maxlength="64" placeholder="Enter coupon code"><button id="webinarCouponApply" class="btn btn-outline-primary" type="button">Apply</button></div><input type="hidden" name="coupon_code" id="webinarCouponCode" value="{{ old('coupon_code') }}"><p id="webinarCouponMessage" class="small mt-2 mb-0" role="status" aria-live="polite"></p><div id="webinarCouponBreakdown" class="mt-2" hidden><div>Original price: <strong id="webinarCouponOriginal"></strong></div><div>Applied coupon: <strong id="webinarCouponApplied"></strong></div><div>Discount type: <strong id="webinarCouponType"></strong></div><div>Discount amount: <strong id="webinarCouponDiscount"></strong></div><div>Final payable: <strong id="webinarCouponFinal"></strong></div><button id="webinarCouponRemove" class="btn btn-link btn-sm px-0" type="button">Remove coupon</button></div></section>
 @endif
 <button class="btn btn-primary" type="submit">{{ $webinar->isPaid() ? 'Continue to payment' : 'Register now' }}</button></form>
-@else<a class="btn btn-primary" href="{{ route('login', ['redirect' => route('webinars.show', $webinar)]) }}">Login to register</a>@endif</div></div>
+@else<a class="btn btn-primary" href="{{ route('login', ['redirect' => route('webinars.show', ['webinar' => $webinar->seo_slug ?: $webinar->slug])]) }}">Login to register</a>@endif</div></div>
 @if($webinar->isPaid())
 <style>.coupon-entry-card{padding:18px;border:1px solid rgba(0,74,173,.16);border-radius:16px;background:#f7faff}.coupon-entry-card h3{font-size:1rem;font-weight:800;color:#0f172a}.coupon-entry-card strong{color:#004AAD}</style>
 <script>

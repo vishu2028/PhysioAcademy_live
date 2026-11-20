@@ -26,13 +26,23 @@ class PageController extends Controller
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:pages,slug',
             'content' => 'required|string',
-            'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string|max:500',
             'status' => 'boolean',
             'is_protected' => 'nullable|boolean',
         ]);
 
-        $data = $request->all();
+        $data = $request->except([
+            'seo_title',
+            'meta_title',
+            'meta_description',
+            'meta_keywords',
+            'seo_slug',
+            'canonical_url',
+            'og_title',
+            'og_description',
+            'og_image',
+            'robots_index',
+            'robots_follow',
+        ]);
         $data['slug'] = $request->slug ?: Str::slug($request->title);
         $data['status'] = $request->input('status', 1);
         $data['is_protected'] = $request->has('is_protected');
@@ -53,13 +63,23 @@ class PageController extends Controller
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:pages,slug,' . $page->id,
             'content' => 'required|string',
-            'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string|max:500',
             'status' => 'boolean',
             'is_protected' => 'nullable|boolean',
         ]);
 
-        $data = $request->all();
+        $data = $request->except([
+            'seo_title',
+            'meta_title',
+            'meta_description',
+            'meta_keywords',
+            'seo_slug',
+            'canonical_url',
+            'og_title',
+            'og_description',
+            'og_image',
+            'robots_index',
+            'robots_follow',
+        ]);
         $data['slug'] = $request->slug ?: Str::slug($request->title);
         $data['status'] = $request->input('status', 1);
         $data['is_protected'] = $request->has('is_protected');

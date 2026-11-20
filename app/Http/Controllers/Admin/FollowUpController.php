@@ -12,18 +12,6 @@ use Illuminate\View\View;
 
 class FollowUpController extends Controller
 {
-    public function index(): View
-    {
-        $threads = DoubtSessionFollowUp::query()
-            ->whereNull('parent_id')
-            ->with(['user', 'booking.user'])
-            ->withCount('threadMessages')
-            ->latest('created_at')
-            ->paginate(20);
-
-        return view('admin.follow-ups.index', compact('threads'));
-    }
-
     public function show(int $followUp): View
     {
         $thread = DoubtSessionFollowUp::query()

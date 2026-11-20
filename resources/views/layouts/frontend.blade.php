@@ -5,7 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ brand_text($__env->yieldContent('title', get_setting('site_name', 'PhysioSource'))) }} — Your Academic Guide from PhysioSource</title>
+    @php
+        $seoTitle = $seo['title'] ?? brand_text($__env->yieldContent('title', get_setting('site_name', 'PhysioSource')));
+        $seoDescription = $seo['description'] ?? 'Explore ' . $seoTitle . ' on PhysioSource.';
+        $seoCanonical = $seo['canonical'] ?? (
+            rtrim(config('app.url'), '/') . '/' . ltrim(request()->getPathInfo(), '/')
+        );
+        $seoRobots = $seo['robots'] ?? (
+            !empty($pageProtected) || auth()->check()
+                ? 'noindex, nofollow'
+                : 'index, follow'
+        );
+        $seoImagePath = get_setting('site_og_image') ?: get_setting('site_logo');
+        $seoImage = $seo['og_image'] ?? app(\App\Services\SeoMetadata::class)->imageUrl($seoImagePath);
+    @endphp
+    <title>{{ $seoTitle }}{{ isset($seo['title']) ? ' — ' . brand_text(get_setting('site_name', 'PhysioSource')) : ' — Your Academic Guide from PhysioSource' }}</title>
+    <meta name="description" content="{{ $seoDescription }}">
+    @if(!empty($seo['keywords']))
+        <meta name="keywords" content="{{ $seo['keywords'] }}">
+    @endif
+    <meta name="robots" content="{{ $seoRobots }}">
+    @if($seoCanonical)
+        <link rel="canonical" href="{{ $seoCanonical }}">
+    @endif
+    <meta property="og:type" content="{{ $seo['og_type'] ?? 'website' }}">
+    <meta property="og:title" content="{{ $seo['og_title'] ?? $seoTitle }}">
+    <meta property="og:description" content="{{ $seo['og_description'] ?? $seoDescription }}">
+    @if($seoCanonical)
+        <meta property="og:url" content="{{ $seoCanonical }}">
+    @endif
+    @if($seoImage)
+        <meta property="og:image" content="{{ $seoImage }}">
+    @endif
+    <meta name="twitter:card" content="{{ $seo['twitter_card'] ?? ($seoImage ? 'summary_large_image' : 'summary') }}">
+    <meta name="twitter:title" content="{{ $seo['og_title'] ?? $seoTitle }}">
+    <meta name="twitter:description" content="{{ $seo['og_description'] ?? $seoDescription }}">
+    @if($seoImage)
+        <meta name="twitter:image" content="{{ $seoImage }}">
+    @endif
+    @if(!empty($seo['structured_data']))
+        <script type="application/ld+json">@json($seo['structured_data'])</script>
+    @endif
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

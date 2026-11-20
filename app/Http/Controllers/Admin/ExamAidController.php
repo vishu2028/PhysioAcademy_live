@@ -115,7 +115,7 @@ class ExamAidController extends Controller
 
     private function rules()
     {
-        return [
+        $rules = [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
 
@@ -138,6 +138,8 @@ class ExamAidController extends Controller
             'materials.*.content' => ['nullable', 'string'],
             'materials.*.existing_file_path' => ['nullable', 'string'],
         ];
+
+        return $rules;
     }
 
     private function examAidData(array $validated, Request $request)

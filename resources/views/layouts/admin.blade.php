@@ -527,9 +527,6 @@
                         <span class="badge bg-danger ms-auto rounded-pill">{{ $pendingDoubts }}</span>
                     @endif
                 </a>
-                <a href="{{ route('admin.follow-ups.index') }}" class="nav-link-admin @if(request()->routeIs('admin.follow-ups.*')) active @endif">
-                    <i class="bi bi-chat-dots"></i> Follow-up Discussions
-                </a>
                 @php
                     $pendingTopicRequests = \App\Models\TopicRequest::where('status', \App\Models\TopicRequest::STATUS_PENDING)->count();
                 @endphp
@@ -594,7 +591,7 @@
                         <i class="bi bi-chevron-right sidebar-help-chevron" aria-hidden="true"></i>
                     </button>
                     <div class="collapse sidebar-help-submenu @if(request()->routeIs('admin.help.*')) show @endif" id="adminHelpDropdown">
-                        <a href="{{ route('admin.help.support-ticket') }}" class="nav-link-admin sidebar-help-link @if(request()->routeIs('admin.help.support-ticket')) active @endif">
+                        <a href="{{ route('admin.help.support-ticket') }}" class="nav-link-admin sidebar-help-link @if(request()->routeIs('admin.help.support-ticket*')) active @endif">
                             Support Ticket
                         </a>
                         <a href="{{ route('admin.help.subscription') }}" class="nav-link-admin sidebar-help-link @if(request()->routeIs('admin.help.subscription')) active @endif">
@@ -720,6 +717,34 @@
 
             // Toastr
             toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right" };
+
+            const scrollHelpIntoView = function() {
+                const sidebar = document.getElementById("sidebar-wrapper");
+                const helpSection = document.querySelector(".sidebar-help-section");
+                const stickyBrand = document.querySelector(".sidebar-brand");
+
+                if (!sidebar || !helpSection || !stickyBrand) {
+                    return;
+                }
+
+                const sidebarRect = sidebar.getBoundingClientRect();
+                const sectionRect = helpSection.getBoundingClientRect();
+                const targetTop = sidebar.scrollTop + sectionRect.top - sidebarRect.top - stickyBrand.offsetHeight;
+                const maxScrollTop = sidebar.scrollHeight - sidebar.clientHeight;
+
+                sidebar.scrollTo({
+                    top: Math.max(0, Math.min(targetTop, maxScrollTop)),
+                    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+                });
+            };
+
+            $("#adminHelpDropdown").on("shown.bs.collapse", function() {
+                requestAnimationFrame(scrollHelpIntoView);
+            });
+
+            if ($("#adminHelpDropdown").hasClass("show")) {
+                requestAnimationFrame(scrollHelpIntoView);
+            }
 
             // Sidebar Toggle (responsive)
             const setSidebarOpen = function(isOpen) {

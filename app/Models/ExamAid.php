@@ -18,10 +18,22 @@ class ExamAid extends Model
         'viva_question',
         'exam_question',
         'status',
+        'seo_title',
+        'meta_description',
+        'meta_keywords',
+        'seo_slug',
+        'canonical_url',
+        'og_title',
+        'og_description',
+        'og_image',
+        'robots_index',
+        'robots_follow',
     ];
 
     protected $casts = [
         'status' => 'boolean',
+        'robots_index' => 'boolean',
+        'robots_follow' => 'boolean',
     ];
 
     public function subject()

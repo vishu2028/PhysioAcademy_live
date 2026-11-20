@@ -636,12 +636,12 @@ class SiteSearch
             ->when(! auth()->check(), fn (Builder $pages) => $pages->where('is_protected', false));
 
         $this->whereTerms($query, $terms, function (Builder $match, string $term): void {
-            $this->columns($match, 'pages', ['title', 'meta_title', 'meta_description'], $term);
+            $this->columns($match, 'pages', ['title'], $term);
+            $match->orWhereRaw(
+                "LOWER(COALESCE(pages.content, '')) LIKE ?",
+                ['%' . $term . '%']
+            );
             if (auth()->check()) {
-                $match->orWhereRaw(
-                    "LOWER(COALESCE(pages.content, '')) LIKE ?",
-                    ['%' . $term . '%']
-                );
                 $match->orWhereHas('sections', function (Builder $section) use ($term): void {
                     $section->where('enabled', true)->where(function (Builder $sectionMatch) use ($term): void {
                         $this->columns($sectionMatch, 'page_sections', ['name', 'slug', 'type'], $term);
@@ -670,12 +670,12 @@ class SiteSearch
                 $page->id,
                 $page->title,
                 'Published Page',
-                $page->meta_description ?: (auth()->check() ? $page->content : null),
+                $page->content,
                 $page->url,
                 null,
                 null,
                 $page->title,
-                auth()->check() ? ($page->content ?: $page->meta_description) : $page->meta_description,
+                $page->content,
                 $search
             ));
     }
@@ -701,7 +701,7 @@ class SiteSearch
                 $webinar->title,
                 'Webinar',
                 $webinar->description ?: $webinar->learning_objectives,
-                route('webinars.show', ['webinar' => $webinar->slug]),
+                route('webinars.show', ['webinar' => $webinar->seo_slug ?: $webinar->slug]),
                 $webinar->subject ? ['name' => $webinar->subject] : null,
                 $webinar->academic_year ? ['name' => $webinar->academic_year] : null,
                 $webinar->title,
