@@ -11,10 +11,35 @@ use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('roles')->get();
-        return view('admin.users.index', compact('users'));
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'direction' => ['nullable', 'in:asc,desc'],
+        ]);
+        $search = trim($validated['search'] ?? '');
+        $direction = $validated['direction'] ?? 'desc';
+
+        $users = User::query()
+            ->with('roles')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhereHas('roles', fn ($roles) => $roles->where('name', 'like', '%' . $search . '%'));
+                });
+            })
+            ->orderBy('created_at', $direction)
+            ->orderBy('id', $direction)
+            ->paginate(10)
+            ->withQueryString();
+
+        $joinedDateSortUrl = route('admin.users.index', array_filter([
+            'search' => $search !== '' ? $search : null,
+            'direction' => $direction === 'asc' ? 'desc' : 'asc',
+        ], fn ($value) => $value !== null));
+
+        return view('admin.users.index', compact('users', 'search', 'direction', 'joinedDateSortUrl'));
     }
 
     public function create()
